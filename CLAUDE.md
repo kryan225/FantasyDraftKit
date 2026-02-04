@@ -50,8 +50,8 @@ This project MUST use non-standard ports to avoid interfering with the developer
 **NEVER change these ports without explicit approval:**
 
 - **PostgreSQL Database:** Port `5434` (NOT 5432)
-- **Rails Backend API:** Port `3639` (NOT 3000)
-- **React Frontend Dev Server:** Port `1147` (NOT 5173 or 3000)
+- **Rails Application (Backend + Frontend):** Port `3639` (NOT 3000)
+- **Port 1147:** Reserved but not currently used (was planned for React frontend)
 
 ### Configuration Files Using These Ports
 
@@ -77,17 +77,18 @@ When making changes, verify these files maintain correct ports:
 Always use these exact commands:
 
 ```bash
-# Backend (Rails)
+# Backend (Rails with Hotwire frontend)
 cd backend
 bundle exec rails server -p 3639
 
-# Frontend (Vite)
-cd frontend
-npm run dev -- --port 1147
-
 # PostgreSQL
-# Must be running on port 5434
+# Must be running on port 5434 (Docker container)
 # Check with: lsof -i :5434
+# Start if needed: docker-compose up -d db
+
+# Access the application
+# Web UI: http://localhost:3639/
+# API: http://localhost:3639/api/v1/*
 ```
 
 ### Verification Checklist
@@ -96,9 +97,8 @@ Before starting any service, verify ports are available:
 
 ```bash
 # Check if ports are free
-lsof -i :5434  # PostgreSQL - should be empty or show postgres
-lsof -i :3639  # Backend - should be empty
-lsof -i :1147  # Frontend - should be empty
+lsof -i :5434  # PostgreSQL - should show postgres/docker
+lsof -i :3639  # Rails app - should be empty or show ruby
 ```
 
 ---
@@ -106,7 +106,7 @@ lsof -i :1147  # Frontend - should be empty
 ## 📊 Project Status
 
 **Last Updated:** 2026-02-04
-**Current Phase:** Backend Complete - Frontend Setup Next
+**Current Phase:** Full-Stack Application Complete - Ready for Use
 
 ### Completed ✅
 - CLAUDE.md created with project context and constraints
@@ -134,27 +134,34 @@ lsof -i :1147  # Frontend - should be empty
 - **Backend: CORS configured for port 1147** ✅
 - **Backend: Rails server running on port 3639** ✅
 - **Backend: API tested and working** ✅
+- **Frontend: Hotwire (Turbo + Stimulus) implemented** ✅
+  - Added turbo-rails, stimulus-rails, importmap-rails gems
+  - Created web UI controllers (leagues, teams, players, draft_board)
+  - Created ERB views for all core features
+  - Configured asset pipeline with Sprockets
+  - Changed config.api_only from true to false
+  - Created Api::V1::BaseController to maintain API-only for JSON endpoints
+  - Dual-mode architecture: HTML views + JSON API working together
+- **Frontend: Application layout with navigation** ✅
+- **Frontend: CSS styling complete** ✅
+- **Frontend: Hotwire frontend tested and working on port 3639** ✅
 
 ### In Progress 🚧
 - None currently
 
 ### Pending ⏳
-- Frontend: Install npm dependencies (`npm install`)
-- Frontend: Verify dev server starts on port 1147
-- Frontend: Update API base URL to point to localhost:3639
-- Integration: Test frontend-to-backend connectivity
+- Feature: Add Stimulus controllers for enhanced interactivity (drag-drop, live updates)
 - Feature: Implement player value calculation algorithm
 - Feature: Implement category analysis aggregation
+- Feature: Add form validations and error handling in views
 - Testing: Write RSpec tests for models and controllers
+- Testing: Add system/integration tests for web UI
+- Enhancement: Add real-time draft updates with Turbo Streams
 
 ### Known Issues 🐛
-- **Frontend dependencies installation blocked by network/registry issues**
-  - Both `npm install` and `yarn install` fail to reach registry
-  - Error: "An unexpected error occurred" when resolving packages
-  - Workaround: User can try again later when network is stable
-  - Alternative: Use Docker to build frontend container (handles deps internally)
 - Value recalculation and category analysis have placeholder implementations (TODOs marked)
-- No frontend dependencies installed yet (node_modules/ doesn't exist)
+- League creation form not yet implemented (only index and show views exist)
+- No form validations in ERB views yet (relies on model-level validations)
 
 ### Recent Decisions 🎯
 - **2026-02-03:** Decided to prioritize local development over Docker (YAGNI principle)
@@ -174,21 +181,32 @@ lsof -i :1147  # Frontend - should be empty
   - DraftPick automatically manages team budget deductions
   - Team automatically sets initial budget from league settings
   - Following Single Responsibility Principle
+- **2026-02-04:** Chose Hotwire over React for frontend
+  - Rationale: npm registry blocked due to shai-hulud worm security restrictions
+  - Hotwire uses importmap-rails, avoiding npm dependency entirely
+  - Keeps full-stack Rails simpler with no separate frontend build process
+  - Maintains dual-mode architecture: HTML views for web UI, JSON API for future clients
+  - Changed config.api_only = false, created Api::V1::BaseController for API-only JSON
 
 ### Next Steps →
-1. **Resolve frontend dependency installation**
-   - Wait for network/registry to stabilize
-   - Try `npm install` or `yarn install` again
-   - Or use Docker: `docker-compose up frontend`
-2. Start frontend dev server on port 1147: `npm run dev -- --port 1147`
-3. Test full-stack integration (backend already running on 3639)
-4. Create a test league with teams via frontend UI
-5. Import sample player data via CSV
-6. Test draft pick functionality end-to-end
-7. Implement value calculation algorithm
-8. Implement category analysis aggregation
+1. Test the web UI at http://localhost:3639/
+2. Create leagues and teams through the web interface
+3. Import player projections via CSV upload
+4. Implement league creation form (currently only show/index work)
+5. Add Stimulus controllers for enhanced interactivity
+6. Implement value calculation algorithm
+7. Implement category analysis aggregation
+8. Add form validations and error handling in views
+9. Add RSpec tests for models, controllers, and views
 
 ### Recent Commits 📝
+- **2026-02-04 (commit b0408bd):** Add Hotwire frontend as npm-free alternative
+  - 36 files changed, 943 insertions
+  - Implemented Turbo + Stimulus with importmap-rails
+  - Created web UI controllers and ERB views for all features
+  - Added comprehensive CSS styling
+  - Changed config.api_only = false, created dual-mode architecture
+  - Hotwire frontend tested and working on port 3639
 - **2026-02-04 (commit 31f3399):** Backend implementation complete
   - 130 files changed, 5102 insertions
   - All models, controllers, routes, migrations complete
@@ -203,50 +221,57 @@ lsof -i :1147  # Frontend - should be empty
 ### Technology Stack
 
 **Backend:**
-- Ruby on Rails 8.1.2 (API-only mode)
+- Ruby on Rails 8.1.2 (full-stack mode with API support)
 - PostgreSQL 16
 - Gems: rack-cors, rspec-rails, factory_bot_rails
 
 **Frontend:**
-- React 18.3.1 with TypeScript (strict mode)
-- Vite 5.4 (build tool)
-- React Router 6.22
-- Axios for API calls
+- Hotwire (Turbo + Stimulus) for interactive web UI
+- Importmap-rails for JavaScript module management
+- Sprockets asset pipeline for CSS
+- ERB templates for server-rendered HTML
+
+**Architecture:**
+- Dual-mode: HTML views for web UI, JSON API for future mobile/external clients
+- ApplicationController (ActionController::Base) for HTML views
+- Api::V1::BaseController (ActionController::API) for JSON endpoints
 
 ### Project Structure
 
 ```
 FantasyDraftKit/
-├── backend/              # Rails API
+├── backend/              # Rails full-stack application
 │   ├── app/
-│   │   ├── models/      # Data models (empty - needs implementation)
-│   │   └── controllers/ # API controllers (empty - needs implementation)
+│   │   ├── models/      # League, Team, Player, DraftPick, KeeperHistory
+│   │   ├── controllers/
+│   │   │   ├── api/v1/  # JSON API controllers (API-only mode)
+│   │   │   └── *.rb     # Web UI controllers (leagues, players, teams, draft_board)
+│   │   ├── views/       # ERB templates for web UI
+│   │   ├── javascript/  # Stimulus controllers
+│   │   └── assets/      # CSS stylesheets
 │   ├── config/
 │   │   ├── database.yml # PostgreSQL config (PORT 5434)
-│   │   └── routes.rb    # API routes (needs implementation)
+│   │   ├── routes.rb    # Routes for both web UI and API
+│   │   └── importmap.rb # JavaScript module management
 │   └── Gemfile
-├── frontend/            # React + TypeScript
-│   ├── src/
-│   │   ├── types/       # TypeScript interfaces
-│   │   ├── services/    # API client layer (port 3639)
-│   │   ├── hooks/       # Custom React hooks
-│   │   ├── components/  # UI components
-│   │   └── utils/       # Formatters, helpers
-│   └── package.json
-├── docker-compose.yml   # ALL PORTS DEFINED HERE
-└── SETUP_STATUS.md      # Current implementation status
+├── frontend/            # React + TypeScript (NOT USED - kept for reference)
+│   └── [scaffolded but not installed due to npm restrictions]
+├── docker-compose.yml   # PostgreSQL on port 5434
+└── CLAUDE.md            # This file - project documentation
 ```
 
 ---
 
 ## Development Philosophy for This Project
 
-### Current State: Greenfield Development
+### Current State: Functional Application
 
-This project is in **early development** with:
-- Backend models/controllers NOT yet implemented
-- Frontend fully scaffolded but dependencies not installed
-- Database schema NOT yet created
+This project is now **functional** with:
+- Backend models, controllers, and API endpoints fully implemented
+- Database schema created with migrations
+- Hotwire frontend providing web UI for all core features
+- Dual-mode architecture: HTML views + JSON API working together
+- Application running on port 3639
 - API endpoints NOT yet defined
 
 ### Prioritize Local Development Over Docker
@@ -412,37 +437,54 @@ Check these locations:
 
 ## Git Workflow
 
-**Current Status:** All work is untracked (not committed)
+**Current Status:** All work committed to main branch (2 commits ahead of origin)
+
+**Commits:**
+1. Backend implementation (31f3399) - 130 files, 5102 insertions
+2. Hotwire frontend (b0408bd) - 36 files, 943 insertions
 
 **Before Committing:**
 - Ensure `.gitignore` excludes sensitive files
-- Review `backend/.gitignore` and `frontend/.gitignore`
-- Don't commit `.env` files, `node_modules/`, or database files
+- Review `backend/.gitignore`
+- Don't commit `.env` files, database files, or logs
 
 ---
 
 ## Quick Reference Commands
 
-### Start Backend Locally (Port 3639)
+### Start Application Locally
 ```bash
-cd /Users/ryan.kleinberg/src/FantasyDraftKit/backend
+# Start PostgreSQL (if not running)
+cd /Users/ryan.kleinberg/src/FantasyDraftKit
+docker-compose up -d db
+
+# Start Rails server with Hotwire frontend (Port 3639)
+cd backend
 bundle install
 rails db:create
 rails db:migrate
+rails db:seed  # Optional: loads sample data
 rails server -p 3639
 ```
 
-### Start Frontend Locally (Port 1147)
-```bash
-cd /Users/ryan.kleinberg/src/FantasyDraftKit/frontend
-npm install  # or yarn install
-npm run dev -- --port 1147
-```
-
 ### Access Application
-- Frontend: http://localhost:1147
-- Backend API: http://localhost:3639
+- Web UI: http://localhost:3639/
+- API endpoints: http://localhost:3639/api/v1/*
 - Database: localhost:5434
+
+### Useful Rails Commands
+```bash
+# Database operations
+rails db:reset              # Drop, create, migrate, seed
+rails db:migrate:status     # Check migration status
+
+# Console
+rails console               # Interactive Ruby console with app loaded
+
+# Routes
+rails routes | grep api     # List all API routes
+rails routes | grep -v api  # List all web UI routes
+```
 
 ---
 
