@@ -1,0 +1,100 @@
+<div class="mb-2">
+  <%= link_to "← Back to League", league_path(@league), class: "btn btn-sm" %>
+</div>
+
+<div class="card mb-3">
+  <h2 class="card-title"><%= @league.name %> - Draft Board</h2>
+  <p class="text-muted">
+    <%= @draft_picks.count %> picks made •
+    <%= @available_players.count %> available players shown
+  </p>
+</div>
+
+<div class="grid" style="grid-template-columns: 2fr 1fr; gap: 1rem;">
+  <!-- Draft History -->
+  <div class="card">
+    <h3 class="card-title">Draft Picks</h3>
+    <% if @draft_picks.any? %>
+      <div style="max-height: 600px; overflow-y: auto;">
+        <table>
+          <thead>
+            <tr>
+              <th>#</th>
+              <th>Player</th>
+              <th>Team</th>
+              <th>Price</th>
+              <th>Type</th>
+            </tr>
+          </thead>
+          <tbody id="draft-picks">
+            <% @draft_picks.each do |pick| %>
+              <tr>
+                <td><%= pick.pick_number %></td>
+                <td>
+                  <strong><%= pick.player.name %></strong>
+                  <br>
+                  <small class="text-muted"><%= pick.player.positions %> - <%= pick.player.mlb_team %></small>
+                </td>
+                <td><%= pick.team.name %></td>
+                <td><strong>$<%= pick.price %></strong></td>
+                <td>
+                  <% if pick.is_keeper %>
+                    <span class="badge badge-info">Keeper</span>
+                  <% else %>
+                    <span class="badge badge-success">Draft</span>
+                  <% end %>
+                </td>
+              </tr>
+            <% end %>
+          </tbody>
+        </table>
+      </div>
+    <% else %>
+      <p class="text-muted text-center">No picks yet. Draft hasnt started!</p>
+    <% end %>
+  </div>
+
+  <!-- Available Players -->
+  <div class="card">
+    <h3 class="card-title">Top Available Players</h3>
+    <div style="max-height: 600px; overflow-y: auto;">
+      <table>
+        <thead>
+          <tr>
+            <th>Player</th>
+            <th>Value</th>
+          </tr>
+        </thead>
+        <tbody>
+          <% @available_players.each do |player| %>
+            <tr>
+              <td>
+                <strong><%= player.name %></strong>
+                <br>
+                <small class="text-muted"><%= player.positions %></small>
+              </td>
+              <td><strong>$<%= player.calculated_value&.round || "?" %></strong></td>
+            </tr>
+          <% end %>
+        </tbody>
+      </table>
+    </div>
+    <div class="mt-2">
+      <%= link_to "View All Players", players_path, class: "btn btn-secondary btn-sm" %>
+    </div>
+  </div>
+</div>
+
+<!-- Team Budgets -->
+<div class="card mt-3">
+  <h3 class="card-title">Team Budgets</h3>
+  <div class="grid grid-3">
+    <% @teams.each do |team| %>
+      <div>
+        <strong><%= team.name %></strong>
+        <br>
+        <span class="text-muted">$<%= team.budget_remaining %> remaining</span>
+      </div>
+    <% end %>
+  </div>
+</div>

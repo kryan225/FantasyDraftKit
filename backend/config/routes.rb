@@ -2,6 +2,14 @@ Rails.application.routes.draw do
   # Health check endpoint
   get "up" => "rails/health#show", as: :rails_health_check
 
+  # Web UI routes (Hotwire/HTML)
+  root "leagues#index"
+
+  resources :leagues, only: [:index, :show, :new, :create]
+  resources :teams, only: [:show]
+  resources :players, only: [:index]
+  get "draft_board", to: "draft_board#show", as: :draft_board
+
   # API routes
   namespace :api do
     namespace :v1 do

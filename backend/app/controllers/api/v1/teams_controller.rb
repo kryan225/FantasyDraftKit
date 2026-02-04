@@ -1,4 +1,4 @@
-class Api::V1::TeamsController < ApplicationController
+class Api::V1::TeamsController < Api::V1::BaseController
   before_action :set_team, only: [:show, :category_analysis]
   before_action :set_league, only: [:index, :create]
 

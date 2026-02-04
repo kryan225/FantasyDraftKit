@@ -1,0 +1,55 @@
+<div class="mb-2">
+  <%= link_to "← Back to Leagues", leagues_path, class: "btn btn-sm" %>
+</div>
+
+<div class="card mb-3">
+  <h2 class="card-title"><%= @league.name %></h2>
+  <div class="grid grid-3 mt-2">
+    <div>
+      <p class="text-sm text-muted">Teams</p>
+      <p class="text-lg"><%= @league.team_count %></p>
+    </div>
+    <div>
+      <p class="text-sm text-muted">Auction Budget</p>
+      <p class="text-lg">$<%= @league.auction_budget %></p>
+    </div>
+    <div>
+      <p class="text-sm text-muted">Keeper Limit</p>
+      <p class="text-lg"><%= @league.keeper_limit || "None" %></p>
+    </div>
+  </div>
+  <div class="mt-3">
+    <%= link_to "Go to Draft Board", draft_board_path(league_id: @league.id), class: "btn btn-primary" %>
+    <%= link_to "View All Players", players_path, class: "btn btn-secondary" %>
+  </div>
+</div>
+
+<div class="card">
+  <h3 class="card-title">Teams</h3>
+  <% if @teams.any? %>
+    <table>
+      <thead>
+        <tr>
+          <th>Team Name</th>
+          <th>Budget Remaining</th>
+          <th>Budget Spent</th>
+          <th></th>
+        </tr>
+      </thead>
+      <tbody>
+        <% @teams.each do |team| %>
+          <tr>
+            <td><strong><%= team.name %></strong></td>
+            <td>$<%= team.budget_remaining %></td>
+            <td>$<%= @league.auction_budget - team.budget_remaining %></td>
+            <td>
+              <%= link_to "View Roster", team_path(team), class: "btn btn-sm btn-primary" %>
+            </td>
+          </tr>
+        <% end %>
+      </tbody>
+    </table>
+  <% else %>
+    <p class="text-muted">No teams in this league yet.</p>
+  <% end %>
+</div>

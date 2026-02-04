@@ -1,0 +1,43 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <title>Fantasy Baseball Draft Kit</title>
+    <meta name="viewport" content="width=device-width,initial-scale=1">
+    <%= csrf_meta_tags %>
+    <%= csp_meta_tag %>
+
+    <%= stylesheet_link_tag "application", "data-turbo-track": "reload" %>
+    <%= javascript_importmap_tags %>
+  </head>
+
+  <body>
+    <header>
+      <div class="container">
+        <div class="flex justify-between items-center">
+          <h1>⚾ Fantasy Baseball Draft Kit</h1>
+          <nav>
+            <%= link_to "Leagues", leagues_path %>
+            <%= link_to "Players", players_path %>
+            <%= link_to "API Docs", "/api_testing_guide.html" %>
+          </nav>
+        </div>
+      </div>
+    </header>
+
+    <main class="container">
+      <% if flash[:notice] %>
+        <div class="flash flash-notice">
+          <%= flash[:notice] %>
+        </div>
+      <% end %>
+
+      <% if flash[:alert] %>
+        <div class="flash flash-alert">
+          <%= flash[:alert] %>
+        </div>
+      <% end %>
+
+      <%= yield %>
+    </main>
+  </body>
+</html>

@@ -1,4 +1,4 @@
-class Api::V1::KeeperHistoriesController < ApplicationController
+class Api::V1::KeeperHistoriesController < Api::V1::BaseController
   before_action :set_league, only: [:index, :import_keepers, :check_keeper_eligibility]
 
   # GET /api/v1/leagues/:league_id/keeper_history

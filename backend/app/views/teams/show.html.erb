@@ -1,0 +1,78 @@
+<div class="mb-2">
+  <%= link_to "← Back to League", league_path(@league), class: "btn btn-sm" %>
+</div>
+
+<div class="card mb-3">
+  <h2 class="card-title"><%= @team.name %></h2>
+  <div class="grid grid-3">
+    <div>
+      <p class="text-sm text-muted">Budget Remaining</p>
+      <p class="text-lg"><strong>$<%= @team.budget_remaining %></strong></p>
+    </div>
+    <div>
+      <p class="text-sm text-muted">Budget Spent</p>
+      <p class="text-lg">$<%= @league.auction_budget - @team.budget_remaining %></p>
+    </div>
+    <div>
+      <p class="text-sm text-muted">Players Drafted</p>
+      <p class="text-lg"><%= @team.draft_picks.count %></p>
+    </div>
+  </div>
+</div>
+
+<div class="card">
+  <h3 class="card-title">Roster</h3>
+
+  <% if @team.draft_picks.any? %>
+    <table>
+      <thead>
+        <tr>
+          <th>Player</th>
+          <th>Position</th>
+          <th>MLB Team</th>
+          <th>Price</th>
+          <th>Type</th>
+          <th>Projections</th>
+        </tr>
+      </thead>
+      <tbody>
+        <% @team.draft_picks.each do |pick| %>
+          <tr>
+            <td><strong><%= pick.player.name %></strong></td>
+            <td><%= pick.player.positions %></td>
+            <td><%= pick.player.mlb_team %></td>
+            <td><strong>$<%= pick.price %></strong></td>
+            <td>
+              <% if pick.is_keeper %>
+                <span class="badge badge-info">Keeper</span>
+              <% else %>
+                <span class="badge badge-success">Draft</span>
+              <% end %>
+            </td>
+            <td class="text-sm">
+              <% if pick.player.projections.present? %>
+                <% if pick.player.projections["home_runs"] %>
+                  HR: <%= pick.player.projections["home_runs"] %>,
+                  R: <%= pick.player.projections["runs"] %>,
+                  RBI: <%= pick.player.projections["rbi"] %>
+                <% elsif pick.player.projections["wins"] %>
+                  W: <%= pick.player.projections["wins"] %>,
+                  K: <%= pick.player.projections["strikeouts"] %>,
+                  ERA: <%= pick.player.projections["era"] %>
+                <% end %>
+              <% end %>
+            </td>
+          </tr>
+        <% end %>
+      </tbody>
+    </table>
+
+    <div class="mt-3">
+      <p class="text-muted">
+        <strong>Total Spent:</strong> $<%= @team.draft_picks.sum(:price) %>
+      </p>
+    </div>
+  <% else %>
+    <p class="text-muted text-center">No players on this team yet.</p>
+  <% end %>
+</div>

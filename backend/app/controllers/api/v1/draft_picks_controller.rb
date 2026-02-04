@@ -1,4 +1,4 @@
-class Api::V1::DraftPicksController < ApplicationController
+class Api::V1::DraftPicksController < Api::V1::BaseController
   before_action :set_draft_pick, only: [:update, :destroy]
   before_action :set_league, only: [:index, :create]
 

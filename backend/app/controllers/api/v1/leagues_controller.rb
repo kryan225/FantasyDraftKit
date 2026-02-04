@@ -1,4 +1,4 @@
-class Api::V1::LeaguesController < ApplicationController
+class Api::V1::LeaguesController < Api::V1::BaseController
   before_action :set_league, only: [:show, :update, :destroy, :recalculate_values]
 
   # GET /api/v1/leagues
