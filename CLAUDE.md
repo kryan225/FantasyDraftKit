@@ -148,9 +148,13 @@ lsof -i :1147  # Frontend - should be empty
 - Testing: Write RSpec tests for models and controllers
 
 ### Known Issues 🐛
-- Frontend npm install previously failed due to network errors (needs retry)
-- All work currently untracked in git (not committed)
+- **Frontend dependencies installation blocked by network/registry issues**
+  - Both `npm install` and `yarn install` fail to reach registry
+  - Error: "An unexpected error occurred" when resolving packages
+  - Workaround: User can try again later when network is stable
+  - Alternative: Use Docker to build frontend container (handles deps internally)
 - Value recalculation and category analysis have placeholder implementations (TODOs marked)
+- No frontend dependencies installed yet (node_modules/ doesn't exist)
 
 ### Recent Decisions 🎯
 - **2026-02-03:** Decided to prioritize local development over Docker (YAGNI principle)
@@ -172,13 +176,25 @@ lsof -i :1147  # Frontend - should be empty
   - Following Single Responsibility Principle
 
 ### Next Steps →
-1. Install frontend dependencies (npm install)
-2. Start frontend dev server on port 1147
-3. Test full-stack integration
-4. Create a test league with teams via frontend
-5. Import sample player data
-6. Test draft pick functionality
-7. Consider committing work to git
+1. **Resolve frontend dependency installation**
+   - Wait for network/registry to stabilize
+   - Try `npm install` or `yarn install` again
+   - Or use Docker: `docker-compose up frontend`
+2. Start frontend dev server on port 1147: `npm run dev -- --port 1147`
+3. Test full-stack integration (backend already running on 3639)
+4. Create a test league with teams via frontend UI
+5. Import sample player data via CSV
+6. Test draft pick functionality end-to-end
+7. Implement value calculation algorithm
+8. Implement category analysis aggregation
+
+### Recent Commits 📝
+- **2026-02-04 (commit 31f3399):** Backend implementation complete
+  - 130 files changed, 5102 insertions
+  - All models, controllers, routes, migrations complete
+  - Rails server tested and working on port 3639
+  - CORS configured, gitignore files added
+  - Pushed to GitHub successfully
 
 ---
 
