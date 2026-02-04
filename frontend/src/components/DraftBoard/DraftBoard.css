@@ -1,0 +1,105 @@
+.draft-board-container {
+  width: 100%;
+}
+
+.draft-board-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 2rem;
+  padding-bottom: 1rem;
+  border-bottom: 2px solid var(--border-color);
+}
+
+.draft-board-header h2 {
+  font-size: 1.875rem;
+  color: var(--text-primary);
+}
+
+.draft-stats {
+  display: flex;
+  gap: 2rem;
+  font-size: 0.875rem;
+  color: var(--text-secondary);
+}
+
+.draft-stats span {
+  font-weight: 600;
+}
+
+.draft-board-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+  gap: 1rem;
+  overflow-x: auto;
+}
+
+.team-column {
+  background-color: var(--bg-primary);
+  border: 1px solid var(--border-color);
+  border-radius: 0.5rem;
+  overflow: hidden;
+}
+
+.team-header {
+  background-color: var(--primary-color);
+  color: white;
+  padding: 1rem;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.team-header h3 {
+  font-size: 1rem;
+  margin: 0;
+}
+
+.budget {
+  font-weight: 700;
+  font-size: 1.125rem;
+}
+
+.team-roster {
+  padding: 0.5rem;
+  min-height: 200px;
+}
+
+.roster-pick {
+  padding: 0.5rem;
+  margin-bottom: 0.5rem;
+  background-color: var(--bg-secondary);
+  border-radius: 0.25rem;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.player-name {
+  font-weight: 500;
+  font-size: 0.875rem;
+}
+
+.pick-price {
+  font-weight: 700;
+  color: var(--success-color);
+  font-size: 0.875rem;
+}
+
+.empty-state {
+  text-align: center;
+  padding: 4rem 2rem;
+  background-color: var(--bg-primary);
+  border-radius: 0.5rem;
+  border: 1px solid var(--border-color);
+}
+
+.empty-state h2 {
+  color: var(--text-primary);
+  margin-bottom: 1rem;
+}
+
+.empty-state p {
+  color: var(--text-secondary);
+  font-size: 1rem;
+}
