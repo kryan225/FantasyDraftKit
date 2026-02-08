@@ -120,13 +120,15 @@ export default class extends Controller {
   }
 
   // Handle form submission
-  submit(event) {
+  async submit(event) {
     event.preventDefault()
 
-    // You can add validation here
     const price = parseInt(this.priceInputTarget.value)
     const teamId = this.teamSelectTarget.value
+    const playerId = this.playerIdTarget.value
+    const position = this.positionSelectTarget.value
 
+    // Validation
     if (!teamId) {
       alert("Please select a team")
       return
@@ -137,16 +139,107 @@ export default class extends Controller {
       return
     }
 
-    // TODO: In future, submit via AJAX to API
-    // For now, we'll just log the data
-    console.log("Draft pick data:", {
-      playerId: this.playerIdTarget.value,
-      teamId: teamId,
-      position: this.positionSelectTarget.value,
-      price: price
-    })
+    // Budget validation - check selected team's budget
+    const selectedTeamOption = this.teamSelectTarget.options[this.teamSelectTarget.selectedIndex]
+    const teamText = selectedTeamOption.text
+    const budgetMatch = teamText.match(/\$(\d+) remaining/)
+    if (budgetMatch) {
+      const remainingBudget = parseInt(budgetMatch[1])
+      if (price > remainingBudget) {
+        alert(`Price $${price} exceeds team's remaining budget of $${remainingBudget}`)
+        return
+      }
+    }
 
-    alert("Draft functionality will be connected in next step!")
-    this.close()
+    // Get league ID from URL or data attribute
+    const leagueId = this.getLeagueId()
+    if (!leagueId) {
+      alert("Error: Could not determine league ID")
+      return
+    }
+
+    // Disable submit button to prevent double submission
+    const submitButton = event.target.querySelector('button[type="submit"]')
+    if (submitButton) {
+      submitButton.disabled = true
+      submitButton.textContent = "Drafting..."
+    }
+
+    try {
+      // Submit to API
+      const response = await this.submitDraftPick(leagueId, {
+        team_id: teamId,
+        player_id: playerId,
+        price: price,
+        is_keeper: false
+      })
+
+      if (response.ok) {
+        // Success! Reload page to show updated draft board
+        window.location.reload()
+      } else {
+        const data = await response.json()
+        const errorMessage = data.errors ? data.errors.join(", ") : "Failed to draft player"
+        alert(`Error: ${errorMessage}`)
+
+        // Re-enable submit button
+        if (submitButton) {
+          submitButton.disabled = false
+          submitButton.textContent = "Confirm Draft"
+        }
+      }
+    } catch (error) {
+      console.error("Draft submission error:", error)
+      alert("An error occurred while drafting the player. Please try again.")
+
+      // Re-enable submit button
+      if (submitButton) {
+        submitButton.disabled = false
+        submitButton.textContent = "Confirm Draft"
+      }
+    }
+  }
+
+  // Submit draft pick to API
+  async submitDraftPick(leagueId, draftPickData) {
+    const csrfToken = document.querySelector('meta[name="csrf-token"]')?.content
+
+    return fetch(`/api/v1/leagues/${leagueId}/draft_picks`, {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+        "X-CSRF-Token": csrfToken,
+        "Accept": "application/json"
+      },
+      body: JSON.stringify({
+        draft_pick: draftPickData
+      })
+    })
+  }
+
+  // Get league ID from current URL or page data
+  getLeagueId() {
+    // Try to get from URL parameter
+    const urlParams = new URLSearchParams(window.location.search)
+    if (urlParams.has('league_id')) {
+      return urlParams.get('league_id')
+    }
+
+    // Try to get from page (e.g., data attribute on body or container)
+    const leagueIdElement = document.querySelector('[data-league-id]')
+    if (leagueIdElement) {
+      return leagueIdElement.dataset.leagueId
+    }
+
+    // Fallback: try to extract from breadcrumb or other page elements
+    const backLink = document.querySelector('a[href*="/leagues/"]')
+    if (backLink) {
+      const match = backLink.href.match(/\/leagues\/(\d+)/)
+      if (match) {
+        return match[1]
+      }
+    }
+
+    return null
   }
 }
