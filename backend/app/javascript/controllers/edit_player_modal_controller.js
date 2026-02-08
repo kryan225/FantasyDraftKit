@@ -14,7 +14,6 @@ import BaseModalController from "./base_modal_controller"
 export default class extends BaseModalController {
   static targets = [
     "modal",
-    "playerId",
     "playerName",
     "playerPositions",
     "playerMlbTeam",
@@ -42,9 +41,6 @@ export default class extends BaseModalController {
     const playerMlbTeam = link.dataset.playerMlbTeam
     const playerValue = link.dataset.playerValue
     const playerIsDrafted = link.dataset.playerIsDrafted === 'true'
-
-    // Set hidden field for player ID
-    this.playerIdTarget.value = playerId
 
     // Update form action URL to target this specific player
     this.formTarget.action = `/players/${playerId}`
