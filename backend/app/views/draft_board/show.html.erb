@@ -100,12 +100,14 @@
             <th><%= sort_link('calculated_value', 'Value', current_sort, current_direction, @league.id, params[:search], params[:position], params[:drafted]) %></th>
             <th>Status</th>
             <!-- Hitter Stats -->
+            <th><%= sort_link('at_bats', 'AB', current_sort, current_direction, @league.id, params[:search], params[:position], params[:drafted]) %></th>
             <th><%= sort_link('home_runs', 'HR', current_sort, current_direction, @league.id, params[:search], params[:position], params[:drafted]) %></th>
             <th><%= sort_link('runs', 'R', current_sort, current_direction, @league.id, params[:search], params[:position], params[:drafted]) %></th>
             <th><%= sort_link('rbi', 'RBI', current_sort, current_direction, @league.id, params[:search], params[:position], params[:drafted]) %></th>
             <th><%= sort_link('stolen_bases', 'SB', current_sort, current_direction, @league.id, params[:search], params[:position], params[:drafted]) %></th>
             <th><%= sort_link('batting_average', 'AVG', current_sort, current_direction, @league.id, params[:search], params[:position], params[:drafted]) %></th>
             <!-- Pitcher Stats -->
+            <th><%= sort_link('innings_pitched', 'IP', current_sort, current_direction, @league.id, params[:search], params[:position], params[:drafted]) %></th>
             <th><%= sort_link('wins', 'W', current_sort, current_direction, @league.id, params[:search], params[:position], params[:drafted]) %></th>
             <th><%= sort_link('saves', 'SV', current_sort, current_direction, @league.id, params[:search], params[:position], params[:drafted]) %></th>
             <th><%= sort_link('strikeouts', 'K', current_sort, current_direction, @league.id, params[:search], params[:position], params[:drafted]) %></th>

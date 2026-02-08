@@ -15,12 +15,14 @@
                 <th>Player</th>
                 <th>Price</th>
                 <!-- Hitter Stats -->
+                <th>AB</th>
                 <th>HR</th>
                 <th>R</th>
                 <th>RBI</th>
                 <th>SB</th>
                 <th>AVG</th>
                 <!-- Pitcher Stats -->
+                <th>IP</th>
                 <th>W</th>
                 <th>SV</th>
                 <th>K</th>
@@ -68,7 +70,7 @@
                       <td><strong>$<%= pick.price %></strong></td>
                       <%= render "players/stats_columns", player: pick.player %>
                     <% else %>
-                      <td colspan="12" class="text-muted">
+                      <td colspan="14" class="text-muted">
                         <em>Empty Slot</em>
                       </td>
                     <% end %>
