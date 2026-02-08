@@ -1,0 +1,116 @@
+<div class="mb-2">
+  <%= link_to "← Back to Draft Board", draft_board_path(league_id: @league.id), class: "btn btn-sm" %>
+</div>
+
+<div class="card mb-3">
+  <h2 class="card-title"><%= @league.name %> - Draft Analyzer</h2>
+  <p class="text-muted">
+    Real-time insights and analytics to inform your draft strategy
+  </p>
+</div>
+
+<!-- Roster Fill Rate by Position -->
+<div data-controller="teams-can-draft-modal">
+  <div class="card" data-controller="collapsible" data-collapsible-key="rosterFillRateCollapsed">
+    <div class="collapsible-header" data-action="click->collapsible#toggle">
+      <h3 class="card-title">Roster Fill Rate by Position</h3>
+      <button type="button" class="collapsible-toggle" data-collapsible-target="icon">▼</button>
+    </div>
+
+    <div class="collapsible-content" data-collapsible-target="content">
+    <p class="text-muted mb-3">
+      League-wide availability for each roster position. Shows how many slots remain across all teams.
+    </p>
+
+    <div style="max-height: 520px; overflow-y: auto;">
+      <table>
+        <thead>
+          <tr>
+            <th>Position</th>
+            <th>Total Slots</th>
+            <th>Filled</th>
+            <th>Available</th>
+            <th>Fill %</th>
+            <th>Teams Can Draft</th>
+          </tr>
+        </thead>
+        <tbody>
+          <% @position_fill_rates.each do |data| %>
+            <tr>
+              <td><strong><%= data[:position] %></strong></td>
+              <td><%= data[:total_slots] %></td>
+              <td><%= data[:filled_slots] %></td>
+              <td>
+                <strong>
+                  <%= data[:available_slots] %>
+                </strong>
+              </td>
+              <td>
+                <span class="badge <%= data[:fill_percentage] >= 75 ? 'badge-warning' : 'badge-info' %>">
+                  <%= data[:fill_percentage] %>%
+                </span>
+              </td>
+              <td>
+                <button
+                  class="btn btn-sm"
+                  data-action="click->teams-can-draft-modal#show"
+                  data-position="<%= data[:position] %>"
+                  data-teams="<%= data[:teams_can_draft].map { |t| { id: t.id, name: t.name } }.to_json %>"
+                >
+                  <%= data[:teams_can_draft_count] %> / <%= @teams.count %>
+                </button>
+              </td>
+            </tr>
+          <% end %>
+        </tbody>
+      </table>
+    </div>
+
+    <div class="mt-3 pt-3" style="border-top: 1px solid var(--border-color);">
+      <p class="text-sm text-muted">
+        <strong>Position Eligibility Notes:</strong><br>
+        • UTIL can be filled by any batter (C, 1B, 2B, 3B, SS, OF)<br>
+        • MI (Middle Infield) can be filled by 2B or SS<br>
+        • CI (Corner Infield) can be filled by 1B or 3B
+      </p>
+    </div>
+  </div>
+  </div>
+
+  <!-- Teams Can Draft Modal -->
+  <div class="modal hidden" data-teams-can-draft-modal-target="modal">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h3 class="modal-title">Teams Who Can Draft <span data-teams-can-draft-modal-target="position"></span></h3>
+        <button
+          type="button"
+          class="modal-close"
+          data-action="click->teams-can-draft-modal#close"
+        >
+          ×
+        </button>
+      </div>
+
+      <div class="modal-body">
+        <p class="text-muted text-sm mb-3">
+          These teams can draft this position either because they have an open slot, or they have a player in a flex position (UTIL/MI/CI) who can be moved to make room.
+        </p>
+        <div data-teams-can-draft-modal-target="teamsList"></div>
+      </div>
+
+      <div class="modal-footer">
+        <button type="button" class="btn btn-sm" data-action="click->teams-can-draft-modal#close">
+          Close
+        </button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- Placeholder for future analytics -->
+<div class="card mt-3">
+  <div class="text-center text-muted" style="padding: 2rem;">
+    <p><strong>More analytics coming soon!</strong></p>
+    <p class="text-sm">Check DRAFT_ANALYZER.md for planned features</p>
+  </div>
+</div>

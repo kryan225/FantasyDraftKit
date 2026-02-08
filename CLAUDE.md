@@ -197,6 +197,15 @@ lsof -i :3639  # Rails app - should be empty or show ruby
   - 3 passing system tests for UndoPick confirmation flow
   - Removed HTML5 required attributes to enable JavaScript validation
   - **UX Improvement**: Styled modals with danger styling for destructive actions
+- **Feature: Draft Analyzer (MVP)** ✅
+  - Created DRAFT_ANALYZER.md documentation for feature planning and roadmap
+  - New page for real-time draft insights during live drafts
+  - **Roster Fill Rate by Position**: Shows league-wide availability for each position
+  - Collapsible sections using reusable collapsible_controller.js
+  - Accessible from draft board via "Draft Analyzer" button
+  - Documents position eligibility rules (UTIL, MI, CI)
+  - Placeholder for future analytics with prioritized roadmap
+  - Ready for incremental feature additions
 
 ### In Progress 🚧
 - None currently
@@ -440,7 +449,8 @@ FantasyDraftKit/
 ├── frontend/            # React + TypeScript (NOT USED - kept for reference)
 │   └── [scaffolded but not installed due to npm restrictions]
 ├── docker-compose.yml   # PostgreSQL on port 5434
-└── CLAUDE.md            # This file - project documentation
+├── CLAUDE.md            # This file - project documentation
+└── DRAFT_ANALYZER.md    # Draft analyzer feature documentation and roadmap
 ```
 
 ---
