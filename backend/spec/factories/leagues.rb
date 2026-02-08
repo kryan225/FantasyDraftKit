@@ -13,11 +13,11 @@ FactoryBot.define do
         "SS" => 1,
         "MI" => 1,
         "CI" => 1,
-        "OF" => 3,
-        "UTIL" => 1,
+        "OF" => 5,
+        "UTIL" => 2,
         "SP" => 5,
         "RP" => 3,
-        "BENCH" => 5
+        "BENCH" => 0
       }
     end
   end

@@ -51,6 +51,12 @@ class DraftAnalyzerController < ApplicationController
 
   def team_can_draft_position?(team, position)
     roster_config = @league.roster_config || {}
+
+    # CRITICAL: Check if team's entire roster is full first
+    total_roster_slots = roster_config.values.sum
+    total_filled = team.draft_picks.count
+    return false if total_filled >= total_roster_slots
+
     max_slots = roster_config[position].to_i
 
     # Count how many are currently at this position
