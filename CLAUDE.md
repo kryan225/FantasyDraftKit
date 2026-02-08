@@ -191,10 +191,12 @@ lsof -i :3639  # Rails app - should be empty or show ruby
   - Can be used as alert (showCancel: false) or confirmation (showCancel: true)
   - Integrated with EditPlayerModal for validation errors (2 validation messages)
   - Integrated with DraftModal for validation errors (3 validation messages)
-  - **All alert() calls replaced** - no more browser alerts in the application
-  - 4 passing system tests validating behavior
+  - Integrated with UndoPickController for destructive action confirmation
+  - **All alert() and browser confirm() replaced** - 100% styled modals
+  - 4 passing system tests for ConfirmationModal behavior
+  - 3 passing system tests for UndoPick confirmation flow
   - Removed HTML5 required attributes to enable JavaScript validation
-  - **UX Improvement**: Styled modals instead of browser alerts
+  - **UX Improvement**: Styled modals with danger styling for destructive actions
 
 ### In Progress 🚧
 - None currently
@@ -289,6 +291,14 @@ lsof -i :3639  # Rails app - should be empty or show ruby
 9. Add RSpec tests for models, controllers, and views
 
 ### Recent Commits 📝
+- **2026-02-08 (commit 1ad4259):** Replace Turbo confirm with ConfirmationModal for undo draft pick
+  - Created UndoPickController to handle undo confirmation
+  - Replaced browser's native confirm dialog with styled modal
+  - Danger styling with "Undo Pick" / "Keep Pick" buttons
+  - 3 new system tests (13 total passing)
+  - Completes migration from browser dialogs to styled modals
+- **2026-02-08 (commit 1360e82):** Update CLAUDE.md - all alert() calls now replaced
+  - Documented completion of alert() migration
 - **2026-02-08 (commit b622531):** Replace all alert() calls in DraftModal with ConfirmationModal
   - Replaced 3 alert() calls with styled confirmation modal
   - Made submit() async for clean validation flow
