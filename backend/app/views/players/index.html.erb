@@ -54,8 +54,8 @@
         </thead>
         <tbody>
           <% @players.each do |player| %>
-            <tr>
-              <td><strong><%= player.name %></strong></td>
+            <tr id="player-<%= player.id %>">
+              <td><%= render partial: "players/player_name", locals: { player: player } %></td>
               <td><%= player.positions %></td>
               <td><%= player.mlb_team %></td>
               <td><strong>$<%= player.calculated_value&.round || "?" %></strong></td>
@@ -90,3 +90,6 @@
     </div>
   </div>
 </div>
+
+<!-- Edit Player Modal -->
+<%= render partial: "players/edit_modal" %>

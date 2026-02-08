@@ -410,3 +410,22 @@ textarea:focus {
 .btn-cancel:hover {
   background: #4b5563;
 }
+
+/* Player name links */
+.player-link {
+  color: var(--primary-color);
+  text-decoration: none;
+  cursor: pointer;
+  transition: all 0.2s;
+  border-bottom: 1px dashed var(--primary-color);
+}
+
+.player-link:hover {
+  color: #1d4ed8;
+  border-bottom-color: #1d4ed8;
+  border-bottom-style: solid;
+}
+
+.player-link strong {
+  font-weight: 600;
+}

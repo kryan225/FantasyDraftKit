@@ -1,7 +1,7 @@
 <% available_players.each do |player| %>
   <tr id="available-player-<%= player.id %>">
     <td>
-      <strong><%= player.name %></strong>
+      <%= render partial: "players/player_name", locals: { player: player } %>
       <br>
       <small class="text-muted"><%= player.positions %></small>
     </td>

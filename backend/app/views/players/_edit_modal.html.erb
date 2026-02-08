@@ -1,0 +1,101 @@
+<%# Edit Player Modal - Reusable across the application %>
+<div data-controller="edit-player-modal">
+  <div class="modal hidden" data-edit-player-modal-target="modal" data-action="click->edit-player-modal#closeOnOutsideClick">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h3 class="modal-title">Edit Player</h3>
+        <button class="modal-close" data-action="click->edit-player-modal#close" type="button">
+          ×
+        </button>
+      </div>
+
+      <div class="modal-body">
+        <!-- Error display area -->
+        <div id="edit-player-error"></div>
+
+        <!-- Edit Player Form -->
+        <%= form_with model: Player.new, url: "", method: :patch,
+            data: {
+              action: "submit->edit-player-modal#submit",
+              turbo: true,
+              edit_player_modal_target: "form"
+            } do |f| %>
+
+          <input type="hidden" name="_method" value="patch">
+
+          <div class="form-group">
+            <label for="player-name">Player Name</label>
+            <input
+              type="text"
+              id="player-name"
+              name="player[name]"
+              data-edit-player-modal-target="playerName"
+              required
+            >
+          </div>
+
+          <div class="form-group">
+            <label for="player-positions">Position(s)</label>
+            <input
+              type="text"
+              id="player-positions"
+              name="player[positions]"
+              data-edit-player-modal-target="playerPositions"
+              placeholder="e.g., 1B/OF or SP"
+              required
+            >
+            <small class="text-muted">
+              Separate multiple positions with / (e.g., 1B/OF)
+            </small>
+          </div>
+
+          <div class="form-group">
+            <label for="player-mlb-team">MLB Team</label>
+            <input
+              type="text"
+              id="player-mlb-team"
+              name="player[mlb_team]"
+              data-edit-player-modal-target="playerMlbTeam"
+              placeholder="e.g., NYY, BOS, LAD"
+            >
+          </div>
+
+          <div class="form-group">
+            <label for="player-value">Calculated Value ($)</label>
+            <input
+              type="number"
+              id="player-value"
+              name="player[calculated_value]"
+              data-edit-player-modal-target="playerValue"
+              step="0.01"
+              min="0"
+            >
+          </div>
+
+          <div class="form-group">
+            <label>
+              <input
+                type="checkbox"
+                name="player[is_drafted]"
+                data-edit-player-modal-target="playerIsDrafted"
+              >
+              Mark as Drafted
+            </label>
+            <small class="text-muted">
+              Check this to manually mark player as drafted (use Undo button to reverse actual draft picks)
+            </small>
+          </div>
+
+          <div class="modal-footer">
+            <button type="button" class="btn btn-cancel btn-sm" data-action="click->edit-player-modal#close">
+              Cancel
+            </button>
+            <button type="submit" class="btn btn-primary btn-sm">
+              Save Changes
+            </button>
+          </div>
+        <% end %>
+      </div>
+    </div>
+  </div>
+</div>

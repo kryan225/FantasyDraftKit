@@ -11,7 +11,7 @@ Rails.application.routes.draw do
   end
 
   resources :teams, only: [:show]
-  resources :players, only: [:index]
+  resources :players, only: [:index, :edit, :update]
 
   # Draft picks (with Turbo Streams support)
   resources :draft_picks, only: [:create, :destroy]

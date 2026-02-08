@@ -1,0 +1,14 @@
+<%# Reusable partial for rendering a player name as a clickable link %>
+<a
+  href="#"
+  data-action="click->edit-player-modal#open"
+  data-player-id="<%= player.id %>"
+  data-player-name="<%= player.name %>"
+  data-player-positions="<%= player.positions %>"
+  data-player-mlb-team="<%= player.mlb_team %>"
+  data-player-value="<%= player.calculated_value&.round || '' %>"
+  data-player-is-drafted="<%= player.is_drafted %>"
+  class="player-link"
+>
+  <strong><%= player.name %></strong>
+</a>

@@ -38,7 +38,9 @@
       <tbody>
         <% @team.draft_picks.each do |pick| %>
           <tr>
-            <td><strong><%= pick.player.name %></strong></td>
+            <td id="player-<%= pick.player.id %>">
+              <%= render partial: "players/player_name", locals: { player: pick.player } %>
+            </td>
             <td><%= pick.player.positions %></td>
             <td><%= pick.player.mlb_team %></td>
             <td><strong>$<%= pick.price %></strong></td>
@@ -76,3 +78,6 @@
     <p class="text-muted text-center">No players on this team yet.</p>
   <% end %>
 </div>
+
+<!-- Edit Player Modal -->
+<%= render partial: "players/edit_modal" %>

@@ -1,8 +1,8 @@
 <% draft_picks.each do |pick| %>
   <tr id="draft-pick-<%= pick.id %>">
     <td><%= pick.pick_number %></td>
-    <td>
-      <strong><%= pick.player.name %></strong>
+    <td id="draft-pick-player-<%= pick.player.id %>">
+      <%= render partial: "players/player_name", locals: { player: pick.player } %>
       <br>
       <small class="text-muted">
         <%= pick.player.positions %>
