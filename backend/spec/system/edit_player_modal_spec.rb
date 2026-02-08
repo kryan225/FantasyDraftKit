@@ -55,17 +55,20 @@ RSpec.describe "EditPlayerModal", type: :system, js: true do
   end
 
   describe "form validation" do
-    it "has required fields marked as required" do
+    it "validates required fields with confirmation modal" do
       visit players_path
       click_link "Mike Trout"
-      
-      within(".modal") do
-        # Check that required attribute exists on HTML elements
-        name_input = find_field("Player Name")
-        positions_input = find_field("Position(s)")
-        
-        expect(name_input[:required]).to be_truthy
-        expect(positions_input[:required]).to be_truthy
+
+      within("[data-controller='edit-player-modal']") do
+        # Clear required field
+        fill_in "Player Name", with: ""
+        click_button "Save Changes"
+      end
+
+      # Validation error shown in confirmation modal
+      within("[data-controller='confirmation-modal']") do
+        expect(page).to have_content("Validation Error")
+        expect(page).to have_content("Player name is required")
       end
     end
   end
