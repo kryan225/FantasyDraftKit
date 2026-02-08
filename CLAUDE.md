@@ -189,7 +189,9 @@ lsof -i :3639  # Rails app - should be empty or show ruby
   - Promise-based API for clean async/await usage
   - Configurable options (title, message, button text, danger styling)
   - Can be used as alert (showCancel: false) or confirmation (showCancel: true)
-  - Integrated with EditPlayerModal for validation errors
+  - Integrated with EditPlayerModal for validation errors (2 validation messages)
+  - Integrated with DraftModal for validation errors (3 validation messages)
+  - **All alert() calls replaced** - no more browser alerts in the application
   - 4 passing system tests validating behavior
   - Removed HTML5 required attributes to enable JavaScript validation
   - **UX Improvement**: Styled modals instead of browser alerts
@@ -201,8 +203,8 @@ lsof -i :3639  # Rails app - should be empty or show ruby
 - Feature: Add Stimulus controllers for enhanced interactivity (drag-drop, live updates)
 - Feature: Implement player value calculation algorithm
 - Feature: Implement category analysis aggregation
-- Feature: Use ConfirmationModal for other confirmation dialogs (delete actions, etc.)
-- Testing: Write system tests for DraftModal with JavaScript driver
+- Feature: Use ConfirmationModal for delete confirmations and destructive actions
+- Testing: Write system tests for DraftModal validation (requires complex setup)
 - Testing: Write RSpec unit tests for models (Player, League, Team, DraftPick)
 - Testing: Write request specs for API endpoints
 - Testing: Add system tests for full draft workflow
@@ -287,6 +289,12 @@ lsof -i :3639  # Rails app - should be empty or show ruby
 9. Add RSpec tests for models, controllers, and views
 
 ### Recent Commits 📝
+- **2026-02-08 (commit b622531):** Replace all alert() calls in DraftModal with ConfirmationModal
+  - Replaced 3 alert() calls with styled confirmation modal
+  - Made submit() async for clean validation flow
+  - Same pattern as EditPlayerModal (consistency)
+  - All alert() calls now eliminated from application
+  - Existing 10 system tests still pass
 - **2026-02-08 (commit f7b59c2):** Add comprehensive tests for ConfirmationModal
   - 4 new tests for ConfirmationModal behavior
   - Updated 1 EditPlayerModal test for new validation flow
