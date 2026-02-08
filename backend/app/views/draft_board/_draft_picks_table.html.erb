@@ -26,8 +26,10 @@
           draft_pick_path(pick),
           method: :delete,
           data: {
-            turbo_confirm: "Are you sure you want to undo this pick? This will refund $#{pick.price} to #{pick.team.name}.",
-            turbo_method: :delete
+            controller: "undo-pick",
+            undo_pick_price_value: pick.price,
+            undo_pick_team_name_value: pick.team.name,
+            action: "click->undo-pick#undo"
           },
           class: "btn-danger btn-sm",
           form: { data: { turbo: true } } %>
