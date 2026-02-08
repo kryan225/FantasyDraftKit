@@ -7,8 +7,8 @@
 class DraftPicksController < ApplicationController
   include LeagueResolvable
 
-  before_action :ensure_league
-  before_action :set_draft_pick, only: [:destroy]
+  before_action :ensure_league, except: [:update]
+  before_action :set_draft_pick, only: [:update, :destroy]
 
   # POST /draft_picks
   # Creates a new draft pick and responds with Turbo Streams to update the UI
@@ -27,7 +27,7 @@ class DraftPicksController < ApplicationController
       # Load data for Turbo Stream updates
       @teams = @league.teams.order(:name)
       @draft_picks = @league.draft_picks.includes(:team, :player).order(:pick_number)
-      @available_players = Player.available.order(calculated_value: :desc).limit(50)
+      @interested_available_players = Player.available.interested.order(calculated_value: :desc)
 
       respond_to do |format|
         format.turbo_stream
@@ -47,6 +47,42 @@ class DraftPicksController < ApplicationController
     end
   end
 
+  # PATCH /draft_picks/:id
+  # Updates a draft pick's position (for roster moves)
+  def update
+    if @draft_pick.update(draft_pick_params)
+      @team = @draft_pick.team
+      @league = @team.league
+
+      # Reload roster data
+      roster_config = @league.roster_config || {}
+      @picks_by_position = @team.draft_picks.group_by(&:drafted_position)
+      @position_groups = [
+        { name: "Batters", positions: ["C", "1B", "2B", "3B", "SS", "MI", "CI", "OF"] },
+        { name: "Utility", positions: ["UTIL"] },
+        { name: "Pitchers", positions: ["SP", "RP"] },
+        { name: "Bench", positions: ["BENCH"] }
+      ]
+      @roster_config = roster_config
+
+      respond_to do |format|
+        format.turbo_stream
+        format.html { redirect_to team_path(@team), notice: "Player moved successfully!" }
+      end
+    else
+      respond_to do |format|
+        format.turbo_stream do
+          render turbo_stream: turbo_stream.update(
+            "roster-error",
+            partial: "shared/error",
+            locals: { errors: @draft_pick.errors.full_messages }
+          )
+        end
+        format.html { redirect_to team_path(@team), alert: @draft_pick.errors.full_messages.join(", ") }
+      end
+    end
+  end
+
   # DELETE /draft_picks/:id
   # Undoes a draft pick and responds with Turbo Streams to update the UI
   def destroy
@@ -56,7 +92,7 @@ class DraftPicksController < ApplicationController
     # Load data for Turbo Stream updates
     @teams = @league.teams.order(:name)
     @draft_picks = @league.draft_picks.includes(:team, :player).order(:pick_number)
-    @available_players = Player.available.order(calculated_value: :desc).limit(50)
+    @interested_available_players = Player.available.interested.order(calculated_value: :desc)
 
     respond_to do |format|
       format.turbo_stream
