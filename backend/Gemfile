@@ -58,4 +58,6 @@ group :development, :test do
   gem "rspec-rails"
   gem "factory_bot_rails"
   gem "rails-controller-testing"  # For assigns and assert_template in controller tests
+  gem "capybara"                   # System testing with browser automation
+  gem "cuprite"                    # Fast headless Chrome driver for Capybara
 end
