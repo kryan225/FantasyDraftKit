@@ -9,4 +9,13 @@ class League < ApplicationRecord
   validates :team_count, presence: true, numericality: { greater_than: 0, less_than_or_equal_to: 20 }
   validates :auction_budget, presence: true, numericality: { greater_than: 0 }
   validates :keeper_limit, numericality: { greater_than_or_equal_to: 0 }, allow_nil: true
+
+  # Override roster_config getter to ensure values are integers
+  def roster_config
+    config = super
+    return config unless config.is_a?(Hash)
+
+    # Convert all values to integers
+    config.transform_values { |v| v.to_i }
+  end
 end

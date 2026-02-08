@@ -1,0 +1,79 @@
+<div class="mb-2">
+  <%= link_to "← Back to League", league_path(@league), class: "btn btn-sm" %>
+</div>
+
+<div class="card">
+  <h2 class="card-title"><%= @league.name %> - Settings</h2>
+
+  <%= form_with model: @league, url: league_path(@league), method: :patch do |f| %>
+    <div class="form-group">
+      <%= f.label :name, "League Name" %>
+      <%= f.text_field :name, required: true %>
+    </div>
+
+    <div class="grid grid-3">
+      <div class="form-group">
+        <%= f.label :team_count, "Number of Teams" %>
+        <%= f.number_field :team_count, min: 1, max: 20, required: true %>
+      </div>
+
+      <div class="form-group">
+        <%= f.label :auction_budget, "Auction Budget ($)" %>
+        <%= f.number_field :auction_budget, min: 1, required: true %>
+      </div>
+
+      <div class="form-group">
+        <%= f.label :keeper_limit, "Keeper Limit" %>
+        <%= f.number_field :keeper_limit, min: 0 %>
+      </div>
+    </div>
+
+    <h3 class="mt-3 mb-2">Roster Configuration</h3>
+    <p class="text-muted mb-3">Set the number of roster spots for each position</p>
+
+    <% 
+      # Define default roster config if none exists
+      default_roster = {
+        "C" => 1, "1B" => 1, "2B" => 1, "3B" => 1, "SS" => 1,
+        "OF" => 3, "CI" => 1, "MI" => 1, "UTIL" => 2,
+        "SP" => 5, "RP" => 2, "BENCH" => 5
+      }
+      roster = @league.roster_config || default_roster
+
+      # Group positions by type
+      position_groups = {
+        "Catchers" => ["C"],
+        "Infielders" => ["1B", "2B", "3B", "SS"],
+        "Flex Infield" => ["CI", "MI"],
+        "Outfielders" => ["OF"],
+        "Utility" => ["UTIL"],
+        "Pitchers" => ["SP", "RP"],
+        "Bench" => ["BENCH"]
+      }
+    %>
+
+    <% position_groups.each do |group_name, positions| %>
+      <div class="mb-3">
+        <h4 class="text-sm font-semibold mb-2"><%= group_name %></h4>
+        <div class="grid grid-4">
+          <% positions.each do |pos| %>
+            <div class="form-group">
+              <%= label_tag "league_roster_config_#{pos}", pos %>
+              <%= number_field_tag "league[roster_config][#{pos}]", roster[pos] || 0, min: 0, class: "form-control" %>
+              <% if pos == "CI" %>
+                <small class="text-muted">Corner Infield (1B/3B)</small>
+              <% elsif pos == "MI" %>
+                <small class="text-muted">Middle Infield (2B/SS)</small>
+              <% end %>
+            </div>
+          <% end %>
+        </div>
+      </div>
+    <% end %>
+
+    <div class="mt-4">
+      <%= f.submit "Save Settings", class: "btn btn-primary" %>
+      <%= link_to "Cancel", league_path(@league), class: "btn btn-cancel" %>
+    </div>
+  <% end %>
+</div>

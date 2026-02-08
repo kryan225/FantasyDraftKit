@@ -21,6 +21,7 @@
   <div class="mt-3">
     <%= link_to "Go to Draft Board", draft_board_path(league_id: @league.id), class: "btn btn-primary" %>
     <%= link_to "View All Players", players_path, class: "btn btn-secondary" %>
+    <%= link_to "League Settings", settings_league_path(@league), class: "btn btn-sm" %>
   </div>
 </div>
 

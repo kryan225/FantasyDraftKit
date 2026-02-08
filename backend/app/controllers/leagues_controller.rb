@@ -1,5 +1,5 @@
 class LeaguesController < ApplicationController
-  before_action :set_league, only: [:show]
+  before_action :set_league, only: [:show, :settings, :update]
 
   def index
     @leagues = League.all
@@ -7,6 +7,23 @@ class LeaguesController < ApplicationController
 
   def show
     @teams = @league.teams.order(:name)
+  end
+
+  def settings
+    # Settings page for league configuration
+  end
+
+  def update
+    # Convert roster_config values to integers
+    if params[:league][:roster_config].present?
+      params[:league][:roster_config] = params[:league][:roster_config].transform_values(&:to_i)
+    end
+
+    if @league.update(league_params)
+      redirect_to settings_league_path(@league), notice: "League settings updated successfully!"
+    else
+      render :settings, status: :unprocessable_entity
+    end
   end
 
   def new
@@ -30,6 +47,6 @@ class LeaguesController < ApplicationController
   end
 
   def league_params
-    params.require(:league).permit(:name, :team_count, :auction_budget, :keeper_limit)
+    params.require(:league).permit(:name, :team_count, :auction_budget, :keeper_limit, roster_config: {})
   end
 end
