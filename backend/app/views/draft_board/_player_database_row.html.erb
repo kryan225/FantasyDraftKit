@@ -1,0 +1,55 @@
+<tr id="player-row-<%= player.id %>">
+  <td><%= render partial: "players/player_name", locals: { player: player } %></td>
+  <td><%= player.positions %></td>
+  <td><%= player.mlb_team %></td>
+  <td><strong>$<%= player.calculated_value&.round || "?" %></strong></td>
+  <td>
+    <% if player.is_drafted %>
+      <span class="badge badge-warning">Drafted</span>
+    <% else %>
+      <span class="badge badge-success">Available</span>
+    <% end %>
+  </td>
+  <!-- Hitter Stats -->
+  <td><%= player.projections&.dig("home_runs") %></td>
+  <td><%= player.projections&.dig("runs") %></td>
+  <td><%= player.projections&.dig("rbi") %></td>
+  <td><%= player.projections&.dig("stolen_bases") %></td>
+  <td><%= player.projections&.dig("batting_average") %></td>
+  <!-- Pitcher Stats -->
+  <td><%= player.projections&.dig("wins") %></td>
+  <td><%= player.projections&.dig("saves") %></td>
+  <td><%= player.projections&.dig("strikeouts") %></td>
+  <td><%= player.projections&.dig("era") %></td>
+  <td><%= player.projections&.dig("whip") %></td>
+  <td>
+    <% unless player.is_drafted %>
+      <div class="row-actions-container" data-controller="row-actions">
+        <button class="row-actions-button" data-action="click->row-actions#toggle">
+          ⋮
+        </button>
+        <div class="row-actions-menu" data-row-actions-target="menu">
+          <button
+            data-action="click->draft-modal#open"
+            data-player-id="<%= player.id %>"
+            data-player-name="<%= player.name %>"
+            data-player-positions="<%= player.positions %>"
+            data-player-mlb-team="<%= player.mlb_team %>"
+            data-player-value="<%= player.calculated_value&.round || '?' %>"
+          >
+            Draft
+          </button>
+          <%= form_with url: toggle_interested_player_path(player, league_id: league_id), method: :post, data: { turbo: true } do |f| %>
+            <button type="submit">
+              <% if player.interested %>
+                Remove Interest
+              <% else %>
+                Mark as Interested
+              <% end %>
+            </button>
+          <% end %>
+        </div>
+      </div>
+    <% end %>
+  </td>
+</tr>

@@ -7,6 +7,10 @@
     <% roster_status = team.roster_status %>
     <% filled_slots = roster_status.values.sum { |v| v[:used] } %>
     <% total_slots = roster_status.values.sum { |v| v[:total] } %>
+    <% remaining_spots = total_slots - filled_slots %>
+    <% max_bid = remaining_spots > 0 ? team.budget_remaining - (remaining_spots - 1) : team.budget_remaining %>
+    <small class="text-muted">Max bid: $<%= max_bid %></small>
+    <br>
     <small class="text-muted"><%= filled_slots %>/<%= total_slots %> roster spots</small>
   </div>
 <% end %>

@@ -429,3 +429,237 @@ textarea:focus {
 .player-link strong {
   font-weight: 600;
 }
+
+/* Sortable table headers */
+.sort-link {
+  color: var(--text-primary);
+  text-decoration: none;
+  font-weight: 600;
+  display: inline-block;
+  cursor: pointer;
+  user-select: none;
+}
+
+.sort-link:hover {
+  color: var(--primary-color);
+  text-decoration: underline;
+}
+
+th {
+  white-space: nowrap;
+}
+
+/* Sticky table headers */
+thead {
+  position: sticky;
+  top: 0;
+  z-index: 10;
+  background-color: var(--card-bg);
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+}
+
+thead th {
+  background-color: var(--card-bg);
+  border-bottom: 2px solid var(--border-color);
+}
+
+/* Sticky first column (Player name) */
+table thead th:first-child,
+table tbody td:first-child {
+  position: sticky;
+  left: 0;
+  z-index: 5;
+  background-color: var(--card-bg);
+  box-shadow: 2px 0 4px rgba(0, 0, 0, 0.1);
+}
+
+table thead th:first-child {
+  z-index: 15; /* Higher than body cells to stay on top when scrolling both directions */
+}
+
+/* Sticky last column (Actions) */
+table thead th:last-child,
+table tbody td:last-child {
+  position: sticky;
+  right: 0;
+  z-index: 5;
+  background-color: var(--card-bg);
+  box-shadow: -2px 0 4px rgba(0, 0, 0, 0.1);
+}
+
+table thead th:last-child {
+  z-index: 15; /* Higher than body cells to stay on top when scrolling both directions */
+}
+
+/* Collapsible Sections */
+.collapsible-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  cursor: pointer;
+  user-select: none;
+}
+
+.collapsible-toggle {
+  background: none;
+  border: none;
+  cursor: pointer;
+  padding: 0.25rem 0.5rem;
+  font-size: 0.875rem;
+  color: var(--text-secondary);
+  transition: color 0.2s;
+}
+
+.collapsible-toggle:hover {
+  color: var(--text-primary);
+}
+
+.collapsible-content {
+  max-height: 800px;
+  overflow: hidden;
+  transition: max-height 0.3s ease-out, opacity 0.3s ease-out;
+  opacity: 1;
+}
+
+.collapsible-content.collapsed {
+  max-height: 0;
+  opacity: 0;
+}
+
+/* Roster Position Moving */
+.position-cell.clickable {
+  cursor: pointer;
+  user-select: none;
+  transition: background 0.2s;
+}
+
+.position-cell.clickable:hover {
+  background: var(--bg-color);
+}
+
+.available-move {
+  background: #d1fae5 !important;
+  border: 2px solid var(--secondary-color) !important;
+  cursor: pointer;
+  animation: pulse 2s infinite;
+}
+
+@keyframes pulse {
+  0%, 100% {
+    opacity: 1;
+  }
+  50% {
+    opacity: 0.7;
+  }
+}
+
+/* Team List Items */
+.team-list-item {
+  display: block;
+  padding: 0.75rem;
+  border-bottom: 1px solid var(--border-color);
+  background: var(--bg-color);
+  margin-bottom: 0.5rem;
+  border-radius: 0.375rem;
+  font-weight: 500;
+  text-decoration: none;
+  color: var(--text-primary);
+  transition: all 0.2s;
+}
+
+.team-list-item:hover {
+  background: var(--border-color);
+  color: var(--primary-color);
+  border-color: var(--primary-color);
+}
+
+.team-list-item:last-child {
+  margin-bottom: 0;
+}
+
+/* Row Actions Menu */
+.row-actions-container {
+  position: relative;
+  display: inline-block;
+}
+
+.row-actions-button {
+  background: var(--bg-color);
+  border: 1px solid var(--border-color);
+  border-radius: 0.25rem;
+  padding: 0.25rem 0.5rem;
+  cursor: pointer;
+  font-size: 0.875rem;
+  transition: all 0.2s;
+}
+
+.row-actions-button:hover {
+  background: var(--border-color);
+}
+
+.row-actions-menu {
+  position: absolute;
+  right: 0;
+  top: 100%;
+  margin-top: 0.25rem;
+  background: var(--card-bg);
+  border: 1px solid var(--border-color);
+  border-radius: 0.375rem;
+  box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+  min-width: 120px;
+  z-index: 100;
+  display: none;
+}
+
+.row-actions-menu.show {
+  display: block;
+}
+
+.row-actions-menu button,
+.row-actions-menu a {
+  display: block;
+  width: 100%;
+  padding: 0.5rem 0.75rem;
+  text-align: left;
+  border: none;
+  background: none;
+  cursor: pointer;
+  font-size: 0.875rem;
+  color: var(--text-primary);
+  text-decoration: none;
+  transition: background 0.2s;
+}
+
+.row-actions-menu button:hover,
+.row-actions-menu a:hover {
+  background: var(--bg-color);
+}
+
+.row-actions-menu button:first-child,
+.row-actions-menu a:first-child {
+  border-radius: 0.375rem 0.375rem 0 0;
+}
+
+.row-actions-menu button:last-child,
+.row-actions-menu a:last-child {
+  border-radius: 0 0 0.375rem 0.375rem;
+}
+
+/* Empty roster slots */
+tr.empty-slot {
+  background-color: #f9fafb;
+}
+
+tr.empty-slot td {
+  color: var(--text-secondary);
+  font-style: italic;
+}
+
+/* Position group headers in roster */
+.text-base {
+  font-size: 1rem;
+}
+
+.text-primary {
+  color: var(--primary-color);
+}
