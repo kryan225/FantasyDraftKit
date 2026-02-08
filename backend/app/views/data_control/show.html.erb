@@ -1,0 +1,233 @@
+<div class="page-header">
+  <h1>Data Control</h1>
+  <p class="subtitle">Manage player data and draft state for <%= @league.name %></p>
+</div>
+
+<div class="data-control-container">
+  <!-- Player Statistics -->
+  <div class="stats-section">
+    <h2>Current Data Status</h2>
+    <div class="stats-grid">
+      <div class="stat-card">
+        <div class="stat-value"><%= @player_count %></div>
+        <div class="stat-label">Total Players</div>
+      </div>
+      <div class="stat-card">
+        <div class="stat-value"><%= @drafted_count %></div>
+        <div class="stat-label">Drafted Players</div>
+      </div>
+      <div class="stat-card">
+        <div class="stat-value"><%= @available_count %></div>
+        <div class="stat-label">Available Players</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Import Players Section -->
+  <div class="control-section">
+    <h2>Import Player Data</h2>
+    <p class="section-description">
+      Upload a CSV file containing player projections. Existing players will be skipped.
+    </p>
+
+    <%= form_with url: import_players_path, method: :post, multipart: true, local: true, class: "import-form" do |form| %>
+      <div class="form-group">
+        <%= form.label :file, "Select CSV File", class: "form-label" %>
+        <%= form.file_field :file, accept: ".csv", required: true, class: "file-input" %>
+        <small class="form-hint">
+          Expected format: Player name with positions | Team, followed by stat columns
+        </small>
+      </div>
+
+      <div class="form-actions">
+        <%= form.submit "Import Players", class: "btn btn-primary", data: { confirm: "Are you sure you want to import players from this CSV file?" } %>
+      </div>
+    <% end %>
+  </div>
+
+  <!-- Danger Zone Section -->
+  <div class="control-section danger-zone">
+    <h2>Danger Zone</h2>
+    <p class="section-description">
+      These actions cannot be undone. Use with caution.
+    </p>
+
+    <!-- Undraft All Players -->
+    <div class="danger-action">
+      <div class="danger-action-info">
+        <h3>Undraft All Players</h3>
+        <p>Remove all draft picks and mark all players as available. Team budgets will be reset.</p>
+      </div>
+      <%= button_to "Undraft All Players",
+          undraft_all_players_path,
+          method: :post,
+          class: "btn btn-warning",
+          data: {
+            turbo_confirm: "Are you sure you want to undraft ALL players? This will delete #{@drafted_count} draft picks and cannot be undone."
+          } %>
+    </div>
+
+    <!-- Delete All Players -->
+    <div class="danger-action">
+      <div class="danger-action-info">
+        <h3>Delete All Players</h3>
+        <p>Permanently delete all player data from the database. This will also remove all draft picks.</p>
+      </div>
+      <%= button_to "Delete All Players",
+          delete_all_players_path,
+          method: :delete,
+          class: "btn btn-danger",
+          data: {
+            turbo_confirm: "⚠️ WARNING ⚠️\n\nThis will PERMANENTLY DELETE all #{@player_count} players and their draft picks.\n\nThis action CANNOT be undone!\n\nType 'DELETE' in the confirmation if you're absolutely sure."
+          } %>
+    </div>
+  </div>
+</div>
+
+<style>
+.data-control-container {
+  max-width: 900px;
+  margin: 0 auto;
+}
+
+.stats-section {
+  margin-bottom: 2rem;
+  padding: 1.5rem;
+  background: white;
+  border-radius: 8px;
+  box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+}
+
+.stats-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+  gap: 1rem;
+  margin-top: 1rem;
+}
+
+.stat-card {
+  text-align: center;
+  padding: 1rem;
+  background: #f8f9fa;
+  border-radius: 6px;
+}
+
+.stat-value {
+  font-size: 2rem;
+  font-weight: bold;
+  color: #2c3e50;
+}
+
+.stat-label {
+  font-size: 0.875rem;
+  color: #666;
+  margin-top: 0.25rem;
+}
+
+.control-section {
+  margin-bottom: 2rem;
+  padding: 1.5rem;
+  background: white;
+  border-radius: 8px;
+  box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+}
+
+.control-section h2 {
+  margin-top: 0;
+  margin-bottom: 0.5rem;
+  color: #2c3e50;
+}
+
+.section-description {
+  color: #666;
+  margin-bottom: 1.5rem;
+}
+
+.import-form .form-group {
+  margin-bottom: 1.5rem;
+}
+
+.form-label {
+  display: block;
+  margin-bottom: 0.5rem;
+  font-weight: 500;
+  color: #2c3e50;
+}
+
+.file-input {
+  display: block;
+  width: 100%;
+  padding: 0.5rem;
+  border: 2px dashed #ddd;
+  border-radius: 6px;
+  background: #f8f9fa;
+  cursor: pointer;
+}
+
+.file-input:hover {
+  border-color: #3498db;
+  background: #e8f4f8;
+}
+
+.form-hint {
+  display: block;
+  margin-top: 0.5rem;
+  color: #666;
+  font-size: 0.875rem;
+}
+
+.form-actions {
+  margin-top: 1.5rem;
+}
+
+.danger-zone {
+  border: 2px solid #e74c3c;
+}
+
+.danger-zone h2 {
+  color: #e74c3c;
+}
+
+.danger-action {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 1rem;
+  margin-bottom: 1rem;
+  background: #fff5f5;
+  border: 1px solid #fdd;
+  border-radius: 6px;
+}
+
+.danger-action:last-child {
+  margin-bottom: 0;
+}
+
+.danger-action-info h3 {
+  margin: 0 0 0.25rem 0;
+  font-size: 1rem;
+  color: #2c3e50;
+}
+
+.danger-action-info p {
+  margin: 0;
+  font-size: 0.875rem;
+  color: #666;
+}
+
+.btn-warning {
+  background: #f39c12;
+}
+
+.btn-warning:hover {
+  background: #e67e22;
+}
+
+.btn-danger {
+  background: #e74c3c;
+}
+
+.btn-danger:hover {
+  background: #c0392b;
+}
+</style>

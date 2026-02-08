@@ -25,6 +25,12 @@ Rails.application.routes.draw do
   # Draft picks (with Turbo Streams support)
   resources :draft_picks, only: [:create, :update, :destroy]
 
+  # Data control routes
+  get "data_control", to: "data_control#show", as: :data_control
+  post "data_control/import_players", to: "data_control#import_players", as: :import_players
+  post "data_control/undraft_all_players", to: "data_control#undraft_all_players", as: :undraft_all_players
+  delete "data_control/delete_all_players", to: "data_control#delete_all_players", as: :delete_all_players
+
   # Standalone draft board route (uses auto-resolution for single league)
   get "draft_board", to: "draft_board#show", as: :draft_board
   get "draft_history", to: "draft_board#history", as: :draft_history
