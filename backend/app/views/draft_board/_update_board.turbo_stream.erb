@@ -1,0 +1,29 @@
+<%# Shared Turbo Stream updates for draft board
+    Updates all draft board sections after a draft pick is created or destroyed.
+
+    Params:
+    - draft_picks: Array of DraftPick objects to display
+    - available_players: Array of available Player objects to display
+    - teams: Array of Team objects for budget display
+    - clear_errors: Boolean (default: false) - whether to clear error messages
+%>
+
+<%# Update the draft picks list %>
+<%= turbo_stream.replace "draft-picks" do %>
+  <%= render partial: "draft_board/draft_picks_table", locals: { draft_picks: draft_picks } %>
+<% end %>
+
+<%# Update the interested players list %>
+<%= turbo_stream.update "interested-players-list" do %>
+  <%= render partial: "draft_board/available_players_table", locals: { available_players: available_players } %>
+<% end %>
+
+<%# Update team budgets %>
+<%= turbo_stream.replace "team-budgets" do %>
+  <%= render partial: "draft_board/team_budgets", locals: { teams: teams } %>
+<% end %>
+
+<% if local_assigns.fetch(:clear_errors, false) %>
+  <%# Clear any error messages %>
+  <%= turbo_stream.update "draft-error", "" %>
+<% end %>

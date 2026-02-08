@@ -1,21 +1,10 @@
 <%# Turbo Stream response for successful draft pick creation %>
 
-<%# Update the draft picks list %>
-<%= turbo_stream.replace "draft-picks" do %>
-  <%= render partial: "draft_board/draft_picks_table", locals: { draft_picks: @draft_picks } %>
-<% end %>
-
-<%# Update the interested players list %>
-<%= turbo_stream.update "interested-players-list" do %>
-  <%= render partial: "draft_board/available_players_table", locals: { available_players: @interested_available_players } %>
-<% end %>
-
-<%# Update team budgets %>
-<%= turbo_stream.replace "team-budgets" do %>
-  <%= render partial: "draft_board/team_budgets", locals: { teams: @teams } %>
-<% end %>
-
-<%# Clear any error messages %>
-<%= turbo_stream.update "draft-error", "" %>
+<%= render "draft_board/update_board",
+  draft_picks: @draft_picks,
+  available_players: @interested_available_players,
+  teams: @teams,
+  clear_errors: true
+%>
 
 <%# Modal will be automatically closed by BaseModalController's turbo:submit-end listener %>
