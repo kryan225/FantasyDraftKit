@@ -183,6 +183,16 @@ lsof -i :3639  # Rails app - should be empty or show ruby
   - Visible browser mode for debugging (HEADLESS=false)
   - Comprehensive testing guide created (spec/TESTING_GUIDE.md)
   - **CRITICAL**: This would have caught the EditPlayerModal scope bug before deployment
+- **Feature: ConfirmationModal** ✅
+  - Reusable confirmation modal controller replacing JavaScript alert()
+  - Extends BaseModalController for consistent behavior
+  - Promise-based API for clean async/await usage
+  - Configurable options (title, message, button text, danger styling)
+  - Can be used as alert (showCancel: false) or confirmation (showCancel: true)
+  - Integrated with EditPlayerModal for validation errors
+  - 4 passing system tests validating behavior
+  - Removed HTML5 required attributes to enable JavaScript validation
+  - **UX Improvement**: Styled modals instead of browser alerts
 
 ### In Progress 🚧
 - None currently
@@ -191,17 +201,16 @@ lsof -i :3639  # Rails app - should be empty or show ruby
 - Feature: Add Stimulus controllers for enhanced interactivity (drag-drop, live updates)
 - Feature: Implement player value calculation algorithm
 - Feature: Implement category analysis aggregation
-- Feature: Add form validations and error handling in views
+- Feature: Use ConfirmationModal for other confirmation dialogs (delete actions, etc.)
 - Testing: Write system tests for DraftModal with JavaScript driver
 - Testing: Write RSpec unit tests for models (Player, League, Team, DraftPick)
 - Testing: Write request specs for API endpoints
 - Testing: Add system tests for full draft workflow
-- Enhancement: Replace JavaScript `alert()` with better validation UI
+- Enhancement: Add more ConfirmationModal options (icons, colors, custom buttons)
 
 ### Known Issues 🐛
 - Value recalculation and category analysis have placeholder implementations (TODOs marked)
 - League creation form not yet implemented (only index and show views exist)
-- Form validation uses JavaScript `alert()` (works but not ideal UX)
 - Pre-existing auto-generated request spec stubs need implementation (23 failures in scaffold specs)
 - Jest test files exist but can't run without npm (kept as documentation)
 
@@ -258,6 +267,13 @@ lsof -i :3639  # Rails app - should be empty or show ruby
   - 2-3x faster than Selenium, perfect for local development iteration
   - Validates actual browser behavior, not just HTML structure
   - Critical gap addressed: Now have executable frontend tests that catch real bugs
+- **2026-02-08:** Created ConfirmationModal to replace JavaScript alert()
+  - Rationale: alert() provides poor UX and doesn't match polished application
+  - Follows same pattern as BaseModalController (Open/Closed, DRY principles)
+  - Promise-based API enables clean async/await validation flow
+  - Removed HTML5 required attributes to allow JavaScript validation control
+  - Better UX: styled modals with clear messaging instead of browser alerts
+  - Reusable across entire application for any confirmation needs
 
 ### Next Steps →
 1. Test the web UI at http://localhost:3639/
@@ -271,6 +287,35 @@ lsof -i :3639  # Rails app - should be empty or show ruby
 9. Add RSpec tests for models, controllers, and views
 
 ### Recent Commits 📝
+- **2026-02-08 (commit f7b59c2):** Add comprehensive tests for ConfirmationModal
+  - 4 new tests for ConfirmationModal behavior
+  - Updated 1 EditPlayerModal test for new validation flow
+  - 10 examples, 0 failures in 4.86 seconds
+  - Tests validation errors show in styled modal
+  - Tests edit modal stays open after validation error
+- **2026-02-08 (commit 4f9289d):** Add reusable ConfirmationModal to replace JavaScript alert()
+  - Created ConfirmationModalController extending BaseModalController
+  - Promise-based API for async/await usage
+  - Integrated with EditPlayerModal for validation
+  - Removed HTML5 required attributes for JavaScript validation control
+  - Better UX with styled modals instead of browser alerts
+- **2026-02-08 (commit 631952d):** Update CLAUDE.md with testing infrastructure details
+  - Documented Cuprite setup and decision rationale
+  - Updated technology stack and project status
+  - Added testing guide reference
+- **2026-02-08 (commit 40eabea):** Add comprehensive testing guide (spec/TESTING_GUIDE.md)
+  - 294 lines documenting testing infrastructure
+  - Cuprite vs Selenium comparison
+  - Running tests, writing tests, debugging techniques
+- **2026-02-08 (commit 3fe4c5b):** Rewrite EditPlayerModal system tests with JavaScript driver
+  - 6 tests using Cuprite for real browser testing
+  - Tests actual JavaScript behavior
+  - Would have caught original modal scope bug
+- **2026-02-08 (commit ec8039e):** Set up Cuprite for JavaScript-capable system testing
+  - Added capybara and cuprite gems
+  - Created spec/support/capybara.rb configuration
+  - Screenshot capture on failures
+  - 2-3x faster than Selenium
 - **2026-02-08 (commit 844b479):** Add test coverage for EditPlayerModal (documentation)
   - 2 files changed, 390 insertions
   - Added JavaScript unit tests (15+ test cases, requires Jest to run)
