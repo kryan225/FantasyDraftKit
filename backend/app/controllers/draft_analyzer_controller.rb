@@ -1,5 +1,6 @@
 class DraftAnalyzerController < ApplicationController
   include LeagueResolvable
+  include PositionEligibility
 
   before_action :ensure_league
 
@@ -24,9 +25,7 @@ class DraftAnalyzerController < ApplicationController
     filled_by_position = @league.draft_picks.group(:drafted_position).count
 
     # Build analysis for each position
-    positions = ["C", "1B", "2B", "3B", "SS", "MI", "CI", "OF", "UTIL", "SP", "RP", "BENCH"]
-
-    positions.map do |position|
+    ALL_POSITIONS.map do |position|
       slots_per_team = roster_config[position].to_i
       next if slots_per_team == 0 # Skip positions not used in this league
 
@@ -75,9 +74,8 @@ class DraftAnalyzerController < ApplicationController
 
     # Direction 2: Can a player at this position move OUT to ANY other position with space?
     current_players = team.draft_picks.where(drafted_position: position)
-    all_positions = ["C", "1B", "2B", "3B", "SS", "MI", "CI", "OF", "UTIL", "SP", "RP", "BENCH"]
 
-    all_positions.each do |target_pos|
+    ALL_POSITIONS.each do |target_pos|
       next if target_pos == position # Can't move to same position
 
       # Check if target position has available slots
@@ -98,37 +96,4 @@ class DraftAnalyzerController < ApplicationController
     false
   end
 
-  def get_flex_positions_for(position)
-    case position
-    when "C", "1B", "2B", "3B", "SS", "OF"
-      ["UTIL", "MI", "CI"] # Check all flex spots
-    when "MI"
-      ["UTIL"] # MI can take from UTIL
-    when "CI"
-      ["UTIL"] # CI can take from UTIL
-    when "SP", "RP", "BENCH"
-      [] # Pitchers and bench don't have flex
-    else
-      []
-    end
-  end
-
-  def player_eligible_for_position?(player, position)
-    positions = player.positions.to_s.split(',').map(&:strip)
-
-    case position
-    when "UTIL"
-      # Any batter position can fill UTIL
-      (positions & ["C", "1B", "2B", "3B", "SS", "OF"]).any?
-    when "MI"
-      # 2B or SS can fill MI
-      (positions & ["2B", "SS"]).any?
-    when "CI"
-      # 1B or 3B can fill CI
-      (positions & ["1B", "3B"]).any?
-    else
-      # Direct position match
-      positions.include?(position)
-    end
-  end
 end

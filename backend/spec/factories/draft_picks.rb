@@ -3,8 +3,9 @@ FactoryBot.define do
     league { nil }
     team { nil }
     player { nil }
-    price { 1 }
+    price { 10 }
     is_keeper { false }
     pick_number { 1 }
+    drafted_position { "C" }
   end
 end

@@ -10,7 +10,7 @@ RSpec.describe DraftBoardController, type: :controller do
       let!(:team2) { Team.create!(league: league, name: "Team 2", budget_remaining: 260) }
       let!(:player1) { Player.create!(name: "Player 1", positions: "1B", mlb_team: "NYY", calculated_value: 25.0) }
       let!(:player2) { Player.create!(name: "Player 2", positions: "OF", mlb_team: "BOS", calculated_value: 20.0, is_drafted: true) }
-      let!(:draft_pick) { DraftPick.create!(league: league, team: team1, player: player2, price: 20, pick_number: 1) }
+      let!(:draft_pick) { DraftPick.create!(league: league, team: team1, player: player2, price: 20, pick_number: 1, drafted_position: "OF") }
 
       it "renders successfully without league_id (auto-resolves)" do
         get :show

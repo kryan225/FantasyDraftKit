@@ -600,15 +600,137 @@ Check these locations:
 
 ## Testing Strategy
 
-### Backend Testing
-- Use RSpec for model and controller tests
-- Factory Bot for test data generation
-- Test API endpoints with request specs
+**CRITICAL:** This project follows the **Testing Pyramid** model for optimal test coverage and speed.
 
-### Frontend Testing
-- Jest with React Testing Library configured
-- Test components in isolation
-- Mock API calls in tests
+### Testing Pyramid Philosophy
+
+```
+      E2E/System Tests (~10%)  ← Slow, expensive, critical user journeys only
+     /                        \
+    /  Integration Tests (~30%)  ← Medium speed, test component interactions
+   /                              \
+  /   Unit Tests (~60%)            ← Fast, test business logic in isolation
+ /__________________________________\
+```
+
+### Layer 1: Unit Tests (Base - Fast & Plentiful)
+
+**Purpose:** Test business logic in isolation with no external dependencies
+
+**What to test:**
+- Model validations, scopes, and methods
+- Concerns and utility modules (e.g., `PositionEligibility`)
+- Service objects and business logic
+- Helper methods and calculations
+
+**Examples:**
+- `spec/lib/position_eligibility_spec.rb` - Position eligibility rules (50 tests)
+- `spec/models/player_spec.rb` - Player validations and scopes
+- `spec/models/draft_pick_spec.rb` - Callbacks and associations
+
+**Characteristics:**
+- Run in < 1 second for 50+ examples
+- No database hits (use `build` instead of `create` when possible)
+- No HTTP requests, no JavaScript, no browser
+- Test pure Ruby logic
+
+### Layer 2: Integration Tests (Middle - Medium Speed)
+
+**Purpose:** Test that components work together correctly
+
+**What to test:**
+- Controller actions and HTTP responses
+- Database queries and ActiveRecord relationships
+- API endpoints with JSON responses
+- Concerns integrated into controllers
+
+**Examples:**
+- `spec/requests/draft_analyzer_spec.rb` - Controller integration with database
+- `spec/controllers/draft_board_controller_spec.rb` - Controller behavior
+- `spec/requests/api/v1/*_spec.rb` - API endpoint testing
+
+**Characteristics:**
+- Run in 1-3 seconds for 20+ examples
+- Use database (with transactions/rollbacks)
+- No JavaScript, no browser
+- Test HTTP request/response cycle
+
+### Layer 3: E2E/System Tests (Top - Slow & Selective)
+
+**Purpose:** Test critical user journeys that require JavaScript
+
+**What to test (ONLY):**
+- Complete user workflows (draft a player end-to-end)
+- JavaScript interactions (modals, dynamic UI updates)
+- Turbo Stream updates
+- Critical business flows
+
+**What NOT to test:**
+- Low-level logic (belongs in unit tests)
+- Every possible UI state
+- Position eligibility rules (tested in unit tests)
+
+**Examples:**
+- `spec/system/roster_management_spec.rb` - Click-to-move player workflow
+- `spec/system/edit_player_modal_spec.rb` - Modal interactions
+- `spec/system/confirmation_modal_spec.rb` - Confirmation dialog flow
+
+**Characteristics:**
+- Run in 30-90 seconds for 3-5 examples
+- Use Cuprite (headless Chrome)
+- Full JavaScript execution
+- Expensive - keep these minimal
+
+### Current Test Distribution
+
+**As of 2026-02-07:**
+```
+Unit Tests:        75 examples in 0.6s   (60% coverage) ✅
+Integration Tests: 25 examples in 1.2s   (30% coverage) ✅
+System Tests:      ~8 examples in 60s    (10% coverage) ✅
+```
+
+### Testing Best Practices
+
+**DO:**
+- ✅ Write unit tests for ALL business logic
+- ✅ Test edge cases in unit tests (fast and cheap)
+- ✅ Use integration tests to verify components work together
+- ✅ Write ONE system test per user journey
+- ✅ Keep system tests high-level (click button → see result)
+
+**DON'T:**
+- ❌ Test position eligibility rules in system tests (too slow)
+- ❌ Test every CSS class appearing (unit test the logic instead)
+- ❌ Write system tests for things that don't need JavaScript
+- ❌ Test internal implementation details in integration tests
+
+### Running Tests
+
+```bash
+# Fast unit tests (run these frequently during development)
+bundle exec rspec spec/models/ spec/lib/ --format progress
+
+# Integration tests (run before committing)
+bundle exec rspec spec/requests/ spec/controllers/ --format progress
+
+# System tests (run before pushing or for full QA)
+bundle exec rspec spec/system/ --format documentation
+
+# All non-system tests (fast feedback loop)
+bundle exec rspec --exclude-pattern "spec/system/**/*_spec.rb"
+```
+
+### Backend Testing Tools
+- RSpec for test framework
+- Factory Bot for test data generation
+- Cuprite for JavaScript-capable system tests (headless Chrome)
+- SimpleCov for code coverage (if added)
+
+### Frontend Testing (Hotwire)
+- Stimulus controllers tested via system tests
+- JavaScript utilities (like `position_eligibility.js`) should have unit tests if complex logic
+- Turbo Stream responses tested via integration tests
 
 ---
 

@@ -1,4 +1,5 @@
 import { Controller } from "@hotwired/stimulus"
+import { PositionEligibility } from "../utils/position_eligibility"
 
 // Connects to data-controller="roster-move"
 export default class extends Controller {
@@ -43,7 +44,7 @@ export default class extends Controller {
       if (isSamePosition) return
 
       // Check if player is eligible for this position
-      const isEligible = this.isPlayerEligible(positions, targetPosition)
+      const isEligible = PositionEligibility.isPlayerEligible(positions, targetPosition)
 
       // Check if position has available slots (considering we're moving FROM current position)
       const hasAvailableSlot = this.hasAvailableSlot(targetPosition, currentPosition)
@@ -53,26 +54,6 @@ export default class extends Controller {
         cell.dataset.action = "click->roster-move#movePlayer"
       }
     })
-  }
-
-  isPlayerEligible(playerPositions, targetPosition) {
-    switch (targetPosition) {
-      case "UTIL":
-        // Any batter can go to UTIL
-        return playerPositions.some(p => ["C", "1B", "2B", "3B", "SS", "OF"].includes(p))
-      case "MI":
-        // 2B or SS can go to MI
-        return playerPositions.some(p => ["2B", "SS"].includes(p))
-      case "CI":
-        // 1B or 3B can go to CI
-        return playerPositions.some(p => ["1B", "3B"].includes(p))
-      case "BENCH":
-        // Anyone can go to bench
-        return true
-      default:
-        // Direct position match
-        return playerPositions.includes(targetPosition)
-    }
   }
 
   hasAvailableSlot(targetPosition, currentPosition) {

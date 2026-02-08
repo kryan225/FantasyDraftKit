@@ -1,4 +1,5 @@
 import BaseModalController from "./base_modal_controller"
+import { PositionEligibility } from "../utils/position_eligibility"
 
 /**
  * DraftModalController - Handles the player draft modal
@@ -86,39 +87,22 @@ export default class extends BaseModalController {
 
   /**
    * Calculate eligible positions based on roster rules
-   * - All players can play UTIL
-   * - 1B and 3B can play CI (Corner Infield)
-   * - 2B and SS can play MI (Middle Infield)
+   * Uses the centralized PositionEligibility utility for consistent logic
    *
    * @param {Array<string>} positions - Player's actual positions
    * @return {Array<string>} - All eligible positions in logical order
    */
   calculateEligiblePositions(positions) {
-    const eligible = new Set()
+    // Get all eligible positions using centralized utility
+    const eligible = PositionEligibility.getEligiblePositions(positions)
 
-    // Add actual positions
-    positions.forEach(pos => {
-      eligible.add(pos)
-    })
+    // Sort with actual positions first, then flex positions (CI, MI, UTIL), then BENCH
+    const flexPositions = ['CI', 'MI', 'UTIL']
+    const actualPositions = eligible.filter(p => !flexPositions.includes(p) && p !== 'BENCH')
+    const addedFlexPositions = eligible.filter(p => flexPositions.includes(p))
+    const hasBench = eligible.includes('BENCH') ? ['BENCH'] : []
 
-    // Add position-specific eligibility
-    if (positions.includes('1B') || positions.includes('3B')) {
-      eligible.add('CI') // Corner Infield
-    }
-
-    if (positions.includes('2B') || positions.includes('SS')) {
-      eligible.add('MI') // Middle Infield
-    }
-
-    // All players can play utility
-    eligible.add('UTIL')
-
-    // Convert to sorted array (actual positions first, then special positions)
-    const specialPositions = ['CI', 'MI', 'UTIL']
-    const actualPositions = Array.from(eligible).filter(p => !specialPositions.includes(p))
-    const addedSpecialPositions = Array.from(eligible).filter(p => specialPositions.includes(p))
-
-    return [...actualPositions, ...addedSpecialPositions]
+    return [...actualPositions, ...addedFlexPositions, ...hasBench]
   }
 
   /**
