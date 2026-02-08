@@ -1,0 +1,12 @@
+<% teams.each do |team| %>
+  <div>
+    <strong><%= team.name %></strong>
+    <br>
+    <span class="text-muted">$<%= team.budget_remaining %> remaining</span>
+    <br>
+    <% roster_status = team.roster_status %>
+    <% filled_slots = roster_status.values.sum { |v| v[:used] } %>
+    <% total_slots = roster_status.values.sum { |v| v[:total] } %>
+    <small class="text-muted"><%= filled_slots %>/<%= total_slots %> roster spots</small>
+  </div>
+<% end %>

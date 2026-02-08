@@ -13,6 +13,9 @@ Rails.application.routes.draw do
   resources :teams, only: [:show]
   resources :players, only: [:index]
 
+  # Draft picks (with Turbo Streams support)
+  resources :draft_picks, only: [:create, :destroy]
+
   # Standalone draft board route (uses auto-resolution for single league)
   get "draft_board", to: "draft_board#show", as: :draft_board
 

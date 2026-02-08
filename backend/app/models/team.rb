@@ -1,4 +1,6 @@
 class Team < ApplicationRecord
+  include RosterValidator
+
   # Associations
   belongs_to :league
   has_many :draft_picks, dependent: :destroy

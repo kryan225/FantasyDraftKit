@@ -1,0 +1,16 @@
+<%# Turbo Stream response for draft pick deletion (undo) %>
+
+<%# Update the draft picks list %>
+<%= turbo_stream.replace "draft-picks" do %>
+  <%= render partial: "draft_board/draft_picks_table", locals: { draft_picks: @draft_picks } %>
+<% end %>
+
+<%# Update the available players list %>
+<%= turbo_stream.replace "available-players-list" do %>
+  <%= render partial: "draft_board/available_players_table", locals: { available_players: @available_players } %>
+<% end %>
+
+<%# Update team budgets %>
+<%= turbo_stream.replace "team-budgets" do %>
+  <%= render partial: "draft_board/team_budgets", locals: { teams: @teams } %>
+<% end %>

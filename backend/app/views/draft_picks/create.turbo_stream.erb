@@ -1,0 +1,26 @@
+<%# Turbo Stream response for successful draft pick creation %>
+
+<%# Update the draft picks list %>
+<%= turbo_stream.replace "draft-picks" do %>
+  <%= render partial: "draft_board/draft_picks_table", locals: { draft_picks: @draft_picks } %>
+<% end %>
+
+<%# Update the available players list %>
+<%= turbo_stream.replace "available-players-list" do %>
+  <%= render partial: "draft_board/available_players_table", locals: { available_players: @available_players } %>
+<% end %>
+
+<%# Update team budgets %>
+<%= turbo_stream.replace "team-budgets" do %>
+  <%= render partial: "draft_board/team_budgets", locals: { teams: @teams } %>
+<% end %>
+
+<%# Clear any error messages %>
+<%= turbo_stream.update "draft-error", "" %>
+
+<%# Close the modal by triggering a custom event %>
+<%= turbo_stream.append "body" do %>
+  <script>
+    document.dispatchEvent(new CustomEvent('draft-success'));
+  </script>
+<% end %>

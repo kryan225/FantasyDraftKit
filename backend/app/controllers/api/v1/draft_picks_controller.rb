@@ -54,6 +54,6 @@ class Api::V1::DraftPicksController < Api::V1::BaseController
   end
 
   def draft_pick_params
-    params.require(:draft_pick).permit(:team_id, :player_id, :price, :is_keeper, :pick_number)
+    params.require(:draft_pick).permit(:team_id, :player_id, :price, :is_keeper, :pick_number, :drafted_position)
   end
 end

@@ -1,0 +1,36 @@
+<% draft_picks.each do |pick| %>
+  <tr id="draft-pick-<%= pick.id %>">
+    <td><%= pick.pick_number %></td>
+    <td>
+      <strong><%= pick.player.name %></strong>
+      <br>
+      <small class="text-muted">
+        <%= pick.player.positions %>
+        <% if pick.drafted_position.present? %>
+          → <strong><%= pick.drafted_position %></strong>
+        <% end %>
+        - <%= pick.player.mlb_team %>
+      </small>
+    </td>
+    <td><%= pick.team.name %></td>
+    <td><strong>$<%= pick.price %></strong></td>
+    <td>
+      <% if pick.is_keeper %>
+        <span class="badge badge-info">Keeper</span>
+      <% else %>
+        <span class="badge badge-success">Draft</span>
+      <% end %>
+    </td>
+    <td>
+      <%= button_to "Undo",
+          draft_pick_path(pick),
+          method: :delete,
+          data: {
+            turbo_confirm: "Are you sure you want to undo this pick? This will refund $#{pick.price} to #{pick.team.name}.",
+            turbo_method: :delete
+          },
+          class: "btn-danger btn-sm",
+          form: { data: { turbo: true } } %>
+    </td>
+  </tr>
+<% end %>

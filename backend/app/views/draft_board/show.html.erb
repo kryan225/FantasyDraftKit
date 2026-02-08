@@ -24,39 +24,26 @@
               <th>Team</th>
               <th>Price</th>
               <th>Type</th>
+              <th>Action</th>
             </tr>
           </thead>
           <tbody id="draft-picks">
-            <% @draft_picks.each do |pick| %>
-              <tr>
-                <td><%= pick.pick_number %></td>
-                <td>
-                  <strong><%= pick.player.name %></strong>
-                  <br>
-                  <small class="text-muted"><%= pick.player.positions %> - <%= pick.player.mlb_team %></small>
-                </td>
-                <td><%= pick.team.name %></td>
-                <td><strong>$<%= pick.price %></strong></td>
-                <td>
-                  <% if pick.is_keeper %>
-                    <span class="badge badge-info">Keeper</span>
-                  <% else %>
-                    <span class="badge badge-success">Draft</span>
-                  <% end %>
-                </td>
-              </tr>
-            <% end %>
+            <%= render partial: "draft_board/draft_picks_table", locals: { draft_picks: @draft_picks } %>
           </tbody>
         </table>
       </div>
     <% else %>
-      <p class="text-muted text-center">No picks yet. Draft hasnt started!</p>
+      <p class="text-muted text-center">No picks yet. Draft hasn't started!</p>
     <% end %>
   </div>
 
   <!-- Available Players -->
   <div class="card" data-controller="draft-modal">
     <h3 class="card-title">Top Available Players</h3>
+
+    <!-- Error display area -->
+    <div id="draft-error"></div>
+
     <div style="max-height: 600px; overflow-y: auto;">
       <table>
         <thead>
@@ -66,30 +53,8 @@
             <th>Action</th>
           </tr>
         </thead>
-        <tbody>
-          <% @available_players.each do |player| %>
-            <tr>
-              <td>
-                <strong><%= player.name %></strong>
-                <br>
-                <small class="text-muted"><%= player.positions %></small>
-              </td>
-              <td><strong>$<%= player.calculated_value&.round || "?" %></strong></td>
-              <td>
-                <button
-                  class="btn-draft"
-                  data-action="click->draft-modal#open"
-                  data-player-id="<%= player.id %>"
-                  data-player-name="<%= player.name %>"
-                  data-player-positions="<%= player.positions %>"
-                  data-player-mlb-team="<%= player.mlb_team %>"
-                  data-player-value="<%= player.calculated_value&.round || '?' %>"
-                >
-                  Draft
-                </button>
-              </td>
-            </tr>
-          <% end %>
+        <tbody id="available-players-list">
+          <%= render partial: "draft_board/available_players_table", locals: { available_players: @available_players } %>
         </tbody>
       </table>
     </div>
@@ -129,12 +94,19 @@
           </div>
 
           <!-- Draft Form -->
-          <form data-action="submit->draft-modal#submit">
-            <input type="hidden" data-draft-modal-target="playerId">
+          <%= form_with url: draft_picks_path, method: :post, data: { action: "submit->draft-modal#submit", turbo: true } do |f| %>
+            <input type="hidden" name="draft_pick[player_id]" data-draft-modal-target="playerId">
+            <input type="hidden" name="draft_pick[league_id]" value="<%= @league.id %>">
+            <input type="hidden" name="draft_pick[is_keeper]" value="false">
 
             <div class="form-group">
               <label for="draft-team">Drafting Team</label>
-              <select id="draft-team" data-draft-modal-target="teamSelect" required>
+              <select
+                id="draft-team"
+                name="draft_pick[team_id]"
+                data-draft-modal-target="teamSelect"
+                required
+              >
                 <option value="">-- Select Team --</option>
                 <% @teams.each do |team| %>
                   <option value="<%= team.id %>">
@@ -146,7 +118,12 @@
 
             <div class="form-group">
               <label for="draft-position">Draft Position</label>
-              <select id="draft-position" data-draft-modal-target="positionSelect" required>
+              <select
+                id="draft-position"
+                name="draft_pick[drafted_position]"
+                data-draft-modal-target="positionSelect"
+                required
+              >
                 <!-- Options populated dynamically by Stimulus controller -->
               </select>
               <small class="text-muted">
@@ -159,6 +136,7 @@
               <input
                 type="number"
                 id="draft-price"
+                name="draft_pick[price]"
                 data-draft-modal-target="priceInput"
                 min="1"
                 max="<%= @league.auction_budget %>"
@@ -174,7 +152,7 @@
                 Confirm Draft
               </button>
             </div>
-          </form>
+          <% end %>
         </div>
       </div>
     </div>
@@ -184,13 +162,7 @@
 <!-- Team Budgets -->
 <div class="card mt-3">
   <h3 class="card-title">Team Budgets</h3>
-  <div class="grid grid-3">
-    <% @teams.each do |team| %>
-      <div>
-        <strong><%= team.name %></strong>
-        <br>
-        <span class="text-muted">$<%= team.budget_remaining %> remaining</span>
-      </div>
-    <% end %>
+  <div class="grid grid-3" id="team-budgets">
+    <%= render partial: "draft_board/team_budgets", locals: { teams: @teams } %>
   </div>
 </div>

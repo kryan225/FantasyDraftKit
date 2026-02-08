@@ -16,6 +16,11 @@ export default class extends Controller {
 
   connect() {
     console.log("Draft modal controller connected")
+
+    // Listen for draft success event to close modal
+    document.addEventListener('draft-success', () => {
+      this.close()
+    })
   }
 
   // Open modal with player data
@@ -119,23 +124,24 @@ export default class extends Controller {
     return [...actualPositions, ...addedSpecialPositions]
   }
 
-  // Handle form submission
-  async submit(event) {
-    event.preventDefault()
+  // Handle form submission - now uses Turbo Streams
+  submit(event) {
+    // Let the form submit naturally - Turbo will handle it
+    // Just do client-side validation first
 
     const price = parseInt(this.priceInputTarget.value)
     const teamId = this.teamSelectTarget.value
-    const playerId = this.playerIdTarget.value
-    const position = this.positionSelectTarget.value
 
     // Validation
     if (!teamId) {
       alert("Please select a team")
+      event.preventDefault()
       return
     }
 
     if (!price || price < 1) {
       alert("Please enter a valid price (minimum $1)")
+      event.preventDefault()
       return
     }
 
@@ -147,15 +153,9 @@ export default class extends Controller {
       const remainingBudget = parseInt(budgetMatch[1])
       if (price > remainingBudget) {
         alert(`Price $${price} exceeds team's remaining budget of $${remainingBudget}`)
+        event.preventDefault()
         return
       }
-    }
-
-    // Get league ID from URL or data attribute
-    const leagueId = this.getLeagueId()
-    if (!leagueId) {
-      alert("Error: Could not determine league ID")
-      return
     }
 
     // Disable submit button to prevent double submission
@@ -165,81 +165,6 @@ export default class extends Controller {
       submitButton.textContent = "Drafting..."
     }
 
-    try {
-      // Submit to API
-      const response = await this.submitDraftPick(leagueId, {
-        team_id: teamId,
-        player_id: playerId,
-        price: price,
-        is_keeper: false
-      })
-
-      if (response.ok) {
-        // Success! Reload page to show updated draft board
-        window.location.reload()
-      } else {
-        const data = await response.json()
-        const errorMessage = data.errors ? data.errors.join(", ") : "Failed to draft player"
-        alert(`Error: ${errorMessage}`)
-
-        // Re-enable submit button
-        if (submitButton) {
-          submitButton.disabled = false
-          submitButton.textContent = "Confirm Draft"
-        }
-      }
-    } catch (error) {
-      console.error("Draft submission error:", error)
-      alert("An error occurred while drafting the player. Please try again.")
-
-      // Re-enable submit button
-      if (submitButton) {
-        submitButton.disabled = false
-        submitButton.textContent = "Confirm Draft"
-      }
-    }
-  }
-
-  // Submit draft pick to API
-  async submitDraftPick(leagueId, draftPickData) {
-    const csrfToken = document.querySelector('meta[name="csrf-token"]')?.content
-
-    return fetch(`/api/v1/leagues/${leagueId}/draft_picks`, {
-      method: "POST",
-      headers: {
-        "Content-Type": "application/json",
-        "X-CSRF-Token": csrfToken,
-        "Accept": "application/json"
-      },
-      body: JSON.stringify({
-        draft_pick: draftPickData
-      })
-    })
-  }
-
-  // Get league ID from current URL or page data
-  getLeagueId() {
-    // Try to get from URL parameter
-    const urlParams = new URLSearchParams(window.location.search)
-    if (urlParams.has('league_id')) {
-      return urlParams.get('league_id')
-    }
-
-    // Try to get from page (e.g., data attribute on body or container)
-    const leagueIdElement = document.querySelector('[data-league-id]')
-    if (leagueIdElement) {
-      return leagueIdElement.dataset.leagueId
-    }
-
-    // Fallback: try to extract from breadcrumb or other page elements
-    const backLink = document.querySelector('a[href*="/leagues/"]')
-    if (backLink) {
-      const match = backLink.href.match(/\/leagues\/(\d+)/)
-      if (match) {
-        return match[1]
-      }
-    }
-
-    return null
+    // Form will submit via Turbo, no need to prevent default
   }
 }
