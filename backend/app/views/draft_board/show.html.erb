@@ -55,7 +55,7 @@
   </div>
 
   <!-- Available Players -->
-  <div class="card">
+  <div class="card" data-controller="draft-modal">
     <h3 class="card-title">Top Available Players</h3>
     <div style="max-height: 600px; overflow-y: auto;">
       <table>
@@ -63,6 +63,7 @@
           <tr>
             <th>Player</th>
             <th>Value</th>
+            <th>Action</th>
           </tr>
         </thead>
         <tbody>
@@ -74,6 +75,19 @@
                 <small class="text-muted"><%= player.positions %></small>
               </td>
               <td><strong>$<%= player.calculated_value&.round || "?" %></strong></td>
+              <td>
+                <button
+                  class="btn-draft"
+                  data-action="click->draft-modal#open"
+                  data-player-id="<%= player.id %>"
+                  data-player-name="<%= player.name %>"
+                  data-player-positions="<%= player.positions %>"
+                  data-player-mlb-team="<%= player.mlb_team %>"
+                  data-player-value="<%= player.calculated_value&.round || '?' %>"
+                >
+                  Draft
+                </button>
+              </td>
             </tr>
           <% end %>
         </tbody>
@@ -81,6 +95,88 @@
     </div>
     <div class="mt-2">
       <%= link_to "View All Players", players_path, class: "btn btn-secondary btn-sm" %>
+    </div>
+
+    <!-- Draft Player Modal -->
+    <div class="modal hidden" data-draft-modal-target="modal" data-action="click->draft-modal#closeOnOutsideClick">
+      <div class="modal-content">
+        <div class="modal-header">
+          <h3 class="modal-title">Draft Player</h3>
+          <button class="modal-close" data-action="click->draft-modal#close" type="button">
+            ×
+          </button>
+        </div>
+
+        <div class="modal-body">
+          <!-- Player Details -->
+          <div class="player-details">
+            <div class="player-details-row">
+              <span class="player-details-label">Player:</span>
+              <span class="player-details-value" data-draft-modal-target="playerName"></span>
+            </div>
+            <div class="player-details-row">
+              <span class="player-details-label">Position(s):</span>
+              <span class="player-details-value" data-draft-modal-target="playerPosition"></span>
+            </div>
+            <div class="player-details-row">
+              <span class="player-details-label">Team:</span>
+              <span class="player-details-value" data-draft-modal-target="playerTeam"></span>
+            </div>
+            <div class="player-details-row">
+              <span class="player-details-label">Calculated Value:</span>
+              <span class="player-details-value" data-draft-modal-target="playerValue"></span>
+            </div>
+          </div>
+
+          <!-- Draft Form -->
+          <form data-action="submit->draft-modal#submit">
+            <input type="hidden" data-draft-modal-target="playerId">
+
+            <div class="form-group">
+              <label for="draft-team">Drafting Team</label>
+              <select id="draft-team" data-draft-modal-target="teamSelect" required>
+                <option value="">-- Select Team --</option>
+                <% @teams.each do |team| %>
+                  <option value="<%= team.id %>">
+                    <%= team.name %> ($<%= team.budget_remaining %> remaining)
+                  </option>
+                <% end %>
+              </select>
+            </div>
+
+            <div class="form-group">
+              <label for="draft-position">Draft Position</label>
+              <select id="draft-position" data-draft-modal-target="positionSelect" required>
+                <!-- Options populated dynamically by Stimulus controller -->
+              </select>
+              <small class="text-muted">
+                Note: All players can play UTIL. 1B/3B can play CI. 2B/SS can play MI.
+              </small>
+            </div>
+
+            <div class="form-group">
+              <label for="draft-price">Draft Price ($)</label>
+              <input
+                type="number"
+                id="draft-price"
+                data-draft-modal-target="priceInput"
+                min="1"
+                max="<%= @league.auction_budget %>"
+                required
+              >
+            </div>
+
+            <div class="modal-footer">
+              <button type="button" class="btn btn-cancel btn-sm" data-action="click->draft-modal#close">
+                Cancel
+              </button>
+              <button type="submit" class="btn btn-primary btn-sm">
+                Confirm Draft
+              </button>
+            </div>
+          </form>
+        </div>
+      </div>
     </div>
   </div>
 </div>
