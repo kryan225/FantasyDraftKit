@@ -21,18 +21,5 @@
         <span class="badge badge-success">Draft</span>
       <% end %>
     </td>
-    <td>
-      <%= button_to "Undo",
-          draft_pick_path(pick),
-          method: :delete,
-          data: {
-            controller: "undo-pick",
-            undo_pick_price_value: pick.price,
-            undo_pick_team_name_value: pick.team.name,
-            action: "click->undo-pick#undo"
-          },
-          class: "btn-danger btn-sm",
-          form: { data: { turbo: true } } %>
-    </td>
   </tr>
 <% end %>

@@ -6,163 +6,260 @@
   <h2 class="card-title"><%= @league.name %> - Draft Board</h2>
   <p class="text-muted">
     <%= @draft_picks.count %> picks made •
-    <%= @available_players.count %> available players shown
+    <%= @interested_available_players.count %> players of interest
   </p>
+  <div class="mt-2 flex gap-2">
+    <%= link_to "View Draft History", draft_history_path(league_id: @league.id), class: "btn btn-primary btn-sm" %>
+    <%= link_to "Draft Analyzer", draft_analyzer_path(league_id: @league.id), class: "btn btn-secondary btn-sm" %>
+  </div>
 </div>
 
-<div class="grid" style="grid-template-columns: 2fr 1fr; gap: 1rem;">
-  <!-- Draft History -->
-  <div class="card">
-    <h3 class="card-title">Draft Picks</h3>
-    <% if @draft_picks.any? %>
+<!-- Player Database -->
+<div class="card mb-3" data-controller="draft-modal">
+  <h3 class="card-title">Player Database</h3>
+
+  <%= form_with url: draft_board_path, method: :get, data: { turbo_frame: "_top" } do |f| %>
+    <%= hidden_field_tag :league_id, @league.id %>
+
+    <div class="grid grid-3 mb-3">
+      <div class="form-group">
+        <%= f.label :search, "Search Player" %>
+        <%= f.search_field :search, value: params[:search], placeholder: "Player name...", onchange: "this.form.requestSubmit()" %>
+      </div>
+
+      <div class="form-group">
+        <%= f.label :position, "Position" %>
+        <%= f.select :position, options_for_select([
+          ["All Positions", ""],
+          ["Catcher (C)", "C"],
+          ["First Base (1B)", "1B"],
+          ["Second Base (2B)", "2B"],
+          ["Third Base (3B)", "3B"],
+          ["Shortstop (SS)", "SS"],
+          ["Outfield (OF)", "OF"],
+          ["Starting Pitcher (SP)", "SP"],
+          ["Relief Pitcher (RP)", "RP"]
+        ], params[:position]), {}, { class: "form-control", onchange: "this.form.requestSubmit()" } %>
+      </div>
+
+      <div class="form-group">
+        <%= f.label :drafted, "Status" %>
+        <%= f.select :drafted, options_for_select([
+          ["All Players", ""],
+          ["Available Only", "false"],
+          ["Drafted Only", "true"]
+        ], params[:drafted]), {}, { class: "form-control", onchange: "this.form.requestSubmit()" } %>
+      </div>
+    </div>
+
+    <div class="flex items-center gap-2">
+      <%= link_to "Clear Filters", draft_board_path(league_id: @league.id), class: "btn btn-sm" %>
+
+      <div class="form-group" style="margin-bottom: 0; margin-left: 1rem;">
+        <%= f.check_box :interested, { checked: params[:interested] == "true", onchange: "this.form.requestSubmit()" }, "true", "false" %>
+        <%= f.label :interested, "Interested Only", style: "display: inline; margin-left: 0.25rem; font-weight: normal;" %>
+      </div>
+    </div>
+  <% end %>
+
+  <div class="mt-3">
+    <p class="text-muted mb-2"><%= @players.count %> players found</p>
+
+    <div style="max-height: 500px; overflow-y: auto; overflow-x: auto;"
+         data-controller="scroll-memory"
+         data-scroll-memory-key-value="playerDatabaseScroll">
+      <%
+        # Helper method to generate sort link
+        def sort_link(column, label, current_sort, current_direction, league_id, search, position, drafted)
+          # First click: descending, second click: ascending
+          direction = (current_sort == column && current_direction == 'desc') ? 'asc' : 'desc'
+          arrow = if current_sort == column
+            current_direction == 'asc' ? ' ↑' : ' ↓'
+          else
+            ''
+          end
+
+          link_params = { league_id: league_id, sort: column, direction: direction }
+          link_params[:search] = search if search.present?
+          link_params[:position] = position if position.present?
+          link_params[:drafted] = drafted if drafted.present?
+
+          link_to "#{label}#{arrow}", draft_board_path(link_params), class: 'sort-link'
+        end
+
+        current_sort = params[:sort]
+        current_direction = params[:direction]
+      %>
+
+      <table>
+        <thead>
+          <tr>
+            <th><%= sort_link('name', 'Player', current_sort, current_direction, @league.id, params[:search], params[:position], params[:drafted]) %></th>
+            <th><%= sort_link('positions', 'Pos', current_sort, current_direction, @league.id, params[:search], params[:position], params[:drafted]) %></th>
+            <th><%= sort_link('mlb_team', 'Team', current_sort, current_direction, @league.id, params[:search], params[:position], params[:drafted]) %></th>
+            <th><%= sort_link('calculated_value', 'Value', current_sort, current_direction, @league.id, params[:search], params[:position], params[:drafted]) %></th>
+            <th>Status</th>
+            <!-- Hitter Stats -->
+            <th><%= sort_link('home_runs', 'HR', current_sort, current_direction, @league.id, params[:search], params[:position], params[:drafted]) %></th>
+            <th><%= sort_link('runs', 'R', current_sort, current_direction, @league.id, params[:search], params[:position], params[:drafted]) %></th>
+            <th><%= sort_link('rbi', 'RBI', current_sort, current_direction, @league.id, params[:search], params[:position], params[:drafted]) %></th>
+            <th><%= sort_link('stolen_bases', 'SB', current_sort, current_direction, @league.id, params[:search], params[:position], params[:drafted]) %></th>
+            <th><%= sort_link('batting_average', 'AVG', current_sort, current_direction, @league.id, params[:search], params[:position], params[:drafted]) %></th>
+            <!-- Pitcher Stats -->
+            <th><%= sort_link('wins', 'W', current_sort, current_direction, @league.id, params[:search], params[:position], params[:drafted]) %></th>
+            <th><%= sort_link('saves', 'SV', current_sort, current_direction, @league.id, params[:search], params[:position], params[:drafted]) %></th>
+            <th><%= sort_link('strikeouts', 'K', current_sort, current_direction, @league.id, params[:search], params[:position], params[:drafted]) %></th>
+            <th><%= sort_link('era', 'ERA', current_sort, current_direction, @league.id, params[:search], params[:position], params[:drafted]) %></th>
+            <th><%= sort_link('whip', 'WHIP', current_sort, current_direction, @league.id, params[:search], params[:position], params[:drafted]) %></th>
+            <th>Actions</th>
+          </tr>
+        </thead>
+        <tbody>
+          <% @players.each do |player| %>
+            <%= render partial: "draft_board/player_database_row", locals: { player: player, league_id: @league.id } %>
+          <% end %>
+        </tbody>
+      </table>
+    </div>
+  </div>
+
+  <!-- Error display area -->
+  <div id="draft-error"></div>
+
+  <!-- Draft Player Modal -->
+  <div class="modal hidden" data-draft-modal-target="modal" data-action="click->draft-modal#closeOnOutsideClick">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h3 class="modal-title">Draft Player</h3>
+        <button class="modal-close" data-action="click->draft-modal#close" type="button">
+          ×
+        </button>
+      </div>
+
+      <div class="modal-body">
+        <!-- Player Details -->
+        <div class="player-details">
+          <div class="player-details-row">
+            <span class="player-details-label">Player:</span>
+            <span class="player-details-value" data-draft-modal-target="playerName"></span>
+          </div>
+          <div class="player-details-row">
+            <span class="player-details-label">Position(s):</span>
+            <span class="player-details-value" data-draft-modal-target="playerPosition"></span>
+          </div>
+          <div class="player-details-row">
+            <span class="player-details-label">Team:</span>
+            <span class="player-details-value" data-draft-modal-target="playerTeam"></span>
+          </div>
+          <div class="player-details-row">
+            <span class="player-details-label">Calculated Value:</span>
+            <span class="player-details-value" data-draft-modal-target="playerValue"></span>
+          </div>
+        </div>
+
+        <!-- Draft Form -->
+        <%= form_with url: draft_picks_path, method: :post, data: { action: "submit->draft-modal#submit", turbo: true } do |f| %>
+          <input type="hidden" name="draft_pick[player_id]" data-draft-modal-target="playerId">
+          <input type="hidden" name="draft_pick[league_id]" value="<%= @league.id %>">
+          <input type="hidden" name="draft_pick[is_keeper]" value="false">
+
+          <div class="form-group">
+            <label for="draft-team">Drafting Team</label>
+            <select
+              id="draft-team"
+              name="draft_pick[team_id]"
+              data-draft-modal-target="teamSelect"
+              required
+            >
+              <option value="">-- Select Team --</option>
+              <% @teams.each do |team| %>
+                <option value="<%= team.id %>">
+                  <%= team.name %> ($<%= team.budget_remaining %> remaining)
+                </option>
+              <% end %>
+            </select>
+          </div>
+
+          <div class="form-group">
+            <label for="draft-position">Draft Position</label>
+            <select
+              id="draft-position"
+              name="draft_pick[drafted_position]"
+              data-draft-modal-target="positionSelect"
+              required
+            >
+              <!-- Options populated dynamically by Stimulus controller -->
+            </select>
+            <small class="text-muted">
+              Note: All players can play UTIL. 1B/3B can play CI. 2B/SS can play MI.
+            </small>
+          </div>
+
+          <div class="form-group">
+            <label for="draft-price">Draft Price ($)</label>
+            <input
+              type="number"
+              id="draft-price"
+              name="draft_pick[price]"
+              data-draft-modal-target="priceInput"
+              min="1"
+              max="<%= @league.auction_budget %>"
+              required
+            >
+          </div>
+
+          <div class="modal-footer">
+            <button type="button" class="btn btn-cancel btn-sm" data-action="click->draft-modal#close">
+              Cancel
+            </button>
+            <button type="submit" class="btn btn-primary btn-sm">
+              Confirm Draft
+            </button>
+          </div>
+        <% end %>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- Available Players of Interest -->
+<div class="card" data-controller="collapsible" data-collapsible-key="interestedPlayersCollapsed">
+  <div class="collapsible-header" data-action="click->collapsible#toggle">
+    <h3 class="card-title">Available Players of Interest</h3>
+    <button type="button" class="collapsible-toggle" data-collapsible-target="icon">▼</button>
+  </div>
+
+  <div class="collapsible-content" data-collapsible-target="content">
+    <% if @interested_available_players.any? %>
       <div style="max-height: 600px; overflow-y: auto;">
         <table>
           <thead>
             <tr>
-              <th>#</th>
               <th>Player</th>
-              <th>Team</th>
-              <th>Price</th>
-              <th>Type</th>
-              <th>Action</th>
+              <th>Value</th>
             </tr>
           </thead>
-          <tbody id="draft-picks">
-            <%= render partial: "draft_board/draft_picks_table", locals: { draft_picks: @draft_picks } %>
+          <tbody id="interested-players-list">
+            <%= render partial: "draft_board/available_players_table", locals: { available_players: @interested_available_players } %>
           </tbody>
         </table>
       </div>
     <% else %>
-      <p class="text-muted text-center">No picks yet. Draft hasn't started!</p>
+      <p class="text-muted text-center">No players marked as interested yet. Use the actions menu (⋮) in the player database to mark players as interested.</p>
     <% end %>
-  </div>
-
-  <!-- Available Players -->
-  <div class="card" data-controller="draft-modal">
-    <h3 class="card-title">Top Available Players</h3>
-
-    <!-- Error display area -->
-    <div id="draft-error"></div>
-
-    <div style="max-height: 600px; overflow-y: auto;">
-      <table>
-        <thead>
-          <tr>
-            <th>Player</th>
-            <th>Value</th>
-            <th>Action</th>
-          </tr>
-        </thead>
-        <tbody id="available-players-list">
-          <%= render partial: "draft_board/available_players_table", locals: { available_players: @available_players } %>
-        </tbody>
-      </table>
-    </div>
-    <div class="mt-2">
-      <%= link_to "View All Players", players_path, class: "btn btn-secondary btn-sm" %>
-    </div>
-
-    <!-- Draft Player Modal -->
-    <div class="modal hidden" data-draft-modal-target="modal" data-action="click->draft-modal#closeOnOutsideClick">
-      <div class="modal-content">
-        <div class="modal-header">
-          <h3 class="modal-title">Draft Player</h3>
-          <button class="modal-close" data-action="click->draft-modal#close" type="button">
-            ×
-          </button>
-        </div>
-
-        <div class="modal-body">
-          <!-- Player Details -->
-          <div class="player-details">
-            <div class="player-details-row">
-              <span class="player-details-label">Player:</span>
-              <span class="player-details-value" data-draft-modal-target="playerName"></span>
-            </div>
-            <div class="player-details-row">
-              <span class="player-details-label">Position(s):</span>
-              <span class="player-details-value" data-draft-modal-target="playerPosition"></span>
-            </div>
-            <div class="player-details-row">
-              <span class="player-details-label">Team:</span>
-              <span class="player-details-value" data-draft-modal-target="playerTeam"></span>
-            </div>
-            <div class="player-details-row">
-              <span class="player-details-label">Calculated Value:</span>
-              <span class="player-details-value" data-draft-modal-target="playerValue"></span>
-            </div>
-          </div>
-
-          <!-- Draft Form -->
-          <%= form_with url: draft_picks_path, method: :post, data: { action: "submit->draft-modal#submit", turbo: true } do |f| %>
-            <input type="hidden" name="draft_pick[player_id]" data-draft-modal-target="playerId">
-            <input type="hidden" name="draft_pick[league_id]" value="<%= @league.id %>">
-            <input type="hidden" name="draft_pick[is_keeper]" value="false">
-
-            <div class="form-group">
-              <label for="draft-team">Drafting Team</label>
-              <select
-                id="draft-team"
-                name="draft_pick[team_id]"
-                data-draft-modal-target="teamSelect"
-                required
-              >
-                <option value="">-- Select Team --</option>
-                <% @teams.each do |team| %>
-                  <option value="<%= team.id %>">
-                    <%= team.name %> ($<%= team.budget_remaining %> remaining)
-                  </option>
-                <% end %>
-              </select>
-            </div>
-
-            <div class="form-group">
-              <label for="draft-position">Draft Position</label>
-              <select
-                id="draft-position"
-                name="draft_pick[drafted_position]"
-                data-draft-modal-target="positionSelect"
-                required
-              >
-                <!-- Options populated dynamically by Stimulus controller -->
-              </select>
-              <small class="text-muted">
-                Note: All players can play UTIL. 1B/3B can play CI. 2B/SS can play MI.
-              </small>
-            </div>
-
-            <div class="form-group">
-              <label for="draft-price">Draft Price ($)</label>
-              <input
-                type="number"
-                id="draft-price"
-                name="draft_pick[price]"
-                data-draft-modal-target="priceInput"
-                min="1"
-                max="<%= @league.auction_budget %>"
-                required
-              >
-            </div>
-
-            <div class="modal-footer">
-              <button type="button" class="btn btn-cancel btn-sm" data-action="click->draft-modal#close">
-                Cancel
-              </button>
-              <button type="submit" class="btn btn-primary btn-sm">
-                Confirm Draft
-              </button>
-            </div>
-          <% end %>
-        </div>
-      </div>
-    </div>
   </div>
 </div>
 
 <!-- Team Budgets -->
-<div class="card mt-3">
-  <h3 class="card-title">Team Budgets</h3>
-  <div class="grid grid-3" id="team-budgets">
-    <%= render partial: "draft_board/team_budgets", locals: { teams: @teams } %>
+<div class="card mt-3" data-controller="collapsible" data-collapsible-key="teamBudgetsCollapsed">
+  <div class="collapsible-header" data-action="click->collapsible#toggle">
+    <h3 class="card-title">Team Budgets</h3>
+    <button type="button" class="collapsible-toggle" data-collapsible-target="icon">▼</button>
+  </div>
+
+  <div class="collapsible-content" data-collapsible-target="content">
+    <div class="grid grid-3" id="team-budgets">
+      <%= render partial: "draft_board/team_budgets", locals: { teams: @teams } %>
+    </div>
   </div>
 </div>
