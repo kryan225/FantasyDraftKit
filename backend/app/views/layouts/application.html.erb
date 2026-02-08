@@ -71,7 +71,6 @@
                 id="player-name"
                 name="player[name]"
                 data-edit-player-modal-target="playerName"
-                required
               >
             </div>
 
@@ -83,7 +82,6 @@
                 name="player[positions]"
                 data-edit-player-modal-target="playerPositions"
                 placeholder="e.g., 1B/OF or SP"
-                required
               >
               <small class="text-muted">
                 Separate multiple positions with / (e.g., 1B/OF)
@@ -136,6 +134,41 @@
               </button>
             </div>
           <% end %>
+        </div>
+      </div>
+    </div>
+
+    <!-- Confirmation Modal (Global) -->
+    <div data-controller="confirmation-modal">
+      <div class="modal hidden" data-confirmation-modal-target="modal" data-action="click->confirmation-modal#closeOnOutsideClick">
+        <div class="modal-content" style="max-width: 400px;">
+          <div class="modal-header">
+            <h3 class="modal-title" data-confirmation-modal-target="title">Confirm</h3>
+            <button class="modal-close" data-action="click->confirmation-modal#handleCancel" type="button">
+              ×
+            </button>
+          </div>
+
+          <div class="modal-body">
+            <p data-confirmation-modal-target="message"></p>
+          </div>
+
+          <div class="modal-footer">
+            <button
+              type="button"
+              class="btn btn-cancel btn-sm"
+              data-action="click->confirmation-modal#handleCancel"
+              data-confirmation-modal-target="cancelButton">
+              Cancel
+            </button>
+            <button
+              type="button"
+              class="btn btn-primary btn-sm"
+              data-action="click->confirmation-modal#handleConfirm"
+              data-confirmation-modal-target="confirmButton">
+              OK
+            </button>
+          </div>
         </div>
       </div>
     </div>

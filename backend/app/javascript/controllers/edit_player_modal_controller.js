@@ -60,20 +60,20 @@ export default class extends BaseModalController {
    * Handle form submission
    * Validates inputs before allowing Turbo to submit
    */
-  submit(event) {
+  async submit(event) {
     const playerName = this.playerNameTarget.value.trim()
     const positions = this.playerPositionsTarget.value.trim()
 
-    // Client-side validation
+    // Client-side validation with confirmation modal
     if (!playerName) {
-      alert("Player name is required")
       event.preventDefault()
+      await this.showValidationError("Player name is required")
       return
     }
 
     if (!positions) {
-      alert("At least one position is required")
       event.preventDefault()
+      await this.showValidationError("At least one position is required")
       return
     }
 
@@ -82,5 +82,21 @@ export default class extends BaseModalController {
     this.setSubmitLoading(submitButton, "Saving...")
 
     // Form will submit via Turbo, parent class will handle auto-close on success
+  }
+
+  /**
+   * Show validation error using confirmation modal
+   * @param {string} message - Error message to display
+   */
+  async showValidationError(message) {
+    const confirmationModal = this.application.getControllerForElementAndIdentifier(
+      document.querySelector("[data-controller='confirmation-modal']"),
+      "confirmation-modal"
+    )
+
+    await confirmationModal.confirm("Validation Error", message, {
+      showCancel: false,
+      confirmText: "OK"
+    })
   }
 }
