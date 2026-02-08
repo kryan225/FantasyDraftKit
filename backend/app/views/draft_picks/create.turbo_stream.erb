@@ -5,9 +5,9 @@
   <%= render partial: "draft_board/draft_picks_table", locals: { draft_picks: @draft_picks } %>
 <% end %>
 
-<%# Update the available players list %>
-<%= turbo_stream.replace "available-players-list" do %>
-  <%= render partial: "draft_board/available_players_table", locals: { available_players: @available_players } %>
+<%# Update the interested players list %>
+<%= turbo_stream.update "interested-players-list" do %>
+  <%= render partial: "draft_board/available_players_table", locals: { available_players: @interested_available_players } %>
 <% end %>
 
 <%# Update team budgets %>
