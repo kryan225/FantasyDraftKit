@@ -15,7 +15,7 @@ RSpec.describe "DraftAnalyzer", type: :request do
         "MI" => 1,
         "CI" => 1,
         "OF" => 5,
-        "UTIL" => 2,
+        "UTIL" => 1,
         "SP" => 5,
         "RP" => 3,
         "BENCH" => 0
@@ -160,15 +160,13 @@ RSpec.describe "DraftAnalyzer", type: :request do
           # Fill UTIL with an OF (not moveable to 1B)
           create(:draft_pick, team: team1, player: outfielder, league: league, drafted_position: "UTIL", price: 10)
 
-          # Fill UTIL2 with another OF (no moves available)
-          create(:draft_pick, team: team1, player: create(:player, positions: "OF"), league: league, drafted_position: "UTIL", price: 10)
-
           # Cannot draft 1B - no legal moves available
+          # The 1B player (Freeman) can't move to CI (occupied by 3B), can't move to UTIL (occupied by OF)
           expect(controller.send(:team_can_draft_position?, team1, "1B")).to be false
         end
 
         it "returns false when team's entire roster is full" do
-          # Create a complete roster (23 total slots based on roster_config)
+          # Create a complete roster (22 total slots based on roster_config)
           roster_config = league.roster_config
 
           # Fill all positions according to roster_config
@@ -184,8 +182,8 @@ RSpec.describe "DraftAnalyzer", type: :request do
           # 5 OF
           5.times { create(:draft_pick, team: team1, player: create(:player, positions: "OF"), league: league, drafted_position: "OF", price: 10) }
 
-          # 2 UTIL
-          2.times { create(:draft_pick, team: team1, player: create(:player, positions: "OF"), league: league, drafted_position: "UTIL", price: 10) }
+          # 1 UTIL
+          create(:draft_pick, team: team1, player: create(:player, positions: "OF"), league: league, drafted_position: "UTIL", price: 10)
 
           # 5 SP
           5.times { create(:draft_pick, team: team1, player: create(:player, positions: "SP"), league: league, drafted_position: "SP", price: 10) }
@@ -193,7 +191,7 @@ RSpec.describe "DraftAnalyzer", type: :request do
           # 3 RP
           3.times { create(:draft_pick, team: team1, player: create(:player, positions: "RP"), league: league, drafted_position: "RP", price: 10) }
 
-          # Verify roster is full (23/23)
+          # Verify roster is full (22/22)
           total_slots = roster_config.values.sum
           expect(team1.draft_picks.count).to eq(total_slots)
 

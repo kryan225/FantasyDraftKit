@@ -24,7 +24,7 @@ league = League.create!(
     "MI" => 1,
     "CI" => 1,
     "OF" => 5,
-    "UTIL" => 2,
+    "UTIL" => 1,
     "SP" => 5,
     "RP" => 3,
     "BENCH" => 0
@@ -634,11 +634,10 @@ draft_picks = [
 
   # Team 8-11 have no picks yet (showing variety in draft progress)
 
-  # Complete Team 2 (Dingers) roster - filling remaining 8 slots with $13 budget
-  # With new config: need 1 more C, 2 more OF, 1 MI, 1 CI (no BENCH)
+  # Complete Team 2 (Dingers) roster - filling remaining 7 slots with $11 budget
+  # With new config (22 slots): need 1 more C, 2 more OF, 1 MI, 1 CI (no BENCH, 1 UTIL)
   { player_name: "Merrill Kelly", team_index: 2, price: 3, position: "SP" },
   { player_name: "Camilo Doval", team_index: 2, price: 2, position: "RP" },
-  { player_name: "Ketel Marte", team_index: 2, price: 2, position: "UTIL" },
   { player_name: "Jarren Duran", team_index: 2, price: 2, position: "OF" },
   { player_name: "Bryan Reynolds", team_index: 2, price: 2, position: "OF" },
   { player_name: "Brandon Lowe", team_index: 2, price: 2, position: "MI" },

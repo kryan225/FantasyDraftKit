@@ -505,7 +505,7 @@ Based on `SETUP_STATUS.md`, these models need to be created:
    - keeper_limit:integer
    - roster_config:jsonb
 
-   **Default Roster Configuration** (23 total slots):
+   **Default Roster Configuration** (22 total slots):
    ```ruby
    {
      "C" => 2,      # Catchers
@@ -516,7 +516,7 @@ Based on `SETUP_STATUS.md`, these models need to be created:
      "MI" => 1,     # Middle Infield (2B or SS eligible)
      "CI" => 1,     # Corner Infield (1B or 3B eligible)
      "OF" => 5,     # Outfielders
-     "UTIL" => 2,   # Utility (any batter)
+     "UTIL" => 1,   # Utility (any batter)
      "SP" => 5,     # Starting Pitchers
      "RP" => 3,     # Relief Pitchers
      "BENCH" => 0   # No bench spots

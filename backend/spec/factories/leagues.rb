@@ -14,7 +14,7 @@ FactoryBot.define do
         "MI" => 1,
         "CI" => 1,
         "OF" => 5,
-        "UTIL" => 2,
+        "UTIL" => 1,
         "SP" => 5,
         "RP" => 3,
         "BENCH" => 0
