@@ -1,0 +1,10 @@
+<%# Player database table rows
+    Renders the filtered player list for the main player database table
+
+    Params:
+    - players: Array of Player objects to display
+    - league_id: ID of the current league
+%>
+<% players.each do |player| %>
+  <%= render partial: "draft_board/player_database_row", locals: { player: player, league_id: league_id } %>
+<% end %>

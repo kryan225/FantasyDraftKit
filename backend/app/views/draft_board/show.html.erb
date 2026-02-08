@@ -116,10 +116,8 @@
             <th>Actions</th>
           </tr>
         </thead>
-        <tbody>
-          <% @players.each do |player| %>
-            <%= render partial: "draft_board/player_database_row", locals: { player: player, league_id: @league.id } %>
-          <% end %>
+        <tbody id="player-database-list">
+          <%= render partial: "draft_board/player_database_table", locals: { players: @players, league_id: @league.id } %>
         </tbody>
       </table>
     </div>
@@ -164,6 +162,14 @@
           <input type="hidden" name="draft_pick[player_id]" data-draft-modal-target="playerId">
           <input type="hidden" name="draft_pick[league_id]" value="<%= @league.id %>">
           <input type="hidden" name="draft_pick[is_keeper]" value="false">
+
+          <!-- Pass filter parameters to maintain them after draft -->
+          <%= hidden_field_tag :search, params[:search] %>
+          <%= hidden_field_tag :position, params[:position] %>
+          <%= hidden_field_tag :drafted, params[:drafted] %>
+          <%= hidden_field_tag :interested, params[:interested] %>
+          <%= hidden_field_tag :sort, params[:sort] %>
+          <%= hidden_field_tag :direction, params[:direction] %>
 
           <div class="form-group">
             <label for="draft-team">Drafting Team</label>
