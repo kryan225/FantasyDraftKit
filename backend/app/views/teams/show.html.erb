@@ -113,18 +113,7 @@
                       <small class="text-muted"><%= pick.player.positions %> - <%= pick.player.mlb_team %></small>
                     </td>
                     <td><strong>$<%= pick.price %></strong></td>
-                    <!-- Hitter Stats -->
-                    <td><%= pick.player.projections&.dig("home_runs") %></td>
-                    <td><%= pick.player.projections&.dig("runs") %></td>
-                    <td><%= pick.player.projections&.dig("rbi") %></td>
-                    <td><%= pick.player.projections&.dig("stolen_bases") %></td>
-                    <td><%= pick.player.projections&.dig("batting_average") %></td>
-                    <!-- Pitcher Stats -->
-                    <td><%= pick.player.projections&.dig("wins") %></td>
-                    <td><%= pick.player.projections&.dig("saves") %></td>
-                    <td><%= pick.player.projections&.dig("strikeouts") %></td>
-                    <td><%= pick.player.projections&.dig("era") %></td>
-                    <td><%= pick.player.projections&.dig("whip") %></td>
+                    <%= render "players/stats_columns", player: pick.player %>
                   <% else %>
                     <td colspan="12" class="text-muted">
                       <em>Empty Slot</em>
