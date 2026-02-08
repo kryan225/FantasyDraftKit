@@ -1,5 +1,5 @@
 class PlayersController < ApplicationController
-  before_action :set_player, only: [:edit, :update]
+  before_action :set_player, only: [:edit, :update, :toggle_interested]
 
   def index
     @players = Player.all
@@ -58,6 +58,32 @@ class PlayersController < ApplicationController
         end
         format.html { render :edit, status: :unprocessable_entity }
       end
+    end
+  end
+
+  def toggle_interested
+    @player.toggle_interested!
+    league_id = params[:league_id]
+
+    respond_to do |format|
+      format.turbo_stream do
+        # Reload the interested players list
+        @interested_available_players = Player.available.interested.order(calculated_value: :desc)
+
+        render turbo_stream: [
+          turbo_stream.replace(
+            "player-row-#{@player.id}",
+            partial: "draft_board/player_database_row",
+            locals: { player: @player, league_id: league_id }
+          ),
+          turbo_stream.update(
+            "interested-players-list",
+            partial: "draft_board/available_players_table",
+            locals: { available_players: @interested_available_players }
+          )
+        ]
+      end
+      format.json { render json: { interested: @player.interested } }
     end
   end
 

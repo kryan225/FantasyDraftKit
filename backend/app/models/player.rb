@@ -12,6 +12,7 @@ class Player < ApplicationRecord
   scope :drafted, -> { where(is_drafted: true) }
   scope :available, -> { where(is_drafted: [false, nil]) }  # Available means not explicitly drafted
   scope :by_position, ->(position) { where("positions LIKE ?", "%#{position}%") }
+  scope :interested, -> { where(interested: true) }
 
   # Instance Methods
   def mark_as_drafted!
@@ -20,5 +21,9 @@ class Player < ApplicationRecord
 
   def mark_as_available!
     update(is_drafted: false)
+  end
+
+  def toggle_interested!
+    update(interested: !interested)
   end
 end

@@ -6,18 +6,5 @@
       <small class="text-muted"><%= player.positions %></small>
     </td>
     <td><strong>$<%= player.calculated_value&.round || "?" %></strong></td>
-    <td>
-      <button
-        class="btn-draft"
-        data-action="click->draft-modal#open"
-        data-player-id="<%= player.id %>"
-        data-player-name="<%= player.name %>"
-        data-player-positions="<%= player.positions %>"
-        data-player-mlb-team="<%= player.mlb_team %>"
-        data-player-value="<%= player.calculated_value&.round || '?' %>"
-      >
-        Draft
-      </button>
-    </td>
   </tr>
 <% end %>
