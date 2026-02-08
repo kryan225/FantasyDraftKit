@@ -105,8 +105,8 @@ lsof -i :3639  # Rails app - should be empty or show ruby
 
 ## 📊 Project Status
 
-**Last Updated:** 2026-02-07
-**Current Phase:** Full-Stack Application Complete - Ready for Use
+**Last Updated:** 2026-02-08
+**Current Phase:** Full-Stack Application with Interactive Modals - Ready for Use
 
 ### Completed ✅
 - CLAUDE.md created with project context and constraints
@@ -154,6 +154,27 @@ lsof -i :3639  # Rails app - should be empty or show ruby
   - Fixed ActiveRecord::RecordNotFound error on /draft_board
   - Now supports both /draft_board and /leagues/:id/draft_board routes
   - Comprehensive test coverage added
+- **Feature: Draft Player Modal** ✅
+  - Interactive modal to draft players from draft board
+  - Position eligibility logic (UTIL for all, CI for 1B/3B, MI for 2B/SS)
+  - Team selection, price input, position dropdown
+  - Roster validation to prevent drafting to full positions
+  - Turbo Streams for live UI updates without reload
+  - Undo draft functionality
+- **Feature: BaseModalController Pattern** ✅
+  - Reusable base controller for all modals (DRY, OCP principles)
+  - Handles open/close, Escape key, outside click, form reset
+  - Auto-closes on successful Turbo form submission
+  - Comprehensive test coverage (30+ tests)
+  - Tested features: body scroll prevention, custom events, loading states
+- **Feature: EditPlayerModal** ✅
+  - Extends BaseModalController for player editing
+  - Opens when clicking any player name across the application
+  - Populates form with player data from data attributes
+  - Client-side validation (name and positions required)
+  - Updates player info via Turbo Streams
+  - Form action URL set dynamically per player
+  - Test coverage added (15+ test cases, structural and behavioral)
 
 ### In Progress 🚧
 - None currently
@@ -203,6 +224,22 @@ lsof -i :3639  # Rails app - should be empty or show ruby
   - Implements KISS principle - auto-resolves single league for better UX
   - Makes pattern reusable across future web UI controllers
   - Fixed Player.available scope to handle nil values (not just false)
+- **2026-02-07:** Implemented Draft Modal with Turbo Streams
+  - Rationale: Real-time draft updates without page reload improves UX
+  - Used Turbo Streams for partial page updates (draft list, available players, team budgets)
+  - Added roster validation to prevent invalid draft picks
+  - Undo functionality with Turbo::FrameMissingError handling
+- **2026-02-07:** Created BaseModalController pattern for reusable modals
+  - Rationale: Multiple modals needed across app (draft, edit player, future features)
+  - Follows Open/Closed Principle - base class provides core behavior, extended by specific modals
+  - Reduces duplication and ensures consistent modal UX
+  - Used Stimulus controller inheritance for code reuse
+- **2026-02-08:** Fixed EditPlayerModal controller scope issue
+  - Problem: Clicking player names sent network request but no UI response
+  - Root Cause: Controller scoped to modal div only, player links were outside scope
+  - Solution: Moved data-controller to <body> tag, modal HTML to layout
+  - This makes modal available globally and all player links work correctly
+  - Lesson: Stimulus controller scope must wrap all elements that trigger actions
 
 ### Next Steps →
 1. Test the web UI at http://localhost:3639/
@@ -216,6 +253,42 @@ lsof -i :3639  # Rails app - should be empty or show ruby
 9. Add RSpec tests for models, controllers, and views
 
 ### Recent Commits 📝
+- **2026-02-08 (commit 844b479):** Add test coverage for EditPlayerModal (documentation)
+  - 2 files changed, 390 insertions
+  - Added JavaScript unit tests (15+ test cases, requires Jest to run)
+  - Added Rails system tests (structural validation with rack-test)
+  - Tests serve as documentation of expected behavior
+- **2026-02-08 (commit 6562e71):** Fix EditPlayerModal controller scope and remove duplicate modals
+  - 5 files changed, 101 insertions, 14 deletions
+  - Moved data-controller="edit-player-modal" to <body> tag
+  - Moved modal HTML to application.html.erb layout for global access
+  - Removed duplicate modal renders from draft_board, teams, players views
+  - Fixed controller to remove non-existent playerIdTarget reference
+  - Now clicking any player name opens edit modal correctly
+- **2026-02-07 (commit c1a1f5b):** Add EditPlayerModal for quick player edits
+  - Created EditPlayerModalController extending BaseModalController
+  - Added PlayersController update action with Turbo Stream responses
+  - Created _player_name.html.erb partial for clickable player links
+  - Updated all views (draft_board, teams/show, players/index) to use partial
+  - Modal opens on click, populates with data, validates, submits via Turbo
+- **2026-02-07 (commit 056291b):** Create BaseModalController for reusable modal functionality
+  - Created base_modal_controller.js with comprehensive behavior
+  - Handles open/close, Escape key, outside click, Turbo submission
+  - Includes helper methods (setSubmitLoading) for consistent UX
+  - Refactored DraftModalController to extend base
+  - Added 30+ tests covering all base modal functionality
+  - Fixed modal close bug after draft submission
+- **2026-02-07 (commit a9d6de1):** Implement draft enhancements with Turbo Streams
+  - Added RosterValidator concern for position validation
+  - Created DraftPicksController with Turbo Stream support
+  - Added undo draft pick functionality
+  - Turbo Streams update draft list, available players, team budgets live
+  - Migration for drafted_position field
+- **2026-02-07 (commit 7efd0f3, a27406c):** Add draft player modal with position eligibility
+  - Created draft_modal_controller.js with position logic
+  - Modal includes player details, team select, position select, price input
+  - Position eligibility: UTIL for all, CI for 1B/3B, MI for 2B/SS
+  - Comprehensive styling and UX polish
 - **2026-02-07 (commit e29ac54):** Fix DraftBoard league resolution error with reusable LeagueResolvable concern
   - 12 files changed, 524 insertions, 13 deletions
   - Added LeagueResolvable concern for intelligent league resolution
