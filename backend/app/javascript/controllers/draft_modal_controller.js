@@ -125,20 +125,20 @@ export default class extends BaseModalController {
    * Handle form submission
    * Validates inputs before allowing Turbo to submit
    */
-  submit(event) {
+  async submit(event) {
     const price = parseInt(this.priceInputTarget.value)
     const teamId = this.teamSelectTarget.value
 
-    // Client-side validation
+    // Client-side validation with confirmation modal
     if (!teamId) {
-      alert("Please select a team")
       event.preventDefault()
+      await this.showValidationError("Please select a team")
       return
     }
 
     if (!price || price < 1) {
-      alert("Please enter a valid price (minimum $1)")
       event.preventDefault()
+      await this.showValidationError("Please enter a valid price (minimum $1)")
       return
     }
 
@@ -149,8 +149,10 @@ export default class extends BaseModalController {
     if (budgetMatch) {
       const remainingBudget = parseInt(budgetMatch[1])
       if (price > remainingBudget) {
-        alert(`Price $${price} exceeds team's remaining budget of $${remainingBudget}`)
         event.preventDefault()
+        await this.showValidationError(
+          `Price $${price} exceeds team's remaining budget of $${remainingBudget}`
+        )
         return
       }
     }
@@ -160,5 +162,21 @@ export default class extends BaseModalController {
     this.setSubmitLoading(submitButton, "Drafting...")
 
     // Form will submit via Turbo, parent class will handle auto-close on success
+  }
+
+  /**
+   * Show validation error using confirmation modal
+   * @param {string} message - Error message to display
+   */
+  async showValidationError(message) {
+    const confirmationModal = this.application.getControllerForElementAndIdentifier(
+      document.querySelector("[data-controller='confirmation-modal']"),
+      "confirmation-modal"
+    )
+
+    await confirmationModal.confirm("Validation Error", message, {
+      showCancel: false,
+      confirmText: "OK"
+    })
   }
 }
