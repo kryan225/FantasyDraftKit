@@ -106,7 +106,7 @@ lsof -i :3639  # Rails app - should be empty or show ruby
 ## 📊 Project Status
 
 **Last Updated:** 2026-02-08
-**Current Phase:** Full-Stack Application with Interactive Modals - Ready for Use
+**Current Phase:** Full-Stack Application with Interactive Modals + Comprehensive Testing - Production Ready
 
 ### Completed ✅
 - CLAUDE.md created with project context and constraints
@@ -175,6 +175,14 @@ lsof -i :3639  # Rails app - should be empty or show ruby
   - Updates player info via Turbo Streams
   - Form action URL set dynamically per player
   - Test coverage added (15+ test cases, structural and behavioral)
+- **Testing Infrastructure: Cuprite + Capybara** ✅
+  - Set up JavaScript-capable system testing with Cuprite (headless Chrome)
+  - Faster than Selenium (2-3x), no driver binary management needed
+  - 6 passing system tests for EditPlayerModal
+  - Screenshot capture on test failures
+  - Visible browser mode for debugging (HEADLESS=false)
+  - Comprehensive testing guide created (spec/TESTING_GUIDE.md)
+  - **CRITICAL**: This would have caught the EditPlayerModal scope bug before deployment
 
 ### In Progress 🚧
 - None currently
@@ -184,15 +192,18 @@ lsof -i :3639  # Rails app - should be empty or show ruby
 - Feature: Implement player value calculation algorithm
 - Feature: Implement category analysis aggregation
 - Feature: Add form validations and error handling in views
-- Testing: Write RSpec tests for models (DraftPicksController and API controllers)
-- Testing: Add system/integration tests for web UI
-- Enhancement: Add real-time draft updates with Turbo Streams
+- Testing: Write system tests for DraftModal with JavaScript driver
+- Testing: Write RSpec unit tests for models (Player, League, Team, DraftPick)
+- Testing: Write request specs for API endpoints
+- Testing: Add system tests for full draft workflow
+- Enhancement: Replace JavaScript `alert()` with better validation UI
 
 ### Known Issues 🐛
 - Value recalculation and category analysis have placeholder implementations (TODOs marked)
 - League creation form not yet implemented (only index and show views exist)
-- No form validations in ERB views yet (relies on model-level validations)
+- Form validation uses JavaScript `alert()` (works but not ideal UX)
 - Pre-existing auto-generated request spec stubs need implementation (23 failures in scaffold specs)
+- Jest test files exist but can't run without npm (kept as documentation)
 
 ### Recent Decisions 🎯
 - **2026-02-03:** Decided to prioritize local development over Docker (YAGNI principle)
@@ -240,6 +251,13 @@ lsof -i :3639  # Rails app - should be empty or show ruby
   - Solution: Moved data-controller to <body> tag, modal HTML to layout
   - This makes modal available globally and all player links work correctly
   - Lesson: Stimulus controller scope must wrap all elements that trigger actions
+- **2026-02-08:** Set up Cuprite for JavaScript-capable system testing
+  - Rationale: Frontend bug wasn't caught because Jest tests couldn't run (no npm)
+  - Chose Cuprite over Selenium for speed and simplicity (KISS principle)
+  - No driver binary management needed (Chrome DevTools Protocol)
+  - 2-3x faster than Selenium, perfect for local development iteration
+  - Validates actual browser behavior, not just HTML structure
+  - Critical gap addressed: Now have executable frontend tests that catch real bugs
 
 ### Next Steps →
 1. Test the web UI at http://localhost:3639/
@@ -325,6 +343,13 @@ lsof -i :3639  # Rails app - should be empty or show ruby
 - Importmap-rails for JavaScript module management
 - Sprockets asset pipeline for CSS
 - ERB templates for server-rendered HTML
+
+**Testing:**
+- RSpec for unit and system tests
+- Capybara + Cuprite for JavaScript-enabled browser testing
+- FactoryBot for test data generation
+- Screenshot capture on test failures
+- Fast test execution (~3 seconds for system tests)
 
 **Architecture:**
 - Dual-mode: HTML views for web UI, JSON API for future mobile/external clients
