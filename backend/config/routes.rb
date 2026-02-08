@@ -5,9 +5,15 @@ Rails.application.routes.draw do
   # Web UI routes (Hotwire/HTML)
   root "leagues#index"
 
-  resources :leagues, only: [:index, :show, :new, :create]
+  resources :leagues, only: [:index, :show, :new, :create] do
+    # Nested draft board route with explicit league_id
+    get "draft_board", to: "draft_board#show", as: :league_draft_board
+  end
+
   resources :teams, only: [:show]
   resources :players, only: [:index]
+
+  # Standalone draft board route (uses auto-resolution for single league)
   get "draft_board", to: "draft_board#show", as: :draft_board
 
   # API routes

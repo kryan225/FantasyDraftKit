@@ -10,7 +10,7 @@ class Player < ApplicationRecord
 
   # Scopes
   scope :drafted, -> { where(is_drafted: true) }
-  scope :available, -> { where(is_drafted: false) }
+  scope :available, -> { where(is_drafted: [false, nil]) }  # Available means not explicitly drafted
   scope :by_position, ->(position) { where("positions LIKE ?", "%#{position}%") }
 
   # Instance Methods

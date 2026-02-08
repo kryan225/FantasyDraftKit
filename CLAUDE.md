@@ -105,7 +105,7 @@ lsof -i :3639  # Rails app - should be empty or show ruby
 
 ## 📊 Project Status
 
-**Last Updated:** 2026-02-04
+**Last Updated:** 2026-02-07
 **Current Phase:** Full-Stack Application Complete - Ready for Use
 
 ### Completed ✅
@@ -145,6 +145,15 @@ lsof -i :3639  # Rails app - should be empty or show ruby
 - **Frontend: Application layout with navigation** ✅
 - **Frontend: CSS styling complete** ✅
 - **Frontend: Hotwire frontend tested and working on port 3639** ✅
+- **Testing: LeagueResolvable concern created and tested** ✅
+  - Reusable pattern for controllers needing league context
+  - Auto-resolves single league (KISS principle)
+  - Graceful handling of multiple/no leagues with user-friendly redirects
+  - 15 passing tests covering all scenarios
+- **Bug Fix: DraftBoardController league resolution** ✅
+  - Fixed ActiveRecord::RecordNotFound error on /draft_board
+  - Now supports both /draft_board and /leagues/:id/draft_board routes
+  - Comprehensive test coverage added
 
 ### In Progress 🚧
 - None currently
@@ -154,7 +163,7 @@ lsof -i :3639  # Rails app - should be empty or show ruby
 - Feature: Implement player value calculation algorithm
 - Feature: Implement category analysis aggregation
 - Feature: Add form validations and error handling in views
-- Testing: Write RSpec tests for models and controllers
+- Testing: Write RSpec tests for models (DraftPicksController and API controllers)
 - Testing: Add system/integration tests for web UI
 - Enhancement: Add real-time draft updates with Turbo Streams
 
@@ -162,6 +171,7 @@ lsof -i :3639  # Rails app - should be empty or show ruby
 - Value recalculation and category analysis have placeholder implementations (TODOs marked)
 - League creation form not yet implemented (only index and show views exist)
 - No form validations in ERB views yet (relies on model-level validations)
+- Pre-existing auto-generated request spec stubs need implementation (23 failures in scaffold specs)
 
 ### Recent Decisions 🎯
 - **2026-02-03:** Decided to prioritize local development over Docker (YAGNI principle)
@@ -187,6 +197,12 @@ lsof -i :3639  # Rails app - should be empty or show ruby
   - Keeps full-stack Rails simpler with no separate frontend build process
   - Maintains dual-mode architecture: HTML views for web UI, JSON API for future clients
   - Changed config.api_only = false, created Api::V1::BaseController for API-only JSON
+- **2026-02-07:** Created LeagueResolvable concern for DRY league resolution
+  - Rationale: DraftBoardController needed league without league_id in URL
+  - Follows Single Responsibility Principle - one module handles league resolution
+  - Implements KISS principle - auto-resolves single league for better UX
+  - Makes pattern reusable across future web UI controllers
+  - Fixed Player.available scope to handle nil values (not just false)
 
 ### Next Steps →
 1. Test the web UI at http://localhost:3639/
@@ -435,18 +451,96 @@ Check these locations:
 
 ---
 
-## Git Workflow
+## Git Workflow and Commit Strategy
 
-**Current Status:** All work committed to main branch (2 commits ahead of origin)
+### Core Principles
 
-**Commits:**
+**You (Claude) MUST follow these git practices:**
+
+1. **Meaningful, Reviewable Commits**
+   - Each commit should represent a complete, logical unit of work
+   - The commit should be reviewable - a human should be able to understand what changed and why
+   - Commit messages should clearly describe WHAT changed and WHY
+
+2. **Bundle Related Changes**
+   - Group related changes into the same commit
+   - Example: If you add a new controller method, its tests, and update routes, commit them together
+   - This provides context and makes it easier to understand the change
+   - Example: If you fix a bug in multiple places that are all part of the same fix, commit them together
+
+3. **Proactive Committing**
+   - **YOU MUST proactively commit to main when a significant relevant change is made**
+   - Don't wait to be asked - commit when work is complete
+   - Significant changes include:
+     - ✅ New features or functionality complete and tested
+     - ✅ Bug fixes complete and tested
+     - ✅ Refactoring complete
+     - ✅ New models, controllers, or major components added
+     - ✅ Configuration changes that affect the application
+     - ✅ Documentation updates (including this CLAUDE.md file)
+     - ✅ Test suite additions or improvements
+
+4. **When to Ask First**
+   - If you're unsure whether a change is significant enough to commit, ASK THE USER
+   - If changes are experimental or might need to be reverted, ASK THE USER
+   - If you're about to commit a large number of files (50+), ASK THE USER if they want it split up
+   - Never commit broken or failing code without explicit user approval
+
+### What Makes a Good Commit
+
+**Good commit examples:**
+- "Add LeagueResolvable concern with intelligent league resolution"
+- "Fix DraftBoardController RecordNotFound error with league auto-resolution"
+- "Implement player value calculation algorithm with tests"
+- "Add CSV import for player projections with error handling"
+
+**Bad commit examples:**
+- "Fix stuff" (too vague)
+- "WIP" (incomplete work)
+- "Updates" (doesn't describe what was updated)
+- "Fix typo" (unless it's truly just a typo - bundle small fixes together)
+
+### Commit Message Format
+
+Follow this format for commit messages:
+
+```
+Brief summary of the change (50-70 characters max)
+
+- Detailed explanation of WHAT changed
+- WHY the change was necessary
+- Any important implementation decisions
+- Related issues or context
+
+Co-Authored-By: Claude Opus 4.6 <noreply@anthropic.com>
+```
+
+### Current Git Status
+
+**Branch:** main
+**Recent Commits:**
 1. Backend implementation (31f3399) - 130 files, 5102 insertions
 2. Hotwire frontend (b0408bd) - 36 files, 943 insertions
+3. *(Pending)* LeagueResolvable concern and DraftBoard fix - 8 files changed
 
-**Before Committing:**
-- Ensure `.gitignore` excludes sensitive files
-- Review `backend/.gitignore`
-- Don't commit `.env` files, database files, or logs
+### Before Committing - Security Checklist
+
+**ALWAYS verify before committing:**
+- ✅ `.gitignore` properly excludes sensitive files
+- ✅ No `.env` files, credentials, or API keys
+- ✅ No database dumps or seed data with real user information
+- ✅ No debug logs with sensitive information
+- ✅ `backend/.gitignore` properly excludes Rails temp files
+
+### When NOT to Commit
+
+**DO NOT commit:**
+- ❌ Broken or failing code (unless explicitly discussed with user)
+- ❌ Commented-out code blocks (clean them up first)
+- ❌ Debug statements like `console.log` or `puts` (remove them first)
+- ❌ Temporary test files or experiments
+- ❌ Large binary files or generated assets (unless necessary)
+- ❌ Changes to `.env` files, `database.yml` credentials, or secrets
 
 ---
 
