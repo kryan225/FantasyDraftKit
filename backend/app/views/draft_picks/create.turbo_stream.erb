@@ -18,9 +18,4 @@
 <%# Clear any error messages %>
 <%= turbo_stream.update "draft-error", "" %>
 
-<%# Close the modal by triggering a custom event %>
-<%= turbo_stream.append "body" do %>
-  <script>
-    document.dispatchEvent(new CustomEvent('draft-success'));
-  </script>
-<% end %>
+<%# Modal will be automatically closed by BaseModalController's turbo:submit-end listener %>

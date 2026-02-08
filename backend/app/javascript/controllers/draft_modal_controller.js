@@ -1,7 +1,14 @@
-import { Controller } from "@hotwired/stimulus"
+import BaseModalController from "./base_modal_controller"
 
-// Connects to data-controller="draft-modal"
-export default class extends Controller {
+/**
+ * DraftModalController - Handles the player draft modal
+ *
+ * Extends BaseModalController to inherit common modal functionality,
+ * and adds draft-specific features like position eligibility calculation.
+ *
+ * Connects to data-controller="draft-modal"
+ */
+export default class extends BaseModalController {
   static targets = [
     "modal",
     "playerName",
@@ -15,15 +22,14 @@ export default class extends Controller {
   ]
 
   connect() {
+    super.connect() // Call parent's connect method
     console.log("Draft modal controller connected")
-
-    // Listen for draft success event to close modal
-    document.addEventListener('draft-success', () => {
-      this.close()
-    })
   }
 
-  // Open modal with player data
+  /**
+   * Open modal with player data
+   * Overrides parent's open method to add player-specific setup
+   */
   open(event) {
     event.preventDefault()
 
@@ -51,28 +57,14 @@ export default class extends Controller {
     // Populate position options based on player's positions
     this.populatePositionOptions(playerPositions)
 
-    // Show modal
-    this.modalTarget.classList.remove("hidden")
-    document.body.style.overflow = "hidden" // Prevent background scrolling
+    // Call parent's open method to show modal
+    super.open()
   }
 
-  // Close modal
-  close(event) {
-    if (event) {
-      event.preventDefault()
-    }
-    this.modalTarget.classList.add("hidden")
-    document.body.style.overflow = "" // Restore scrolling
-  }
-
-  // Close modal when clicking outside
-  closeOnOutsideClick(event) {
-    if (event.target === this.modalTarget) {
-      this.close(event)
-    }
-  }
-
-  // Populate position select dropdown based on player's positions
+  /**
+   * Populate position select dropdown based on player's positions
+   * Implements fantasy baseball position eligibility rules
+   */
   populatePositionOptions(positions) {
     const positionArray = positions.split('/').map(p => p.trim())
     const eligiblePositions = this.calculateEligiblePositions(positionArray)
@@ -92,10 +84,15 @@ export default class extends Controller {
     })
   }
 
-  // Calculate eligible positions based on roster rules
-  // - All players can play UTIL
-  // - 1B and 3B can play CI (Corner Infield)
-  // - 2B and SS can play MI (Middle Infield)
+  /**
+   * Calculate eligible positions based on roster rules
+   * - All players can play UTIL
+   * - 1B and 3B can play CI (Corner Infield)
+   * - 2B and SS can play MI (Middle Infield)
+   *
+   * @param {Array<string>} positions - Player's actual positions
+   * @return {Array<string>} - All eligible positions in logical order
+   */
   calculateEligiblePositions(positions) {
     const eligible = new Set()
 
@@ -124,15 +121,15 @@ export default class extends Controller {
     return [...actualPositions, ...addedSpecialPositions]
   }
 
-  // Handle form submission - now uses Turbo Streams
+  /**
+   * Handle form submission
+   * Validates inputs before allowing Turbo to submit
+   */
   submit(event) {
-    // Let the form submit naturally - Turbo will handle it
-    // Just do client-side validation first
-
     const price = parseInt(this.priceInputTarget.value)
     const teamId = this.teamSelectTarget.value
 
-    // Validation
+    // Client-side validation
     if (!teamId) {
       alert("Please select a team")
       event.preventDefault()
@@ -158,13 +155,10 @@ export default class extends Controller {
       }
     }
 
-    // Disable submit button to prevent double submission
+    // Set loading state on submit button
     const submitButton = event.target.querySelector('button[type="submit"]')
-    if (submitButton) {
-      submitButton.disabled = true
-      submitButton.textContent = "Drafting..."
-    }
+    this.setSubmitLoading(submitButton, "Drafting...")
 
-    // Form will submit via Turbo, no need to prevent default
+    // Form will submit via Turbo, parent class will handle auto-close on success
   }
 }
