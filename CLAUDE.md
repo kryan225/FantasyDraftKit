@@ -216,6 +216,12 @@ lsof -i :3639  # Rails app - should be empty or show ruby
 9. Add RSpec tests for models, controllers, and views
 
 ### Recent Commits 📝
+- **2026-02-07 (commit e29ac54):** Fix DraftBoard league resolution error with reusable LeagueResolvable concern
+  - 12 files changed, 524 insertions, 13 deletions
+  - Added LeagueResolvable concern for intelligent league resolution
+  - Fixed ActiveRecord::RecordNotFound error on /draft_board
+  - Added comprehensive test coverage (15 passing tests)
+  - Updated git workflow guidelines in CLAUDE.md
 - **2026-02-04 (commit b0408bd):** Add Hotwire frontend as npm-free alternative
   - 36 files changed, 943 insertions
   - Implemented Turbo + Stimulus with importmap-rails
@@ -517,11 +523,11 @@ Co-Authored-By: Claude Opus 4.6 <noreply@anthropic.com>
 
 ### Current Git Status
 
-**Branch:** main
+**Branch:** main (3 commits ahead of origin/main)
 **Recent Commits:**
 1. Backend implementation (31f3399) - 130 files, 5102 insertions
 2. Hotwire frontend (b0408bd) - 36 files, 943 insertions
-3. *(Pending)* LeagueResolvable concern and DraftBoard fix - 8 files changed
+3. LeagueResolvable concern and DraftBoard fix (e29ac54) - 12 files, 524 insertions
 
 ### Before Committing - Security Checklist
 
