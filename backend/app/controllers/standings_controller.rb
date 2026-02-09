@@ -62,7 +62,9 @@ class StandingsController < ApplicationController
       stats[:saves] += projections["saves"].to_f
       stats[:strikeouts] += projections["strikeouts"].to_f
 
-      # Accumulate components for batting average
+      # Accumulate components for batting average (weighted by at-bats)
+      # Formula: Team AVG = sum(player_hits) / sum(player_at_bats)
+      # where player_hits = player_avg * player_at_bats
       ab = projections["at_bats"].to_f
       avg = projections["batting_average"].to_f
       if ab > 0 && avg > 0
@@ -70,7 +72,9 @@ class StandingsController < ApplicationController
         stats[:total_hits] += (avg * ab)
       end
 
-      # Accumulate components for ERA
+      # Accumulate components for ERA (weighted by innings pitched)
+      # Formula: Team ERA = (sum(earned_runs) / sum(innings_pitched)) * 9
+      # where earned_runs = (player_era * player_ip) / 9
       ip = projections["innings_pitched"].to_f
       era = projections["era"].to_f
       if ip > 0 && era > 0
@@ -78,14 +82,16 @@ class StandingsController < ApplicationController
         stats[:total_earned_runs] += (era * ip / 9.0)
       end
 
-      # Accumulate components for WHIP
+      # Accumulate components for WHIP (weighted by innings pitched)
+      # Formula: Team WHIP = sum(walks+hits) / sum(innings_pitched)
+      # where walks+hits = player_whip * player_ip
       whip = projections["whip"].to_f
       if ip > 0 && whip > 0
         stats[:total_whip_components] += (whip * ip)
       end
     end
 
-    # Calculate rate stats
+    # Calculate weighted rate stats
     if stats[:total_at_bats] > 0
       stats[:batting_average] = (stats[:total_hits] / stats[:total_at_bats]).round(3)
     end
@@ -94,6 +100,10 @@ class StandingsController < ApplicationController
       stats[:era] = ((stats[:total_earned_runs] / stats[:total_innings_pitched]) * 9.0).round(2)
       stats[:whip] = (stats[:total_whip_components] / stats[:total_innings_pitched]).round(3)
     end
+
+    # Store displayable totals (rename for clarity in view)
+    stats[:at_bats] = stats[:total_at_bats].round(0)
+    stats[:innings_pitched] = stats[:total_innings_pitched].round(1)
 
     stats
   end

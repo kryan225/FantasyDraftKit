@@ -86,6 +86,17 @@ RSpec.describe "Standings", type: :request do
         expect(team1_stats[:era]).to eq(3.00)
       end
 
+      it "calculates AB and IP totals correctly" do
+        get standings_path
+        team1_stats = assigns(:team_stats).find { |ts| ts[:team].id == team1.id }[:stats]
+
+        # Team 1 has 1 hitter with 600 AB
+        expect(team1_stats[:at_bats]).to eq(600)
+
+        # Team 1 has 1 pitcher with 200 IP
+        expect(team1_stats[:innings_pitched]).to eq(200.0)
+      end
+
       it "calculates rankings correctly" do
         get standings_path
         rankings = assigns(:rankings)

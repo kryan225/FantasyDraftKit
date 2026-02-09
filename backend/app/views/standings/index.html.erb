@@ -18,12 +18,14 @@
           <th>RBI</th>
           <th>SB</th>
           <th>AVG</th>
+          <th>AB</th>
           <!-- Pitcher Categories -->
           <th>W</th>
           <th>SV</th>
           <th>K</th>
           <th>ERA</th>
           <th>WHIP</th>
+          <th>IP</th>
         </tr>
       </thead>
       <tbody>
@@ -56,6 +58,9 @@
               <%= stats[:batting_average] == 0.0 ? "-" : stats[:batting_average].round(3) %>
               <span class="text-muted" style="font-size: 0.9em;"><% if stats[:batting_average] > 0 %>(#<%= ranks[:batting_average] %>)<% end %></span>
             </td>
+            <td class="text-muted">
+              <%= stats[:at_bats].round(0) %>
+            </td>
 
             <!-- Pitcher Stats with Ranks -->
             <td>
@@ -78,6 +83,9 @@
               <%= stats[:whip] == 0.0 ? "-" : stats[:whip].round(3) %>
               <span class="text-muted" style="font-size: 0.9em;"><% if stats[:whip] > 0 %>(#<%= ranks[:whip] %>)<% end %></span>
             </td>
+            <td class="text-muted">
+              <%= stats[:innings_pitched].round(1) %>
+            </td>
           </tr>
         <% end %>
       </tbody>
@@ -88,8 +96,9 @@
     <p><strong>Scoring:</strong> Rotisserie format - teams are ranked 1st through Nth in each category. Total points is the sum of all category ranks. Lower total points is better.</p>
     <p><strong>Categories:</strong></p>
     <ul>
-      <li><strong>Hitters:</strong> HR (Home Runs), R (Runs), RBI (Runs Batted In), SB (Stolen Bases), AVG (Batting Average)</li>
-      <li><strong>Pitchers:</strong> W (Wins), SV (Saves), K (Strikeouts), ERA (Earned Run Average), WHIP (Walks + Hits per Inning Pitched)</li>
+      <li><strong>Hitters:</strong> HR (Home Runs), R (Runs), RBI (Runs Batted In), SB (Stolen Bases), AVG (Batting Average - weighted by AB), AB (Total At-Bats)</li>
+      <li><strong>Pitchers:</strong> W (Wins), SV (Saves), K (Strikeouts), ERA (Earned Run Average - weighted by IP), WHIP (Walks + Hits per IP - weighted by IP), IP (Total Innings Pitched)</li>
     </ul>
+    <p><strong>Note:</strong> Rate stats (AVG, ERA, WHIP) are calculated as weighted averages based on each player's AB or IP. The AB and IP columns show the total weights used in these calculations.</p>
   </div>
 </div>
