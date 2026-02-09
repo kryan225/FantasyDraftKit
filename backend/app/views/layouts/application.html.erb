@@ -29,9 +29,9 @@
           <nav class="tabs">
             <%= link_to "League Home", league_path(current_league), class: "tab #{current_page?(league_path(current_league)) ? 'active' : ''}" %>
             <%= link_to "Draft Board", draft_board_path, class: "tab #{current_page?(draft_board_path) ? 'active' : ''}" %>
-            <%= link_to "Standings", standings_path, class: "tab #{current_page?(standings_path) ? 'active' : ''}" %>
             <%= link_to "Teams", league_teams_path(current_league), class: "tab #{current_page?(league_teams_path(current_league)) ? 'active' : ''}" %>
             <%= link_to "Players", league_players_path(current_league), class: "tab #{current_page?(league_players_path(current_league)) ? 'active' : ''}" %>
+            <%= link_to "Standings", standings_path, class: "tab #{current_page?(standings_path) ? 'active' : ''}" %>
           </nav>
         </div>
       </div>
