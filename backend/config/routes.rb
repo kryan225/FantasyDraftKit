@@ -13,6 +13,7 @@ Rails.application.routes.draw do
     get "draft_board", to: "draft_board#show", as: :league_draft_board
     get "draft_history", to: "draft_board#history", as: :league_draft_history
     get "draft_analyzer", to: "draft_analyzer#show", as: :league_draft_analyzer
+    get "standings", to: "standings#index", as: :standings
 
     # Data control routes (scoped to league)
     get "data_control", to: "data_control#show", as: :data_control
@@ -47,6 +48,7 @@ Rails.application.routes.draw do
   get "draft_board", to: "draft_board#show", as: :draft_board
   get "draft_history", to: "draft_board#history", as: :draft_history
   get "draft_analyzer", to: "draft_analyzer#show", as: :draft_analyzer
+  get "standings", to: "standings#index", as: :standings
 
   # API routes
   namespace :api do

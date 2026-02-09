@@ -1,0 +1,95 @@
+<div class="mb-2">
+  <%= link_to "← Back to League", league_path(@league), class: "btn btn-sm" %>
+</div>
+
+<div class="card">
+  <h3 class="card-title">League Standings</h3>
+  <p class="text-muted mb-3"><%= @league.name %> - Rotisserie Scoring</p>
+
+  <div style="overflow-x: auto;">
+    <table>
+      <thead>
+        <tr>
+          <th>Team</th>
+          <th>Total Points</th>
+          <!-- Hitter Categories -->
+          <th>HR</th>
+          <th>R</th>
+          <th>RBI</th>
+          <th>SB</th>
+          <th>AVG</th>
+          <!-- Pitcher Categories -->
+          <th>W</th>
+          <th>SV</th>
+          <th>K</th>
+          <th>ERA</th>
+          <th>WHIP</th>
+        </tr>
+      </thead>
+      <tbody>
+        <% @team_stats.sort_by { |ts| @rankings[ts[:team].id][:total_points] }.each do |team_stat| %>
+          <% team = team_stat[:team] %>
+          <% stats = team_stat[:stats] %>
+          <% ranks = @rankings[team.id] %>
+          <tr>
+            <td><strong><%= link_to team.name, team_path(team) %></strong></td>
+            <td><strong><%= ranks[:total_points] %></strong></td>
+
+            <!-- Hitter Stats with Ranks -->
+            <td>
+              <%= stats[:home_runs].round(1) %>
+              <span class="text-muted" style="font-size: 0.9em;">(#<%= ranks[:home_runs] %>)</span>
+            </td>
+            <td>
+              <%= stats[:runs].round(1) %>
+              <span class="text-muted" style="font-size: 0.9em;">(#<%= ranks[:runs] %>)</span>
+            </td>
+            <td>
+              <%= stats[:rbi].round(1) %>
+              <span class="text-muted" style="font-size: 0.9em;">(#<%= ranks[:rbi] %>)</span>
+            </td>
+            <td>
+              <%= stats[:stolen_bases].round(1) %>
+              <span class="text-muted" style="font-size: 0.9em;">(#<%= ranks[:stolen_bases] %>)</span>
+            </td>
+            <td>
+              <%= stats[:batting_average] == 0.0 ? "-" : stats[:batting_average].round(3) %>
+              <span class="text-muted" style="font-size: 0.9em;"><% if stats[:batting_average] > 0 %>(#<%= ranks[:batting_average] %>)<% end %></span>
+            </td>
+
+            <!-- Pitcher Stats with Ranks -->
+            <td>
+              <%= stats[:wins].round(1) %>
+              <span class="text-muted" style="font-size: 0.9em;">(#<%= ranks[:wins] %>)</span>
+            </td>
+            <td>
+              <%= stats[:saves].round(1) %>
+              <span class="text-muted" style="font-size: 0.9em;">(#<%= ranks[:saves] %>)</span>
+            </td>
+            <td>
+              <%= stats[:strikeouts].round(1) %>
+              <span class="text-muted" style="font-size: 0.9em;">(#<%= ranks[:strikeouts] %>)</span>
+            </td>
+            <td>
+              <%= stats[:era] == 0.0 ? "-" : stats[:era].round(2) %>
+              <span class="text-muted" style="font-size: 0.9em;"><% if stats[:era] > 0 %>(#<%= ranks[:era] %>)<% end %></span>
+            </td>
+            <td>
+              <%= stats[:whip] == 0.0 ? "-" : stats[:whip].round(3) %>
+              <span class="text-muted" style="font-size: 0.9em;"><% if stats[:whip] > 0 %>(#<%= ranks[:whip] %>)<% end %></span>
+            </td>
+          </tr>
+        <% end %>
+      </tbody>
+    </table>
+  </div>
+
+  <div class="mt-3 text-muted">
+    <p><strong>Scoring:</strong> Rotisserie format - teams are ranked 1st through Nth in each category. Total points is the sum of all category ranks. Lower total points is better.</p>
+    <p><strong>Categories:</strong></p>
+    <ul>
+      <li><strong>Hitters:</strong> HR (Home Runs), R (Runs), RBI (Runs Batted In), SB (Stolen Bases), AVG (Batting Average)</li>
+      <li><strong>Pitchers:</strong> W (Wins), SV (Saves), K (Strikeouts), ERA (Earned Run Average), WHIP (Walks + Hits per Inning Pitched)</li>
+    </ul>
+  </div>
+</div>

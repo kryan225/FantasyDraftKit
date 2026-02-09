@@ -13,6 +13,7 @@ RSpec.describe "League Navigation Tabs", type: :system, js: true do
       within(".league-nav-tabs") do
         expect(page).to have_link("League Home")
         expect(page).to have_link("Draft Board")
+        expect(page).to have_link("Standings")
         expect(page).to have_link("Teams")
         expect(page).to have_link("Players")
 
@@ -28,6 +29,7 @@ RSpec.describe "League Navigation Tabs", type: :system, js: true do
       within(".league-nav-tabs") do
         expect(page).to have_link("League Home")
         expect(page).to have_link("Draft Board")
+        expect(page).to have_link("Standings")
         expect(page).to have_link("Teams")
         expect(page).to have_link("Players")
 
@@ -43,6 +45,7 @@ RSpec.describe "League Navigation Tabs", type: :system, js: true do
       within(".league-nav-tabs") do
         expect(page).to have_link("League Home")
         expect(page).to have_link("Draft Board")
+        expect(page).to have_link("Standings")
         expect(page).to have_link("Teams")
         expect(page).to have_link("Players")
 
@@ -58,12 +61,29 @@ RSpec.describe "League Navigation Tabs", type: :system, js: true do
       within(".league-nav-tabs") do
         expect(page).to have_link("League Home")
         expect(page).to have_link("Draft Board")
+        expect(page).to have_link("Standings")
         expect(page).to have_link("Teams")
         expect(page).to have_link("Players")
 
         # Players should be active
         players_link = find_link("Players")
         expect(players_link[:class]).to include("active")
+      end
+    end
+
+    it "shows navigation tabs on Standings page", :aggregate_failures do
+      visit standings_path
+
+      within(".league-nav-tabs") do
+        expect(page).to have_link("League Home")
+        expect(page).to have_link("Draft Board")
+        expect(page).to have_link("Standings")
+        expect(page).to have_link("Teams")
+        expect(page).to have_link("Players")
+
+        # Standings should be active
+        standings_link = find_link("Standings")
+        expect(standings_link[:class]).to include("active")
       end
     end
   end
@@ -78,6 +98,13 @@ RSpec.describe "League Navigation Tabs", type: :system, js: true do
       end
       expect(page).to have_current_path(league_path(league))
       expect(find_link("League Home")[:class]).to include("active")
+
+      # Navigate to Standings
+      within(".league-nav-tabs") do
+        click_link "Standings"
+      end
+      expect(page).to have_current_path(standings_path)
+      expect(find_link("Standings")[:class]).to include("active")
 
       # Navigate to Teams
       within(".league-nav-tabs") do
