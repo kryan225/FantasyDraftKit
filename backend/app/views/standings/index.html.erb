@@ -29,6 +29,31 @@
 
   current_sort = params[:sort]
   current_direction = params[:direction]
+
+  # Helper method to generate heatmap color based on rank
+  def heatmap_color(rank, num_teams)
+    return "background-color: #f5f5f5;" if rank.nil?  # Gray for missing values
+
+    # Calculate percentage: 0% = best (rank 1), 100% = worst (rank = num_teams)
+    percentage = (rank - 1).to_f / [num_teams - 1, 1].max
+
+    # Color gradient: Green (best) → Yellow (middle) → Red (worst)
+    if percentage <= 0.5
+      # Green to Yellow
+      r = (255 * (percentage * 2)).to_i
+      g = 200
+      b = 50
+    else
+      # Yellow to Red
+      r = 255
+      g = (200 * (1 - (percentage - 0.5) * 2)).to_i
+      b = 50
+    end
+
+    "background-color: rgb(#{r}, #{g}, #{b}); color: #{percentage > 0.6 ? 'white' : 'black'};"
+  end
+
+  num_teams = @team_stats.size
 %>
 
 <div class="card">
@@ -74,55 +99,55 @@
             </td>
 
             <!-- Hitter Stats with Ranks -->
-            <td style="background-color: #f0f8ff;">
+            <td style="<%= heatmap_color(ranks[:home_runs], num_teams) %>">
               <%= stats[:home_runs].round(1) %>
-              <span class="text-muted" style="font-size: 0.9em;">(#<%= ranks[:home_runs] %>)</span>
+              <span style="font-size: 0.9em; opacity: 0.8;">(#<%= ranks[:home_runs] %>)</span>
             </td>
-            <td style="background-color: #f0f8ff;">
+            <td style="<%= heatmap_color(ranks[:runs], num_teams) %>">
               <%= stats[:runs].round(1) %>
-              <span class="text-muted" style="font-size: 0.9em;">(#<%= ranks[:runs] %>)</span>
+              <span style="font-size: 0.9em; opacity: 0.8;">(#<%= ranks[:runs] %>)</span>
             </td>
-            <td style="background-color: #f0f8ff;">
+            <td style="<%= heatmap_color(ranks[:rbi], num_teams) %>">
               <%= stats[:rbi].round(1) %>
-              <span class="text-muted" style="font-size: 0.9em;">(#<%= ranks[:rbi] %>)</span>
+              <span style="font-size: 0.9em; opacity: 0.8;">(#<%= ranks[:rbi] %>)</span>
             </td>
-            <td style="background-color: #f0f8ff;">
+            <td style="<%= heatmap_color(ranks[:stolen_bases], num_teams) %>">
               <%= stats[:stolen_bases].round(1) %>
-              <span class="text-muted" style="font-size: 0.9em;">(#<%= ranks[:stolen_bases] %>)</span>
+              <span style="font-size: 0.9em; opacity: 0.8;">(#<%= ranks[:stolen_bases] %>)</span>
             </td>
-            <td style="background-color: #f0f8ff;">
+            <td style="<%= heatmap_color(ranks[:batting_average], num_teams) %>">
               <%= stats[:batting_average] == 0.0 ? "-" : stats[:batting_average].round(3) %>
-              <span class="text-muted" style="font-size: 0.9em;"><% if stats[:batting_average] > 0 %>(#<%= ranks[:batting_average] %>)<% end %></span>
+              <span style="font-size: 0.9em; opacity: 0.8;"><% if stats[:batting_average] > 0 %>(#<%= ranks[:batting_average] %>)<% end %></span>
             </td>
-            <td style="background-color: #f0f8ff;">
+            <td style="<%= heatmap_color(ranks[:at_bats], num_teams) %>">
               <%= stats[:at_bats].round(0) %>
-              <span class="text-muted" style="font-size: 0.9em;">(#<%= ranks[:at_bats] %>)</span>
+              <span style="font-size: 0.9em; opacity: 0.8;">(#<%= ranks[:at_bats] %>)</span>
             </td>
 
             <!-- Pitcher Stats with Ranks -->
-            <td style="background-color: #fff5f0;">
+            <td style="<%= heatmap_color(ranks[:wins], num_teams) %>">
               <%= stats[:wins].round(1) %>
-              <span class="text-muted" style="font-size: 0.9em;">(#<%= ranks[:wins] %>)</span>
+              <span style="font-size: 0.9em; opacity: 0.8;">(#<%= ranks[:wins] %>)</span>
             </td>
-            <td style="background-color: #fff5f0;">
+            <td style="<%= heatmap_color(ranks[:saves], num_teams) %>">
               <%= stats[:saves].round(1) %>
-              <span class="text-muted" style="font-size: 0.9em;">(#<%= ranks[:saves] %>)</span>
+              <span style="font-size: 0.9em; opacity: 0.8;">(#<%= ranks[:saves] %>)</span>
             </td>
-            <td style="background-color: #fff5f0;">
+            <td style="<%= heatmap_color(ranks[:strikeouts], num_teams) %>">
               <%= stats[:strikeouts].round(1) %>
-              <span class="text-muted" style="font-size: 0.9em;">(#<%= ranks[:strikeouts] %>)</span>
+              <span style="font-size: 0.9em; opacity: 0.8;">(#<%= ranks[:strikeouts] %>)</span>
             </td>
-            <td style="background-color: #fff5f0;">
+            <td style="<%= heatmap_color(ranks[:era], num_teams) %>">
               <%= stats[:era] == 0.0 ? "-" : stats[:era].round(2) %>
-              <span class="text-muted" style="font-size: 0.9em;"><% if stats[:era] > 0 %>(#<%= ranks[:era] %>)<% end %></span>
+              <span style="font-size: 0.9em; opacity: 0.8;"><% if stats[:era] > 0 %>(#<%= ranks[:era] %>)<% end %></span>
             </td>
-            <td style="background-color: #fff5f0;">
+            <td style="<%= heatmap_color(ranks[:whip], num_teams) %>">
               <%= stats[:whip] == 0.0 ? "-" : stats[:whip].round(3) %>
-              <span class="text-muted" style="font-size: 0.9em;"><% if stats[:whip] > 0 %>(#<%= ranks[:whip] %>)<% end %></span>
+              <span style="font-size: 0.9em; opacity: 0.8;"><% if stats[:whip] > 0 %>(#<%= ranks[:whip] %>)<% end %></span>
             </td>
-            <td style="background-color: #fff5f0;">
+            <td style="<%= heatmap_color(ranks[:innings_pitched], num_teams) %>">
               <%= stats[:innings_pitched].round(1) %>
-              <span class="text-muted" style="font-size: 0.9em;">(#<%= ranks[:innings_pitched] %>)</span>
+              <span style="font-size: 0.9em; opacity: 0.8;">(#<%= ranks[:innings_pitched] %>)</span>
             </td>
           </tr>
         <% end %>
@@ -132,6 +157,7 @@
 
   <div class="mt-3 text-muted">
     <p><strong>Scoring:</strong> Rotisserie format with inverted scoring. Teams are ranked 1st through Nth in each of 10 categories. Points are awarded: 1st place = N points, 2nd place = (N-1) points, etc. Higher total points is better.</p>
+    <p><strong>Heatmap Visualization:</strong> Cell colors indicate rank performance - <span style="background-color: rgb(50, 200, 50); padding: 2px 8px; border-radius: 3px; color: white;">Green = Best</span> <span style="background-color: rgb(255, 200, 50); padding: 2px 8px; border-radius: 3px;">Yellow = Middle</span> <span style="background-color: rgb(255, 100, 50); padding: 2px 8px; border-radius: 3px; color: white;">Red = Worst</span></p>
     <p><strong>Scored Categories (10):</strong></p>
     <ul>
       <li><strong>Hitters (5):</strong> HR (Home Runs), R (Runs), RBI (Runs Batted In), SB (Stolen Bases), AVG (Batting Average - weighted by AB)</li>
