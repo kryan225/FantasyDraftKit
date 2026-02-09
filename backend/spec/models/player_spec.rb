@@ -16,9 +16,11 @@ RSpec.describe Player, type: :model do
   end
 
   describe "scopes" do
-    let!(:available_player) { create(:player, name: "Available", is_drafted: false) }
-    let!(:drafted_player) { create(:player, name: "Drafted", is_drafted: true) }
-    let!(:interested_player) { create(:player, name: "Interested", is_drafted: false, interested: true) }
+    let(:league) { create(:league) }
+    let(:team) { create(:team, league: league) }
+    let!(:available_player) { create(:player, name: "Available", team: nil, is_drafted: false) }
+    let!(:drafted_player) { create(:player, name: "Drafted", team: team, is_drafted: true) }
+    let!(:interested_player) { create(:player, name: "Interested", team: nil, is_drafted: false, interested: true) }
 
     describe ".available" do
       it "returns only non-drafted players" do

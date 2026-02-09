@@ -4,6 +4,9 @@ class Player < ApplicationRecord
   has_many :draft_picks, dependent: :nullify
   has_many :keeper_histories, dependent: :destroy
 
+  # Callbacks
+  before_save :sync_drafted_status
+
   # Validations
   validates :name, presence: true
   validates :positions, presence: true
@@ -26,5 +29,12 @@ class Player < ApplicationRecord
 
   def toggle_interested!
     update(interested: !interested)
+  end
+
+  private
+
+  def sync_drafted_status
+    # Automatically sync is_drafted with team_id presence
+    self.is_drafted = team_id.present?
   end
 end
