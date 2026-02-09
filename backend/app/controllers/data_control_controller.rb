@@ -41,24 +41,15 @@ class DataControlController < ApplicationController
           next
         end
 
-        # Parse batting stats
-        projections = {
-          "at_bats" => row[2].to_i,
-          "runs" => row[3].to_i,
-          "hits" => row[4].to_i,
-          "singles" => row[5].to_i,
-          "doubles" => row[6].to_i,
-          "triples" => row[7].to_i,
-          "home_runs" => row[8].to_i,
-          "rbi" => row[9].to_i,
-          "walks" => row[10].to_i,
-          "strikeouts" => row[11].to_i,
-          "stolen_bases" => row[12].to_i,
-          "caught_stealing" => row[13].to_i,
-          "batting_average" => row[14].to_f,
-          "obp" => row[15].to_f,
-          "slg" => row[16].to_f
-        }
+        # Determine if this is a pitcher or hitter based on positions
+        is_pitcher = positions.split(',').any? { |pos| ['SP', 'RP'].include?(pos) }
+
+        # Parse stats based on player type
+        projections = if is_pitcher
+                        parse_pitcher_stats(row)
+                      else
+                        parse_hitter_stats(row)
+                      end
 
         Player.create!(
           name: player_name,
@@ -104,6 +95,24 @@ class DataControlController < ApplicationController
     redirect_to league_data_control_path(@league), notice: "Successfully deleted #{deleted_count} players."
   end
 
+  def recalculate_values
+    @league = current_league
+    return redirect_to data_control_path(league_id: @league&.id), alert: "League not found" unless @league
+
+    service = ValueCalculatorService.new(@league)
+    result = service.call
+
+    if result[:error]
+      redirect_to league_data_control_path(@league), alert: "Failed: #{result[:error]}"
+    else
+      redirect_to league_data_control_path(@league),
+                  notice: "Recalculated #{result[:count]} players. " \
+                          "Range: $#{result[:min_value].round}-$#{result[:max_value].round}, " \
+                          "Avg: $#{result[:avg_value].round}, " \
+                          "Time: #{result[:elapsed_time]}s"
+    end
+  end
+
   private
 
   def parse_player_info(player_string)
@@ -139,5 +148,49 @@ class DataControlController < ApplicationController
     return [nil, nil, nil] if positions.empty?
 
     [player_name, positions, mlb_team]
+  end
+
+  # Parse hitter statistics from CSV row
+  # Format: Avail, Player, AB, R, H, 1B, 2B, 3B, HR, RBI, BB, K, SB, CS, AVG, OBP, SLG, Rank
+  def parse_hitter_stats(row)
+    {
+      "at_bats" => row[2].to_i,
+      "runs" => row[3].to_i,
+      "hits" => row[4].to_i,
+      "singles" => row[5].to_i,
+      "doubles" => row[6].to_i,
+      "triples" => row[7].to_i,
+      "home_runs" => row[8].to_i,
+      "rbi" => row[9].to_i,
+      "walks" => row[10].to_i,
+      "strikeouts" => row[11].to_i,
+      "stolen_bases" => row[12].to_i,
+      "caught_stealing" => row[13].to_i,
+      "batting_average" => row[14].to_f,
+      "obp" => row[15].to_f,
+      "slg" => row[16].to_f
+    }
+  end
+
+  # Parse pitcher statistics from CSV row
+  # Format: Avail, Player, INNs, APP, GS, QS, CG, W, L, S, BS, HD, K, BB, H, ERA, WHIP, Rank
+  def parse_pitcher_stats(row)
+    {
+      "innings_pitched" => row[2].to_f,
+      "appearances" => row[3].to_i,
+      "games_started" => row[4].to_i,
+      "quality_starts" => row[5].to_i,
+      "complete_games" => row[6].to_i,
+      "wins" => row[7].to_i,
+      "losses" => row[8].to_i,
+      "saves" => row[9].to_i,
+      "blown_saves" => row[10].to_i,
+      "holds" => row[11].to_i,
+      "strikeouts" => row[12].to_i,
+      "walks" => row[13].to_i,
+      "hits_allowed" => row[14].to_i,
+      "era" => row[15].to_f,
+      "whip" => row[16].to_f
+    }
   end
 end
