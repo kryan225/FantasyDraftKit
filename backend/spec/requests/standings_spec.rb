@@ -118,16 +118,24 @@ RSpec.describe "Standings", type: :request do
         expect(rankings[team2.id][:total_points]).to be > 0
       end
 
-      it "calculates total_points as sum of 10 scored categories (excluding AB and IP)" do
+      it "calculates total_points using inverted scoring (excluding AB and IP)" do
         get standings_path
         rankings = assigns(:rankings)
+        num_teams = 2  # We have 2 teams in this test
 
-        # Total points should equal sum of 10 scored category ranks
+        # Total points should use inverted formula: points = (num_teams - rank + 1)
+        # For each scored category, convert rank to points and sum
         scored_categories = [:home_runs, :runs, :rbi, :stolen_bases, :batting_average,
                             :wins, :saves, :strikeouts, :era, :whip]
 
-        team1_total = scored_categories.sum { |cat| rankings[team1.id][cat] }
+        team1_total = scored_categories.sum do |cat|
+          rank = rankings[team1.id][cat]
+          num_teams - rank + 1  # 1st place = 2 points, 2nd place = 1 point
+        end
         expect(rankings[team1.id][:total_points]).to eq(team1_total)
+
+        # Higher total_points is better with inverted scoring
+        expect(rankings[team1.id][:total_points]).to be > rankings[team2.id][:total_points]
 
         # Verify AB and IP ranks exist but are NOT included in total
         expect(rankings[team1.id][:at_bats]).to be_present
@@ -174,15 +182,15 @@ RSpec.describe "Standings", type: :request do
         expect(team_stats.first[:team].id).to eq(team1.id)
       end
 
-      it "defaults to sorting by total_points ascending (lower is better)" do
+      it "defaults to sorting by total_points descending (higher is better)" do
         get standings_path
         team_stats = assigns(:team_stats)
         rankings = assigns(:rankings)
 
-        # First team should have lower (better) total points in ascending order
+        # First team should have higher (better) total points in descending order
         first_team_points = rankings[team_stats.first[:team].id][:total_points]
         last_team_points = rankings[team_stats.last[:team].id][:total_points]
-        expect(first_team_points).to be <= last_team_points
+        expect(first_team_points).to be >= last_team_points
       end
     end
 

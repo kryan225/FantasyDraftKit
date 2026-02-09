@@ -5,8 +5,8 @@
 <%
   # Helper method to generate sort link
   def sort_link(column, label, current_sort, current_direction, league_id, bg_color = nil)
-    # For total_points, default is asc (lower is better), otherwise desc
-    default_direction = (column == 'total_points') ? 'asc' : 'desc'
+    # Default is desc for all columns (higher is better with inverted scoring)
+    default_direction = 'desc'
 
     # Toggle direction based on current state
     if current_sort == column.to_s
@@ -131,12 +131,13 @@
   </div>
 
   <div class="mt-3 text-muted">
-    <p><strong>Scoring:</strong> Rotisserie format - teams are ranked 1st through Nth in each category. Total points is the sum of all category ranks. Lower total points is better.</p>
-    <p><strong>Categories:</strong></p>
+    <p><strong>Scoring:</strong> Rotisserie format with inverted scoring. Teams are ranked 1st through Nth in each of 10 categories. Points are awarded: 1st place = N points, 2nd place = (N-1) points, etc. Higher total points is better.</p>
+    <p><strong>Scored Categories (10):</strong></p>
     <ul>
-      <li><strong>Hitters:</strong> HR (Home Runs), R (Runs), RBI (Runs Batted In), SB (Stolen Bases), AVG (Batting Average - weighted by AB), AB (Total At-Bats)</li>
-      <li><strong>Pitchers:</strong> W (Wins), SV (Saves), K (Strikeouts), ERA (Earned Run Average - weighted by IP), WHIP (Walks + Hits per IP - weighted by IP), IP (Total Innings Pitched)</li>
+      <li><strong>Hitters (5):</strong> HR (Home Runs), R (Runs), RBI (Runs Batted In), SB (Stolen Bases), AVG (Batting Average - weighted by AB)</li>
+      <li><strong>Pitchers (5):</strong> W (Wins), SV (Saves), K (Strikeouts), ERA (Earned Run Average - weighted by IP), WHIP (Walks + Hits per IP - weighted by IP)</li>
     </ul>
-    <p><strong>Note:</strong> Rate stats (AVG, ERA, WHIP) are calculated as weighted averages based on each player's AB or IP. The AB and IP columns show the total weights used in these calculations.</p>
+    <p><strong>Volume Metrics (not scored):</strong> AB (At-Bats) and IP (Innings Pitched) are ranked for reference but do NOT contribute to Total Points.</p>
+    <p><strong>Note:</strong> Rate stats (AVG, ERA, WHIP) are calculated as weighted averages based on each player's AB or IP.</p>
   </div>
 </div>

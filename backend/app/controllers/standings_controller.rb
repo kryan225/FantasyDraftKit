@@ -20,8 +20,8 @@ class StandingsController < ApplicationController
 
     # Apply sorting
     sort_column = params[:sort]&.to_sym || :total_points
-    # Default direction: desc for stats, asc for total_points (lower is better)
-    sort_direction = params[:direction] || (sort_column == :total_points ? 'asc' : 'desc')
+    # Default direction: desc for all columns (higher is better with inverted scoring)
+    sort_direction = params[:direction] || 'desc'
 
     # Sort team_stats by the selected column
     @team_stats = sort_team_stats(@team_stats, sort_column, sort_direction)
@@ -163,17 +163,25 @@ class StandingsController < ApplicationController
       end
     end
 
-    # Calculate total rotisserie points (sum of ranks for 10 scored categories only)
+    # Calculate total rotisserie points using inverted scoring
+    # Formula: points = (num_teams - rank + 1) for each category
+    # 1st place = num_teams points, 2nd place = (num_teams - 1) points, etc.
     # Exclude AB and IP as they are volume metrics, not scored categories
     scored_categories = [:home_runs, :runs, :rbi, :stolen_bases, :batting_average,
                         :wins, :saves, :strikeouts, :era, :whip]
 
+    num_teams = team_stats.size
+
     rankings.each do |team_id, category_ranks|
-      rankings[team_id][:total_points] = scored_categories.sum { |cat| category_ranks[cat] || 0 }
+      # Convert ranks to points and sum them
+      rankings[team_id][:total_points] = scored_categories.sum do |cat|
+        rank = category_ranks[cat] || num_teams
+        num_teams - rank + 1  # Invert: 1st place gets most points
+      end
     end
 
-    # Add ranking for total_points (lower is better)
-    sorted_by_total = rankings.sort_by { |team_id, ranks| ranks[:total_points] }
+    # Add ranking for total_points (higher points is better)
+    sorted_by_total = rankings.sort_by { |team_id, ranks| -ranks[:total_points] }  # Descending
     current_rank = 1
     previous_value = nil
 
