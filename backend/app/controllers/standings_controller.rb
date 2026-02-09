@@ -124,13 +124,15 @@ class StandingsController < ApplicationController
       rbi: :desc,
       stolen_bases: :desc,
       batting_average: :desc,
+      at_bats: :desc,  # Higher is better (more volume)
 
       # Pitcher categories
       wins: :desc,
       saves: :desc,
       strikeouts: :desc,
       era: :asc,  # Lower is better
-      whip: :asc  # Lower is better
+      whip: :asc,  # Lower is better
+      innings_pitched: :desc  # Higher is better (more volume)
     }
 
     rankings = {}
@@ -164,6 +166,24 @@ class StandingsController < ApplicationController
     # Calculate total rotisserie points (sum of ranks)
     rankings.each do |team_id, category_ranks|
       rankings[team_id][:total_points] = category_ranks.values.sum
+    end
+
+    # Add ranking for total_points (lower is better)
+    sorted_by_total = rankings.sort_by { |team_id, ranks| ranks[:total_points] }
+    current_rank = 1
+    previous_value = nil
+
+    sorted_by_total.each_with_index do |(team_id, ranks), index|
+      value = ranks[:total_points]
+
+      if previous_value && value == previous_value
+        # Use same rank as previous
+      else
+        current_rank = index + 1
+      end
+
+      rankings[team_id][:total_points_rank] = current_rank
+      previous_value = value
     end
 
     rankings

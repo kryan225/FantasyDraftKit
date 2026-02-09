@@ -68,7 +68,10 @@
           <% ranks = @rankings[team.id] %>
           <tr>
             <td><strong><%= link_to team.name, team_path(team) %></strong></td>
-            <td><strong><%= ranks[:total_points] %></strong></td>
+            <td>
+              <strong><%= ranks[:total_points] %></strong>
+              <span class="text-muted" style="font-size: 0.9em;">(#<%= ranks[:total_points_rank] %>)</span>
+            </td>
 
             <!-- Hitter Stats with Ranks -->
             <td style="background-color: #f0f8ff;">
@@ -91,8 +94,9 @@
               <%= stats[:batting_average] == 0.0 ? "-" : stats[:batting_average].round(3) %>
               <span class="text-muted" style="font-size: 0.9em;"><% if stats[:batting_average] > 0 %>(#<%= ranks[:batting_average] %>)<% end %></span>
             </td>
-            <td class="text-muted" style="background-color: #f0f8ff;">
+            <td style="background-color: #f0f8ff;">
               <%= stats[:at_bats].round(0) %>
+              <span class="text-muted" style="font-size: 0.9em;">(#<%= ranks[:at_bats] %>)</span>
             </td>
 
             <!-- Pitcher Stats with Ranks -->
@@ -116,8 +120,9 @@
               <%= stats[:whip] == 0.0 ? "-" : stats[:whip].round(3) %>
               <span class="text-muted" style="font-size: 0.9em;"><% if stats[:whip] > 0 %>(#<%= ranks[:whip] %>)<% end %></span>
             </td>
-            <td class="text-muted" style="background-color: #fff5f0;">
+            <td style="background-color: #fff5f0;">
               <%= stats[:innings_pitched].round(1) %>
+              <span class="text-muted" style="font-size: 0.9em;">(#<%= ranks[:innings_pitched] %>)</span>
             </td>
           </tr>
         <% end %>

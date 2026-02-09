@@ -118,6 +118,20 @@ RSpec.describe "Standings", type: :request do
         expect(rankings[team2.id][:total_points]).to be > 0
       end
 
+      it "calculates rankings for total_points, AB, and IP" do
+        get standings_path
+        rankings = assigns(:rankings)
+
+        # Both teams should have ranks for total_points_rank, at_bats, and innings_pitched
+        expect(rankings[team1.id][:total_points_rank]).to be_between(1, 2)
+        expect(rankings[team1.id][:at_bats]).to be_between(1, 2)
+        expect(rankings[team1.id][:innings_pitched]).to be_between(1, 2)
+
+        expect(rankings[team2.id][:total_points_rank]).to be_between(1, 2)
+        expect(rankings[team2.id][:at_bats]).to be_between(1, 2)
+        expect(rankings[team2.id][:innings_pitched]).to be_between(1, 2)  # Will rank even with 0 IP
+      end
+
       it "sorts by home runs descending by default" do
         get standings_path, params: { sort: 'home_runs' }
         team_stats = assigns(:team_stats)
