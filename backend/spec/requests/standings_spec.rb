@@ -118,6 +118,22 @@ RSpec.describe "Standings", type: :request do
         expect(rankings[team2.id][:total_points]).to be > 0
       end
 
+      it "calculates total_points as sum of 10 scored categories (excluding AB and IP)" do
+        get standings_path
+        rankings = assigns(:rankings)
+
+        # Total points should equal sum of 10 scored category ranks
+        scored_categories = [:home_runs, :runs, :rbi, :stolen_bases, :batting_average,
+                            :wins, :saves, :strikeouts, :era, :whip]
+
+        team1_total = scored_categories.sum { |cat| rankings[team1.id][cat] }
+        expect(rankings[team1.id][:total_points]).to eq(team1_total)
+
+        # Verify AB and IP ranks exist but are NOT included in total
+        expect(rankings[team1.id][:at_bats]).to be_present
+        expect(rankings[team1.id][:innings_pitched]).to be_present
+      end
+
       it "calculates rankings for total_points, AB, and IP" do
         get standings_path
         rankings = assigns(:rankings)

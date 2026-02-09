@@ -124,7 +124,7 @@ class StandingsController < ApplicationController
       rbi: :desc,
       stolen_bases: :desc,
       batting_average: :desc,
-      at_bats: :desc,  # Higher is better (more volume)
+      at_bats: :desc,  # Volume metric only - NOT included in total points
 
       # Pitcher categories
       wins: :desc,
@@ -132,7 +132,7 @@ class StandingsController < ApplicationController
       strikeouts: :desc,
       era: :asc,  # Lower is better
       whip: :asc,  # Lower is better
-      innings_pitched: :desc  # Higher is better (more volume)
+      innings_pitched: :desc  # Volume metric only - NOT included in total points
     }
 
     rankings = {}
@@ -163,9 +163,13 @@ class StandingsController < ApplicationController
       end
     end
 
-    # Calculate total rotisserie points (sum of ranks)
+    # Calculate total rotisserie points (sum of ranks for 10 scored categories only)
+    # Exclude AB and IP as they are volume metrics, not scored categories
+    scored_categories = [:home_runs, :runs, :rbi, :stolen_bases, :batting_average,
+                        :wins, :saves, :strikeouts, :era, :whip]
+
     rankings.each do |team_id, category_ranks|
-      rankings[team_id][:total_points] = category_ranks.values.sum
+      rankings[team_id][:total_points] = scored_categories.sum { |cat| category_ranks[cat] || 0 }
     end
 
     # Add ranking for total_points (lower is better)
