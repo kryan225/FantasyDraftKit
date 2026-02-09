@@ -2,6 +2,35 @@
   <%= link_to "← Back to League", league_path(@league), class: "btn btn-sm" %>
 </div>
 
+<%
+  # Helper method to generate sort link
+  def sort_link(column, label, current_sort, current_direction, league_id, bg_color = nil)
+    # For total_points, default is asc (lower is better), otherwise desc
+    default_direction = (column == 'total_points') ? 'asc' : 'desc'
+
+    # Toggle direction based on current state
+    if current_sort == column.to_s
+      direction = (current_direction == 'desc') ? 'asc' : 'desc'
+    else
+      direction = default_direction
+    end
+
+    arrow = if current_sort == column.to_s
+      current_direction == 'asc' ? ' ↑' : ' ↓'
+    else
+      ''
+    end
+
+    link_params = { sort: column, direction: direction }
+
+    style = bg_color ? "background-color: #{bg_color};" : ""
+    link_to "#{label}#{arrow}", league_standings_path(league_id, link_params), class: 'sort-link', style: style
+  end
+
+  current_sort = params[:sort]
+  current_direction = params[:direction]
+%>
+
 <div class="card">
   <h3 class="card-title">League Standings</h3>
   <p class="text-muted mb-3"><%= @league.name %> - Rotisserie Scoring</p>
@@ -11,29 +40,29 @@
       <thead>
         <tr>
           <th rowspan="2">Team</th>
-          <th rowspan="2">Total<br>Points</th>
+          <th rowspan="2"><%= sort_link('total_points', 'Total Points', current_sort, current_direction, @league.id) %></th>
           <th colspan="6" style="text-align: center; background-color: #f0f8ff; border-bottom: 2px solid #4a90e2;">Batting</th>
           <th colspan="6" style="text-align: center; background-color: #fff5f0; border-bottom: 2px solid #e2994a;">Pitching</th>
         </tr>
         <tr>
           <!-- Hitter Categories -->
-          <th style="background-color: #f0f8ff;">HR</th>
-          <th style="background-color: #f0f8ff;">R</th>
-          <th style="background-color: #f0f8ff;">RBI</th>
-          <th style="background-color: #f0f8ff;">SB</th>
-          <th style="background-color: #f0f8ff;">AVG</th>
-          <th style="background-color: #f0f8ff;">AB</th>
+          <th><%= sort_link('home_runs', 'HR', current_sort, current_direction, @league.id, '#f0f8ff') %></th>
+          <th><%= sort_link('runs', 'R', current_sort, current_direction, @league.id, '#f0f8ff') %></th>
+          <th><%= sort_link('rbi', 'RBI', current_sort, current_direction, @league.id, '#f0f8ff') %></th>
+          <th><%= sort_link('stolen_bases', 'SB', current_sort, current_direction, @league.id, '#f0f8ff') %></th>
+          <th><%= sort_link('batting_average', 'AVG', current_sort, current_direction, @league.id, '#f0f8ff') %></th>
+          <th><%= sort_link('at_bats', 'AB', current_sort, current_direction, @league.id, '#f0f8ff') %></th>
           <!-- Pitcher Categories -->
-          <th style="background-color: #fff5f0;">W</th>
-          <th style="background-color: #fff5f0;">SV</th>
-          <th style="background-color: #fff5f0;">K</th>
-          <th style="background-color: #fff5f0;">ERA</th>
-          <th style="background-color: #fff5f0;">WHIP</th>
-          <th style="background-color: #fff5f0;">IP</th>
+          <th><%= sort_link('wins', 'W', current_sort, current_direction, @league.id, '#fff5f0') %></th>
+          <th><%= sort_link('saves', 'SV', current_sort, current_direction, @league.id, '#fff5f0') %></th>
+          <th><%= sort_link('strikeouts', 'K', current_sort, current_direction, @league.id, '#fff5f0') %></th>
+          <th><%= sort_link('era', 'ERA', current_sort, current_direction, @league.id, '#fff5f0') %></th>
+          <th><%= sort_link('whip', 'WHIP', current_sort, current_direction, @league.id, '#fff5f0') %></th>
+          <th><%= sort_link('innings_pitched', 'IP', current_sort, current_direction, @league.id, '#fff5f0') %></th>
         </tr>
       </thead>
       <tbody>
-        <% @team_stats.sort_by { |ts| @rankings[ts[:team].id][:total_points] }.each do |team_stat| %>
+        <% @team_stats.each do |team_stat| %>
           <% team = team_stat[:team] %>
           <% stats = team_stat[:stats] %>
           <% ranks = @rankings[team.id] %>

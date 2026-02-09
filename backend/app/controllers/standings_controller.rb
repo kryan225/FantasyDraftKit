@@ -17,6 +17,14 @@ class StandingsController < ApplicationController
 
     # Rank teams in each category (higher is better, except ERA and WHIP where lower is better)
     @rankings = calculate_rankings(@team_stats)
+
+    # Apply sorting
+    sort_column = params[:sort]&.to_sym || :total_points
+    # Default direction: desc for stats, asc for total_points (lower is better)
+    sort_direction = params[:direction] || (sort_column == :total_points ? 'asc' : 'desc')
+
+    # Sort team_stats by the selected column
+    @team_stats = sort_team_stats(@team_stats, sort_column, sort_direction)
   end
 
   private
@@ -159,5 +167,20 @@ class StandingsController < ApplicationController
     end
 
     rankings
+  end
+
+  def sort_team_stats(team_stats, sort_column, sort_direction)
+    # If sorting by total_points (rotisserie points), sort by rankings
+    if sort_column == :total_points
+      sorted = team_stats.sort_by { |ts| @rankings[ts[:team].id][:total_points] }
+    else
+      # Otherwise sort by the stat value
+      sorted = team_stats.sort_by { |ts| ts[:stats][sort_column] || 0 }
+    end
+
+    # Reverse if descending (default for all columns)
+    sorted.reverse! if sort_direction == 'desc'
+
+    sorted
   end
 end

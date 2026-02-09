@@ -117,6 +117,43 @@ RSpec.describe "Standings", type: :request do
         expect(rankings[team1.id][:total_points]).to be > 0
         expect(rankings[team2.id][:total_points]).to be > 0
       end
+
+      it "sorts by home runs descending by default" do
+        get standings_path, params: { sort: 'home_runs' }
+        team_stats = assigns(:team_stats)
+
+        # Team A has 40 HR, Team B has 35 HR
+        expect(team_stats.first[:team].id).to eq(team1.id)
+        expect(team_stats.last[:team].id).to eq(team2.id)
+      end
+
+      it "sorts by home runs ascending when direction is asc" do
+        get standings_path, params: { sort: 'home_runs', direction: 'asc' }
+        team_stats = assigns(:team_stats)
+
+        # Team B has fewer HR, should be first in asc order
+        expect(team_stats.first[:team].id).to eq(team2.id)
+        expect(team_stats.last[:team].id).to eq(team1.id)
+      end
+
+      it "sorts by stolen bases descending" do
+        get standings_path, params: { sort: 'stolen_bases' }
+        team_stats = assigns(:team_stats)
+
+        # Team A has 30 SB, Team B has 5 SB
+        expect(team_stats.first[:team].id).to eq(team1.id)
+      end
+
+      it "defaults to sorting by total_points ascending (lower is better)" do
+        get standings_path
+        team_stats = assigns(:team_stats)
+        rankings = assigns(:rankings)
+
+        # First team should have lower (better) total points in ascending order
+        first_team_points = rankings[team_stats.first[:team].id][:total_points]
+        last_team_points = rankings[team_stats.last[:team].id][:total_points]
+        expect(first_team_points).to be <= last_team_points
+      end
     end
 
     context "when league_id is provided" do
