@@ -10,22 +10,26 @@
     <table>
       <thead>
         <tr>
-          <th>Team</th>
-          <th>Total Points</th>
+          <th rowspan="2">Team</th>
+          <th rowspan="2">Total<br>Points</th>
+          <th colspan="6" style="text-align: center; background-color: #f0f8ff; border-bottom: 2px solid #4a90e2;">Batting</th>
+          <th colspan="6" style="text-align: center; background-color: #fff5f0; border-bottom: 2px solid #e2994a;">Pitching</th>
+        </tr>
+        <tr>
           <!-- Hitter Categories -->
-          <th>HR</th>
-          <th>R</th>
-          <th>RBI</th>
-          <th>SB</th>
-          <th>AVG</th>
-          <th>AB</th>
+          <th style="background-color: #f0f8ff;">HR</th>
+          <th style="background-color: #f0f8ff;">R</th>
+          <th style="background-color: #f0f8ff;">RBI</th>
+          <th style="background-color: #f0f8ff;">SB</th>
+          <th style="background-color: #f0f8ff;">AVG</th>
+          <th style="background-color: #f0f8ff;">AB</th>
           <!-- Pitcher Categories -->
-          <th>W</th>
-          <th>SV</th>
-          <th>K</th>
-          <th>ERA</th>
-          <th>WHIP</th>
-          <th>IP</th>
+          <th style="background-color: #fff5f0;">W</th>
+          <th style="background-color: #fff5f0;">SV</th>
+          <th style="background-color: #fff5f0;">K</th>
+          <th style="background-color: #fff5f0;">ERA</th>
+          <th style="background-color: #fff5f0;">WHIP</th>
+          <th style="background-color: #fff5f0;">IP</th>
         </tr>
       </thead>
       <tbody>
@@ -38,52 +42,52 @@
             <td><strong><%= ranks[:total_points] %></strong></td>
 
             <!-- Hitter Stats with Ranks -->
-            <td>
+            <td style="background-color: #f0f8ff;">
               <%= stats[:home_runs].round(1) %>
               <span class="text-muted" style="font-size: 0.9em;">(#<%= ranks[:home_runs] %>)</span>
             </td>
-            <td>
+            <td style="background-color: #f0f8ff;">
               <%= stats[:runs].round(1) %>
               <span class="text-muted" style="font-size: 0.9em;">(#<%= ranks[:runs] %>)</span>
             </td>
-            <td>
+            <td style="background-color: #f0f8ff;">
               <%= stats[:rbi].round(1) %>
               <span class="text-muted" style="font-size: 0.9em;">(#<%= ranks[:rbi] %>)</span>
             </td>
-            <td>
+            <td style="background-color: #f0f8ff;">
               <%= stats[:stolen_bases].round(1) %>
               <span class="text-muted" style="font-size: 0.9em;">(#<%= ranks[:stolen_bases] %>)</span>
             </td>
-            <td>
+            <td style="background-color: #f0f8ff;">
               <%= stats[:batting_average] == 0.0 ? "-" : stats[:batting_average].round(3) %>
               <span class="text-muted" style="font-size: 0.9em;"><% if stats[:batting_average] > 0 %>(#<%= ranks[:batting_average] %>)<% end %></span>
             </td>
-            <td class="text-muted">
+            <td class="text-muted" style="background-color: #f0f8ff;">
               <%= stats[:at_bats].round(0) %>
             </td>
 
             <!-- Pitcher Stats with Ranks -->
-            <td>
+            <td style="background-color: #fff5f0;">
               <%= stats[:wins].round(1) %>
               <span class="text-muted" style="font-size: 0.9em;">(#<%= ranks[:wins] %>)</span>
             </td>
-            <td>
+            <td style="background-color: #fff5f0;">
               <%= stats[:saves].round(1) %>
               <span class="text-muted" style="font-size: 0.9em;">(#<%= ranks[:saves] %>)</span>
             </td>
-            <td>
+            <td style="background-color: #fff5f0;">
               <%= stats[:strikeouts].round(1) %>
               <span class="text-muted" style="font-size: 0.9em;">(#<%= ranks[:strikeouts] %>)</span>
             </td>
-            <td>
+            <td style="background-color: #fff5f0;">
               <%= stats[:era] == 0.0 ? "-" : stats[:era].round(2) %>
               <span class="text-muted" style="font-size: 0.9em;"><% if stats[:era] > 0 %>(#<%= ranks[:era] %>)<% end %></span>
             </td>
-            <td>
+            <td style="background-color: #fff5f0;">
               <%= stats[:whip] == 0.0 ? "-" : stats[:whip].round(3) %>
               <span class="text-muted" style="font-size: 0.9em;"><% if stats[:whip] > 0 %>(#<%= ranks[:whip] %>)<% end %></span>
             </td>
-            <td class="text-muted">
+            <td class="text-muted" style="background-color: #fff5f0;">
               <%= stats[:innings_pitched].round(1) %>
             </td>
           </tr>
