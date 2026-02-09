@@ -23,8 +23,18 @@ class DraftBoardController < ApplicationController
       @players = @players.where("name ILIKE ?", "%#{params[:search]}%")
     end
 
-    if params[:drafted].present?
-      @players = params[:drafted] == "true" ? @players.drafted : @players.available
+    # Default to showing available players only (unless explicitly filtering)
+    if params.key?(:drafted)
+      # User has explicitly chosen a filter
+      if params[:drafted] == "true"
+        @players = @players.drafted
+      elsif params[:drafted] == "false"
+        @players = @players.available
+      end
+      # If params[:drafted] is "", show all players (no filter)
+    else
+      # No filter parameter provided, default to available only
+      @players = @players.available
     end
 
     if params[:interested] == "true"

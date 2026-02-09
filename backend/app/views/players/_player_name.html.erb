@@ -1,13 +1,18 @@
 <%# Reusable partial for rendering a player name as a clickable link %>
+<%
+  # Accept optional draft_pick parameter, or try to find it from player
+  # This allows callers to pass the draft_pick they already have loaded
+  draft_pick = local_assigns[:draft_pick] || (player.is_drafted ? player.draft_picks.first : nil)
+%>
 <a
   href="#"
   data-action="click->edit-player-modal#open"
   data-player-id="<%= player.id %>"
   data-player-name="<%= player.name %>"
   data-player-positions="<%= player.positions %>"
-  data-player-mlb-team="<%= player.mlb_team %>"
-  data-player-value="<%= player.calculated_value&.round || '' %>"
-  data-player-is-drafted="<%= player.is_drafted %>"
+  data-player-team-id="<%= player.team_id || '' %>"
+  data-player-price="<%= draft_pick&.price || 1 %>"
+  data-player-drafted-position="<%= draft_pick&.drafted_position || '' %>"
   class="player-link"
 >
   <strong><%= player.name %></strong>

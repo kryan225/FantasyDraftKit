@@ -1,9 +1,3 @@
-<%# Player statistics columns for tables
-    Displays both hitter and pitcher stats (only relevant stats will show values)
-
-    Params:
-    - player: Player object with projections hash
-%>
 <!-- Hitter Stats -->
 <td><%= player.projections&.dig("at_bats") %></td>
 <td><%= player.projections&.dig("home_runs") %></td>
@@ -11,6 +5,7 @@
 <td><%= player.projections&.dig("rbi") %></td>
 <td><%= player.projections&.dig("stolen_bases") %></td>
 <td><%= player.projections&.dig("batting_average") %></td>
+
 <!-- Pitcher Stats -->
 <td><%= player.projections&.dig("innings_pitched") %></td>
 <td><%= player.projections&.dig("wins") %></td>

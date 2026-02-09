@@ -25,8 +25,8 @@ describe("EditPlayerModalController", () => {
           data-player-name="Mike Trout"
           data-player-positions="OF"
           data-player-mlb-team="LAA"
+          data-player-team-id="1"
           data-player-value="45"
-          data-player-is-drafted="false"
           class="player-link"
         >
           <strong>Mike Trout</strong>
@@ -40,8 +40,12 @@ describe("EditPlayerModalController", () => {
               <input type="text" name="player[name]" data-edit-player-modal-target="playerName" />
               <input type="text" name="player[positions]" data-edit-player-modal-target="playerPositions" />
               <input type="text" name="player[mlb_team]" data-edit-player-modal-target="playerMlbTeam" />
+              <select name="player[team_id]" data-edit-player-modal-target="playerTeam">
+                <option value="">-- Unowned --</option>
+                <option value="1">Team Alpha</option>
+                <option value="2">Team Beta</option>
+              </select>
               <input type="number" name="player[calculated_value]" data-edit-player-modal-target="playerValue" />
-              <input type="checkbox" name="player[is_drafted]" data-edit-player-modal-target="playerIsDrafted" />
               <button type="submit">Save Changes</button>
             </form>
           </div>
@@ -77,16 +81,16 @@ describe("EditPlayerModalController", () => {
       const nameInput = container.querySelector("[data-edit-player-modal-target='playerName']")
       const positionsInput = container.querySelector("[data-edit-player-modal-target='playerPositions']")
       const teamInput = container.querySelector("[data-edit-player-modal-target='playerMlbTeam']")
+      const teamSelect = container.querySelector("[data-edit-player-modal-target='playerTeam']")
       const valueInput = container.querySelector("[data-edit-player-modal-target='playerValue']")
-      const draftedCheckbox = container.querySelector("[data-edit-player-modal-target='playerIsDrafted']")
 
       playerLink.click()
 
       expect(nameInput.value).toBe("Mike Trout")
       expect(positionsInput.value).toBe("OF")
       expect(teamInput.value).toBe("LAA")
+      expect(teamSelect.value).toBe("1")
       expect(valueInput.value).toBe("45")
-      expect(draftedCheckbox.checked).toBe(false)
     })
 
     test("sets form action URL correctly", () => {
@@ -267,8 +271,8 @@ describe("EditPlayerModalController", () => {
       secondLink.setAttribute("data-player-name", "Aaron Judge")
       secondLink.setAttribute("data-player-positions", "OF")
       secondLink.setAttribute("data-player-mlb-team", "NYY")
+      secondLink.setAttribute("data-player-team-id", "2")
       secondLink.setAttribute("data-player-value", "42")
-      secondLink.setAttribute("data-player-is-drafted", "true")
       secondLink.innerHTML = "<strong>Aaron Judge</strong>"
       container.querySelector("body").appendChild(secondLink)
     })
@@ -276,12 +280,12 @@ describe("EditPlayerModalController", () => {
     test("opens modal with correct data for second player", () => {
       const secondLink = container.querySelectorAll(".player-link")[1]
       const nameInput = container.querySelector("[data-edit-player-modal-target='playerName']")
-      const draftedCheckbox = container.querySelector("[data-edit-player-modal-target='playerIsDrafted']")
+      const teamSelect = container.querySelector("[data-edit-player-modal-target='playerTeam']")
 
       secondLink.click()
 
       expect(nameInput.value).toBe("Aaron Judge")
-      expect(draftedCheckbox.checked).toBe(true)
+      expect(teamSelect.value).toBe("2")
     })
 
     test("updates form action for different players", () => {

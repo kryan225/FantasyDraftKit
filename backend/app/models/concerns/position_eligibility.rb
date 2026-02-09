@@ -20,7 +20,7 @@ module PositionEligibility
   # @param position [String] The roster position to check (e.g., "C", "UTIL", "MI")
   # @return [Boolean] true if player can fill the position, false otherwise
   def player_eligible_for_position?(player, position)
-    positions = player.positions.to_s.split(',').map(&:strip)
+    positions = player.positions.to_s.split(/[,\/]/).map(&:strip)
 
     case position
     when "UTIL"
@@ -73,7 +73,7 @@ module PositionEligibility
   # @param player [Player] The player to get eligible positions for
   # @return [Array<String>] Array of position names the player can fill
   def eligible_positions_for(player)
-    positions = player.positions.to_s.split(',').map(&:strip)
+    positions = player.positions.to_s.split(/[,\/]/).map(&:strip)
     eligible = positions.dup
 
     # Add flex positions based on eligibility

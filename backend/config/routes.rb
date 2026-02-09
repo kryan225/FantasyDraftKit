@@ -13,9 +13,21 @@ Rails.application.routes.draw do
     get "draft_board", to: "draft_board#show", as: :league_draft_board
     get "draft_history", to: "draft_board#history", as: :league_draft_history
     get "draft_analyzer", to: "draft_analyzer#show", as: :league_draft_analyzer
+
+    # Data control routes (scoped to league)
+    get "data_control", to: "data_control#show", as: :data_control
+    post "data_control/import_players", to: "data_control#import_players", as: :import_players
+    post "data_control/undraft_all_players", to: "data_control#undraft_all_players", as: :undraft_all_players
+    delete "data_control/delete_all_players", to: "data_control#delete_all_players", as: :delete_all_players
+
+    # Players routes (scoped to league)
+    get "players", to: "players#index", as: :players
+
+    # Teams routes (scoped to league)
+    get "teams", to: "teams#index", as: :teams
   end
 
-  resources :teams, only: [:show]
+  resources :teams, only: [:show, :index]
   resources :players, only: [:index, :edit, :update] do
     member do
       post :toggle_interested

@@ -110,7 +110,7 @@
                   <% end %>
                   <% if pick %>
                     <td id="player-<%= pick.player.id %>">
-                      <%= render partial: "players/player_name", locals: { player: pick.player } %>
+                      <%= render partial: "players/player_name", locals: { player: pick.player, draft_pick: pick } %>
                       <br>
                       <small class="text-muted"><%= pick.player.positions %> - <%= pick.player.mlb_team %></small>
                     </td>

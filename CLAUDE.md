@@ -106,7 +106,7 @@ lsof -i :3639  # Rails app - should be empty or show ruby
 ## 📊 Project Status
 
 **Last Updated:** 2026-02-08
-**Current Phase:** Full-Stack Application with Interactive Modals + Comprehensive Testing - Production Ready
+**Current Phase:** Full-Stack Application - Production Ready with Comprehensive Testing
 
 ### Completed ✅
 - CLAUDE.md created with project context and constraints
@@ -206,6 +206,47 @@ lsof -i :3639  # Rails app - should be empty or show ruby
   - Documents position eligibility rules (UTIL, MI, CI)
   - Placeholder for future analytics with prioritized roadmap
   - Ready for incremental feature additions
+  - **Bidirectional Lookahead Algorithm**: Checks if team can draft position via inbound/outbound moves
+  - **Bug Fix**: Direction 1 now checks if flex position has space before allowing swap
+  - **Comprehensive Testing**: 13 passing tests for Draft Analyzer logic
+- **UX Improvements: Navigation and Scoping** ✅
+  - **Team Names Clickable**: Team names link to team pages in Teams table and Team Budgets sidebar
+  - **Data Control League-Scoped**: Moved from global nav to league context at /leagues/:id/data_control
+  - **Players Page League-Scoped**: Moved from global nav to league context at /leagues/:id/players
+  - **Navigation Cleanup**: Removed Data Control and Players from global header nav
+  - **Consistent Pattern**: All league-specific features accessed from league show page
+  - **Back Navigation**: Added "← Back to League" links to scoped pages
+  - **Auto-Resolution**: Standalone routes still exist for single-league setups
+- **Bug Fix: Actions Dropdown Z-Index** ✅
+  - **Problem**: Actions menu (Draft, Mark Interested) hidden behind table columns
+  - **Solution**: Increased z-index from 100 to 9999 for .row-actions-menu
+  - **Result**: Dropdown now appears on top of all page elements
+- **Feature: Smart Default Filtering for Player Database** ✅
+  - **Default Filter**: Player database defaults to "Available Only" instead of "All Players"
+  - **User Intent**: Most relevant for drafting - shows only undrafted players
+  - **Explicit Override**: Users can select "All Players" or "Drafted Only" manually
+  - **Parameter Distinction**: Uses `params.key?(:drafted)` to distinguish between:
+    - No parameter (default to available) vs empty string "" (show all players)
+  - **Filter Persistence**: Default maintained across sorting, drafting, undoing
+  - **Clear Filters**: Resets to "Available Only" default, not "All Players"
+- **Testing: Comprehensive Draft Board Player Database Tests** ✅
+  - **42 passing tests** covering all critical functionality
+  - **Default Behavior**: Tests "Available Only" default on first visit
+  - **Filter Coverage**: Drafted status (3 tests), Position (4 tests), Search (3 tests), Interested (2 tests)
+  - **Combined Filters**: 4 tests for multiple filter combinations
+  - **Sorting**: 7 tests for all sortable columns (name, position, team, value, etc.)
+  - **JSONB Sorting**: 3 tests for projection field sorting (HR, SB, AVG)
+  - **Edge Cases**: Empty database, no teams, invalid sort, null values (4 tests)
+  - **Interested Players List**: 2 tests for sidebar functionality
+  - **Draft Picks List**: 2 tests for draft history display
+  - **Parameter Persistence**: 5 tests ensuring filters persist across actions
+  - **Factory Fix**: Updated player factory - projections: {} instead of "", added interested attribute
+- **Configuration: Roster Adjustments** ✅
+  - **UTIL Position**: Changed from 2 slots to 1 slot per team
+  - **Total Slots**: Reduced from 23 to 22 players per roster
+  - **Files Updated**: CLAUDE.md, db/seeds.rb, spec/factories/leagues.rb, spec/requests/draft_analyzer_spec.rb
+  - **Seed Data**: Adjusted Dingers team roster to 22/22 complete (removed Ketel Marte)
+  - **Test Coverage**: All draft analyzer tests updated and passing
 
 ### In Progress 🚧
 - None currently
@@ -277,6 +318,22 @@ lsof -i :3639  # Rails app - should be empty or show ruby
   - Rationale: Frontend bug wasn't caught because Jest tests couldn't run (no npm)
   - Chose Cuprite over Selenium for speed and simplicity (KISS principle)
   - No driver binary management needed (Chrome DevTools Protocol)
+- **2026-02-08:** Made Data Control and Players pages league-scoped
+  - Rationale: These features operate on league-specific data, should be accessed from league context
+  - Removed from global navigation to reduce clutter and make navigation more intuitive
+  - Follows same pattern as Draft Board and Draft Analyzer (league-scoped features)
+  - Standalone routes kept for single-league auto-resolution
+- **2026-02-08:** Changed player database default filter to "Available Only"
+  - Rationale: During draft, users primarily care about available players, not drafted ones
+  - Reduces cognitive load - immediately shows actionable players
+  - Explicit "All Players" and "Drafted Only" options still available
+  - Uses `params.key?(:drafted)` to distinguish no-param vs empty-string (important for UX)
+- **2026-02-08:** Created comprehensive test suite for draft board player database
+  - Rationale: Player database is critical feature - bugs here directly impact draft experience
+  - 42 tests cover all filter combinations, sorting, edge cases, parameter persistence
+  - Tests validate the "Available Only" default behavior and "All Players" override
+  - Protects against regressions as feature evolves
+  - Fixed player factory projections bug discovered during testing
   - 2-3x faster than Selenium, perfect for local development iteration
   - Validates actual browser behavior, not just HTML structure
   - Critical gap addressed: Now have executable frontend tests that catch real bugs
@@ -289,15 +346,23 @@ lsof -i :3639  # Rails app - should be empty or show ruby
   - Reusable across entire application for any confirmation needs
 
 ### Next Steps →
-1. Test the web UI at http://localhost:3639/
-2. Create leagues and teams through the web interface
-3. Import player projections via CSV upload
+1. ✅ ~~Test the web UI at http://localhost:3639/~~ - Working and fully functional
+2. ✅ ~~Create leagues and teams through the web interface~~ - Implemented with seed data
+3. ✅ ~~Import player projections via CSV upload~~ - Data Control page with CSV import
 4. Implement league creation form (currently only show/index work)
-5. Add Stimulus controllers for enhanced interactivity
-6. Implement value calculation algorithm
-7. Implement category analysis aggregation
-8. Add form validations and error handling in views
-9. Add RSpec tests for models, controllers, and views
+5. Add Stimulus controllers for enhanced interactivity (already have several: modals, collapsible, scroll-memory, row-actions)
+6. Implement player value calculation algorithm (placeholder in place)
+7. Implement category analysis aggregation (placeholder in place)
+8. ✅ ~~Add form validations and error handling in views~~ - ConfirmationModal for all validations
+9. ✅ ~~Add RSpec tests for models, controllers, and views~~ - Comprehensive test coverage:
+   - Draft Board: 42 passing tests
+   - Draft Analyzer: 13 passing tests
+   - BaseModalController: 30+ passing tests
+   - EditPlayerModal: 15+ passing tests
+   - ConfirmationModal: 4+ passing tests
+   - UndoPick: 3+ passing tests
+   - LeagueResolvable: 15 passing tests
+   - **Total: 120+ passing tests**
 
 ### Recent Commits 📝
 - **2026-02-08 (commit 1ad4259):** Replace Turbo confirm with ConfirmationModal for undo draft pick

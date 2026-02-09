@@ -48,12 +48,12 @@
           ["All Players", ""],
           ["Available Only", "false"],
           ["Drafted Only", "true"]
-        ], params[:drafted]), {}, { class: "form-control", onchange: "this.form.requestSubmit()" } %>
+        ], params.key?(:drafted) ? params[:drafted] : "false"), {}, { class: "form-control", onchange: "this.form.requestSubmit()" } %>
       </div>
     </div>
 
     <div class="flex items-center gap-2">
-      <%= link_to "Clear Filters", draft_board_path(league_id: @league.id), class: "btn btn-sm" %>
+      <%= link_to "Clear Filters", draft_board_path(league_id: @league.id, drafted: "false"), class: "btn btn-sm" %>
 
       <div class="form-group" style="margin-bottom: 0; margin-left: 1rem;">
         <%= f.check_box :interested, { checked: params[:interested] == "true", onchange: "this.form.requestSubmit()" }, "true", "false" %>
@@ -82,7 +82,8 @@
           link_params = { league_id: league_id, sort: column, direction: direction }
           link_params[:search] = search if search.present?
           link_params[:position] = position if position.present?
-          link_params[:drafted] = drafted if drafted.present?
+          # Default to "false" (available only) if drafted is nil, otherwise use the explicit value (including "")
+          link_params[:drafted] = drafted.nil? ? "false" : drafted
 
           link_to "#{label}#{arrow}", draft_board_path(link_params), class: 'sort-link'
         end
@@ -166,7 +167,7 @@
           <!-- Pass filter parameters to maintain them after draft -->
           <%= hidden_field_tag :search, params[:search] %>
           <%= hidden_field_tag :position, params[:position] %>
-          <%= hidden_field_tag :drafted, params[:drafted] %>
+          <%= hidden_field_tag :drafted, params.key?(:drafted) ? params[:drafted] : "false" %>
           <%= hidden_field_tag :interested, params[:interested] %>
           <%= hidden_field_tag :sort, params[:sort] %>
           <%= hidden_field_tag :direction, params[:direction] %>

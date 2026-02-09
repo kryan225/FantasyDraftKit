@@ -17,13 +17,24 @@
           <h1>⚾ Fantasy Baseball Draft Kit</h1>
           <nav>
             <%= link_to "Leagues", leagues_path %>
-            <%= link_to "Players", players_path %>
-            <%= link_to "Data Control", data_control_path %>
             <%= link_to "API Docs", "/api_testing_guide.html" %>
           </nav>
         </div>
       </div>
     </header>
+
+    <% if current_league.present? %>
+      <div class="league-nav-tabs">
+        <div class="container">
+          <nav class="tabs">
+            <%= link_to "League Home", league_path(current_league), class: "tab #{current_page?(league_path(current_league)) ? 'active' : ''}" %>
+            <%= link_to "Draft Board", draft_board_path, class: "tab #{current_page?(draft_board_path) ? 'active' : ''}" %>
+            <%= link_to "Teams", league_teams_path(current_league), class: "tab #{current_page?(league_teams_path(current_league)) ? 'active' : ''}" %>
+            <%= link_to "Players", league_players_path(current_league), class: "tab #{current_page?(league_players_path(current_league)) ? 'active' : ''}" %>
+          </nav>
+        </div>
+      </div>
+    <% end %>
 
     <main class="container">
       <% if flash[:notice] %>
@@ -66,7 +77,16 @@
             <input type="hidden" name="_method" value="patch">
 
             <div class="form-group">
-              <label for="player-name">Player Name</label>
+              <label for="player-name">
+                Player Name
+                <a href="#"
+                   target="_blank"
+                   rel="noopener noreferrer"
+                   data-edit-player-modal-target="googleSearchLink"
+                   style="font-size: 0.8em; font-weight: normal; margin-left: 0.5rem; color: #0066cc; text-decoration: none;">
+                  🔍 Search
+                </a>
+              </label>
               <input
                 type="text"
                 id="player-name"
@@ -90,39 +110,67 @@
             </div>
 
             <div class="form-group">
-              <label for="player-mlb-team">MLB Team</label>
+              <label for="player-team">
+                Owned By Team
+                <a href="#"
+                   target="_blank"
+                   data-edit-player-modal-target="teamLink"
+                   style="font-size: 0.8em; font-weight: normal; margin-left: 0.5rem; color: #0066cc; text-decoration: none; display: none;">
+                  → View Team
+                </a>
+              </label>
+              <select
+                id="player-team"
+                name="player[team_id]"
+                data-edit-player-modal-target="playerTeam"
+                data-action="change->edit-player-modal#onTeamChange"
+              >
+                <option value="">-- Unowned --</option>
+                <% if @teams_for_modal %>
+                  <% @teams_for_modal.each do |team| %>
+                    <option value="<%= team.id %>"><%= team.name %></option>
+                  <% end %>
+                <% end %>
+              </select>
+            </div>
+
+            <div class="form-group" data-edit-player-modal-target="priceField">
+              <label for="player-price">Draft Price ($)</label>
               <input
                 type="text"
-                id="player-mlb-team"
-                name="player[mlb_team]"
-                data-edit-player-modal-target="playerMlbTeam"
-                placeholder="e.g., NYY, BOS, LAD"
+                id="player-price"
+                name="player[price]"
+                data-edit-player-modal-target="playerPrice"
+                value="N/A"
+                readonly
               >
-            </div>
-
-            <div class="form-group">
-              <label for="player-value">Calculated Value ($)</label>
-              <input
-                type="number"
-                id="player-value"
-                name="player[calculated_value]"
-                data-edit-player-modal-target="playerValue"
-                step="0.01"
-                min="0"
-              >
-            </div>
-
-            <div class="form-group">
-              <label>
-                <input
-                  type="checkbox"
-                  name="player[is_drafted]"
-                  data-edit-player-modal-target="playerIsDrafted"
-                >
-                Mark as Drafted
-              </label>
               <small class="text-muted">
-                Check this to manually mark player as drafted (use Undo button to reverse actual draft picks)
+                Price is set when player is assigned to a team
+              </small>
+            </div>
+
+            <div class="form-group" data-edit-player-modal-target="positionField" style="display: none;">
+              <label for="player-drafted-position">Roster Position</label>
+              <select
+                id="player-drafted-position"
+                name="player[drafted_position]"
+                data-edit-player-modal-target="playerDraftedPosition"
+              >
+                <option value="">Select position...</option>
+                <option value="C">C - Catcher</option>
+                <option value="1B">1B - First Base</option>
+                <option value="2B">2B - Second Base</option>
+                <option value="3B">3B - Third Base</option>
+                <option value="SS">SS - Shortstop</option>
+                <option value="MI">MI - Middle Infield</option>
+                <option value="CI">CI - Corner Infield</option>
+                <option value="OF">OF - Outfield</option>
+                <option value="UTIL">UTIL - Utility</option>
+                <option value="SP">SP - Starting Pitcher</option>
+                <option value="RP">RP - Relief Pitcher</option>
+              </select>
+              <small class="text-muted">
+                Position on the roster for this player
               </small>
             </div>
 

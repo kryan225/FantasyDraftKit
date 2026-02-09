@@ -14,10 +14,10 @@ class DataControlController < ApplicationController
 
   def import_players
     @league = current_league
-    return redirect_to data_control_path, alert: "League not found" unless @league
+    return redirect_to data_control_path(league_id: @league&.id), alert: "League not found" unless @league
 
     unless params[:file].present?
-      return redirect_to data_control_path, alert: "Please select a CSV file to import"
+      return redirect_to league_data_control_path(@league), alert: "Please select a CSV file to import"
     end
 
     file = params[:file]
@@ -72,17 +72,17 @@ class DataControlController < ApplicationController
         imported_count += 1
       end
 
-      redirect_to data_control_path, notice: "Successfully imported #{imported_count} players. Skipped #{skipped_count} existing players."
+      redirect_to league_data_control_path(@league), notice: "Successfully imported #{imported_count} players. Skipped #{skipped_count} existing players."
     rescue CSV::MalformedCSVError => e
-      redirect_to data_control_path, alert: "Error parsing CSV file: #{e.message}"
+      redirect_to league_data_control_path(@league), alert: "Error parsing CSV file: #{e.message}"
     rescue StandardError => e
-      redirect_to data_control_path, alert: "Error importing players: #{e.message}"
+      redirect_to league_data_control_path(@league), alert: "Error importing players: #{e.message}"
     end
   end
 
   def undraft_all_players
     @league = current_league
-    return redirect_to data_control_path, alert: "League not found" unless @league
+    return redirect_to data_control_path(league_id: @league&.id), alert: "League not found" unless @league
 
     # Delete all draft picks for this league
     deleted_count = @league.draft_picks.count
@@ -91,17 +91,17 @@ class DataControlController < ApplicationController
     # Mark all players as undrafted
     Player.where(is_drafted: true).update_all(is_drafted: false)
 
-    redirect_to data_control_path, notice: "Successfully undrafted all players. Deleted #{deleted_count} draft picks."
+    redirect_to league_data_control_path(@league), notice: "Successfully undrafted all players. Deleted #{deleted_count} draft picks."
   end
 
   def delete_all_players
     @league = current_league
-    return redirect_to data_control_path, alert: "League not found" unless @league
+    return redirect_to data_control_path(league_id: @league&.id), alert: "League not found" unless @league
 
     deleted_count = Player.count
     Player.destroy_all
 
-    redirect_to data_control_path, notice: "Successfully deleted #{deleted_count} players."
+    redirect_to league_data_control_path(@league), notice: "Successfully deleted #{deleted_count} players."
   end
 
   private

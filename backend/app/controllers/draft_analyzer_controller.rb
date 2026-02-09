@@ -67,9 +67,17 @@ class DraftAnalyzerController < ApplicationController
 
     # Bidirectional lookahead: Check both directions for flexibility
 
-    # Direction 1: Can a flex player move TO this position?
+    # Direction 1: Can a flex player move TO this position (creating space at flex for new player)?
     flex_positions = get_flex_positions_for(position)
     flex_positions.each do |flex_pos|
+      # CRITICAL: Check if flex position has space for the new player
+      # For a swap to work, the new player needs somewhere to go (the flex position)
+      flex_max = roster_config[flex_pos].to_i
+      next if flex_max == 0 # Position not used in this league
+
+      flex_filled = team.draft_picks.where(drafted_position: flex_pos).count
+      next if flex_filled >= flex_max # No space at flex for new player
+
       # Find players in flex position who are eligible for this position
       moveable_players = team.draft_picks.where(drafted_position: flex_pos).select do |pick|
         player_eligible_for_position?(pick.player, position)

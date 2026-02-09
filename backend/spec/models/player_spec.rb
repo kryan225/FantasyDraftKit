@@ -53,4 +53,56 @@ RSpec.describe Player, type: :model do
       expect(player.positions).to eq("2B,SS,OF")
     end
   end
+
+  describe "team ownership and draft status sync" do
+    let(:league) { create(:league) }
+    let(:team) { create(:team, league: league) }
+
+    context "when team is assigned to player" do
+      it "automatically sets is_drafted to true" do
+        player = create(:player, team: nil, is_drafted: false)
+
+        player.update(team: team)
+
+        expect(player.is_drafted).to be true
+      end
+    end
+
+    context "when team is removed from player" do
+      it "automatically sets is_drafted to false" do
+        player = create(:player, team: team, is_drafted: true)
+
+        player.update(team: nil)
+
+        expect(player.is_drafted).to be false
+      end
+    end
+
+    context "when team is changed" do
+      let(:other_team) { create(:team, league: league, name: "Other Team") }
+
+      it "keeps is_drafted as true" do
+        player = create(:player, team: team, is_drafted: true)
+
+        player.update(team: other_team)
+
+        expect(player.is_drafted).to be true
+        expect(player.team).to eq(other_team)
+      end
+    end
+
+    context "when other attributes are updated" do
+      it "does not modify is_drafted if team_id unchanged" do
+        player = create(:player, team: team, is_drafted: true)
+        original_drafted_status = player.is_drafted
+
+        # Update other attributes without changing team
+        player.update(name: "New Name")
+
+        # is_drafted should remain unchanged
+        expect(player.is_drafted).to eq(original_drafted_status)
+        expect(player.team).to eq(team)
+      end
+    end
+  end
 end

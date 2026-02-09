@@ -1,5 +1,6 @@
 class Player < ApplicationRecord
   # Associations
+  belongs_to :team, optional: true
   has_many :draft_picks, dependent: :nullify
   has_many :keeper_histories, dependent: :destroy
 

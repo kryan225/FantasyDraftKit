@@ -47,6 +47,12 @@ export default class extends Controller {
       event.preventDefault()
     }
 
+    // Clear any previous error messages
+    const errorDiv = document.getElementById('edit-player-error')
+    if (errorDiv) {
+      errorDiv.innerHTML = ''
+    }
+
     this.modalTarget.classList.remove("hidden")
     document.body.style.overflow = "hidden"
 
@@ -72,10 +78,27 @@ export default class extends Controller {
     // Remove escape key listener when modal closes
     document.removeEventListener('keydown', this.handleEscape)
 
+    // Reset submit button state before resetting form
+    const submitButton = this.element.querySelector('button[type="submit"]')
+    if (submitButton) {
+      submitButton.disabled = false
+      // Restore original text if it was changed to loading state
+      if (submitButton.dataset.originalText) {
+        submitButton.textContent = submitButton.dataset.originalText
+        delete submitButton.dataset.originalText
+      }
+    }
+
     // Reset form if present
     const form = this.element.querySelector('form')
     if (form) {
       form.reset()
+    }
+
+    // Clear any error messages
+    const errorDiv = document.getElementById('edit-player-error')
+    if (errorDiv) {
+      errorDiv.innerHTML = ''
     }
 
     // Dispatch custom event for any listeners
@@ -104,26 +127,37 @@ export default class extends Controller {
   /**
    * Handle Turbo form submission completion
    * Auto-close modal on successful submission (2xx response)
+   * Only closes if there are no errors displayed
    */
   handleSubmitEnd(event) {
     const { success, fetchResponse } = event.detail
 
-    // Close modal on successful submission
-    if (success && fetchResponse && fetchResponse.succeeded) {
-      this.close()
-    }
+    // Wait for turbo streams to render before checking for errors
+    // Turbo streams are applied asynchronously, so we need to wait
+    setTimeout(() => {
+      // Check if there's an error div with content (indicating validation error)
+      const errorDiv = document.getElementById('edit-player-error')
+      const hasError = errorDiv && errorDiv.innerHTML.trim().length > 0
 
-    // Re-enable submit button on error
-    if (!success) {
-      const submitButton = this.element.querySelector('button[type="submit"]')
-      if (submitButton) {
-        submitButton.disabled = false
-        // Restore original text if it was changed
-        if (submitButton.dataset.originalText) {
-          submitButton.textContent = submitButton.dataset.originalText
+      // Close modal and reload page on successful submission WITHOUT errors
+      if (success && fetchResponse && fetchResponse.succeeded && !hasError) {
+        this.close()
+        // Reload page to show updated data
+        window.location.reload()
+      }
+
+      // Re-enable submit button on error or validation failure
+      if (!success || hasError) {
+        const submitButton = this.element.querySelector('button[type="submit"]')
+        if (submitButton) {
+          submitButton.disabled = false
+          // Restore original text if it was changed
+          if (submitButton.dataset.originalText) {
+            submitButton.textContent = submitButton.dataset.originalText
+          }
         }
       }
-    }
+    }, 100)
   }
 
   /**

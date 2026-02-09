@@ -49,4 +49,9 @@ class LeaguesController < ApplicationController
   def league_params
     params.require(:league).permit(:name, :team_count, :auction_budget, :keeper_limit, roster_config: {})
   end
+
+  # Override the ApplicationController stub to return @league for league-specific actions
+  def current_league
+    @league
+  end
 end

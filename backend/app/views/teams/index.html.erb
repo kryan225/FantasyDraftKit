@@ -1,0 +1,38 @@
+<div class="mb-2">
+  <%= link_to "← Back to League", league_path(current_league), class: "btn btn-sm" %>
+</div>
+
+<div class="card">
+  <div class="flex justify-between items-center mb-3">
+    <h2 class="card-title" style="margin-bottom: 0;"><%= current_league.name %> - Teams</h2>
+  </div>
+
+  <% if @teams.any? %>
+    <table>
+      <thead>
+        <tr>
+          <th>Team Name</th>
+          <th>Budget Remaining</th>
+          <th>Budget Spent</th>
+          <th>Roster Size</th>
+          <th></th>
+        </tr>
+      </thead>
+      <tbody>
+        <% @teams.each do |team| %>
+          <tr>
+            <td><strong><%= link_to team.name, team_path(team) %></strong></td>
+            <td>$<%= team.budget_remaining %></td>
+            <td>$<%= current_league.auction_budget - team.budget_remaining %></td>
+            <td><%= team.draft_picks.count %></td>
+            <td>
+              <%= link_to "View Roster", team_path(team), class: "btn btn-sm btn-primary" %>
+            </td>
+          </tr>
+        <% end %>
+      </tbody>
+    </table>
+  <% else %>
+    <p class="text-muted">No teams in this league yet.</p>
+  <% end %>
+</div>
