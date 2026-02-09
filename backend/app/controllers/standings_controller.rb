@@ -20,8 +20,9 @@ class StandingsController < ApplicationController
 
     # Apply sorting
     sort_column = params[:sort]&.to_sym || :total_points
-    # Default direction: desc for all columns (higher is better with inverted scoring)
-    sort_direction = params[:direction] || 'desc'
+    # Default direction: asc for ERA/WHIP (lower is better), desc for others
+    default_direction = [:era, :whip].include?(sort_column) ? 'asc' : 'desc'
+    sort_direction = params[:direction] || default_direction
 
     # Sort team_stats by the selected column
     @team_stats = sort_team_stats(@team_stats, sort_column, sort_direction)

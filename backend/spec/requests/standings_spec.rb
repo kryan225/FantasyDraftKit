@@ -55,11 +55,28 @@ RSpec.describe "Standings", type: :request do
         )
       end
 
+      let!(:pitcher2) do
+        create(:player,
+          name: "Pitcher 2",
+          positions: "SP",
+          team: team2,
+          projections: {
+            "wins" => 10,
+            "saves" => 0,
+            "strikeouts" => 150,
+            "era" => 4.50,
+            "whip" => 1.35,
+            "innings_pitched" => 180
+          }
+        )
+      end
+
       before do
         # Create draft picks to associate players with teams
         create(:draft_pick, league: league, team: team1, player: hitter1, price: 30, pick_number: 1, drafted_position: "OF")
         create(:draft_pick, league: league, team: team1, player: pitcher1, price: 25, pick_number: 2, drafted_position: "SP")
         create(:draft_pick, league: league, team: team2, player: hitter2, price: 28, pick_number: 3, drafted_position: "1B")
+        create(:draft_pick, league: league, team: team2, player: pitcher2, price: 20, pick_number: 4, drafted_position: "SP")
       end
 
       it "returns http success" do
@@ -191,6 +208,22 @@ RSpec.describe "Standings", type: :request do
         first_team_points = rankings[team_stats.first[:team].id][:total_points]
         last_team_points = rankings[team_stats.last[:team].id][:total_points]
         expect(first_team_points).to be >= last_team_points
+      end
+
+      it "sorts by ERA ascending by default (lower is better)" do
+        get standings_path, params: { sort: 'era' }
+        team_stats = assigns(:team_stats)
+
+        # Team A has 3.00 ERA, should be first in ascending order
+        expect(team_stats.first[:team].id).to eq(team1.id)
+      end
+
+      it "sorts by WHIP ascending by default (lower is better)" do
+        get standings_path, params: { sort: 'whip' }
+        team_stats = assigns(:team_stats)
+
+        # Team A has 1.10 WHIP, should be first in ascending order
+        expect(team_stats.first[:team].id).to eq(team1.id)
       end
     end
 

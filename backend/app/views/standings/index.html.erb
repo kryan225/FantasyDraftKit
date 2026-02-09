@@ -5,8 +5,8 @@
 <%
   # Helper method to generate sort link
   def sort_link(column, label, current_sort, current_direction, league_id, bg_color = nil)
-    # Default is desc for all columns (higher is better with inverted scoring)
-    default_direction = 'desc'
+    # Default is asc for ERA/WHIP (lower is better), desc for others
+    default_direction = ['era', 'whip'].include?(column.to_s) ? 'asc' : 'desc'
 
     # Toggle direction based on current state
     if current_sort == column.to_s
