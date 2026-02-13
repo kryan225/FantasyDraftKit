@@ -40,15 +40,21 @@ class Api::V1::LeaguesController < Api::V1::BaseController
 
   # POST /api/v1/leagues/:id/recalculate_values
   def recalculate_values
-    # Placeholder for value recalculation logic
-    # This would implement the auction value calculation algorithm
-    # based on player projections and league settings
+    service = ValueCalculatorService.new(@league)
+    result = service.call
 
-    players = Player.available
-    # TODO: Implement value calculation algorithm
-    # For now, just return success
-
-    render json: { message: "Values recalculated successfully", count: players.count }
+    if result[:error]
+      render json: { error: result[:error] }, status: :unprocessable_entity
+    else
+      render json: {
+        message: "Values recalculated successfully",
+        count: result[:count],
+        min_value: result[:min_value],
+        max_value: result[:max_value],
+        avg_value: result[:avg_value],
+        elapsed_time: result[:elapsed_time]
+      }
+    end
   end
 
   private

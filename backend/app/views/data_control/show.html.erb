@@ -49,6 +49,45 @@
     <% end %>
   </div>
 
+  <!-- Recalculate Values Section -->
+  <div class="control-section">
+    <h2>Player Valuation</h2>
+    <p class="section-description">
+      Calculate auction values using Z-Score methodology based on projected stats,
+      position scarcity, and league budget settings.
+    </p>
+
+    <div class="valuation-info">
+      <div class="info-row">
+        <span class="info-label">League Budget:</span>
+        <span class="info-value">$<%= @league.auction_budget %> per team</span>
+      </div>
+      <div class="info-row">
+        <span class="info-label">Total Budget:</span>
+        <span class="info-value">$<%= @league.auction_budget * @league.team_count %></span>
+      </div>
+      <div class="info-row">
+        <span class="info-label">Allocation:</span>
+        <span class="info-value">67% Hitters / 33% Pitchers</span>
+      </div>
+      <div class="info-row">
+        <span class="info-label">Available Players:</span>
+        <span class="info-value"><%= @available_count %> undrafted</span>
+      </div>
+    </div>
+
+    <%= button_to "Recalculate Player Values",
+        league_recalculate_values_path(@league),
+        method: :post,
+        class: "btn btn-primary",
+        data: { confirm: "Recalculate values for all #{@available_count} available players?" } %>
+
+    <small class="form-hint">
+      Values based on z-scores relative to replacement level at each position.
+      Takes approximately 0.5 seconds for 200 players.
+    </small>
+  </div>
+
   <!-- Danger Zone Section -->
   <div class="control-section danger-zone">
     <h2>Danger Zone</h2>
@@ -233,5 +272,33 @@
 
 .btn-danger:hover {
   background: #c0392b;
+}
+
+.valuation-info {
+  background: #f8f9fa;
+  border-radius: 6px;
+  padding: 1rem;
+  margin: 1rem 0;
+}
+
+.info-row {
+  display: flex;
+  justify-content: space-between;
+  padding: 0.5rem 0;
+  border-bottom: 1px solid #e0e0e0;
+}
+
+.info-row:last-child {
+  border-bottom: none;
+}
+
+.info-label {
+  font-weight: 500;
+  color: #666;
+}
+
+.info-value {
+  font-weight: 600;
+  color: #2c3e50;
 }
 </style>
