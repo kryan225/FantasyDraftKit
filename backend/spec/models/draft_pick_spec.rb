@@ -113,6 +113,12 @@ RSpec.describe DraftPick, type: :model do
         expect(pick).to be_valid
       end
 
+      it "allows drafting a pitcher to UTIL position" do
+        starter = create(:player, positions: "SP", is_drafted: false)
+        pick = build(:draft_pick, team: team, league: league, player: starter, price: 10, drafted_position: "UTIL")
+        expect(pick).to be_valid
+      end
+
       it "allows drafting a 2B to MI position" do
         second_baseman = create(:player, positions: "2B", is_drafted: false)
         pick = build(:draft_pick, team: team, league: league, player: second_baseman, price: 10, drafted_position: "MI")
@@ -151,11 +157,11 @@ RSpec.describe DraftPick, type: :model do
         expect(pick.errors[:drafted_position]).to include(match(/not eligible for MI/))
       end
 
-      it "prevents drafting a pitcher to UTIL position" do
+      it "prevents drafting a pitcher to MI position" do
         pitcher = create(:player, positions: "SP", is_drafted: false)
-        pick = build(:draft_pick, team: team, league: league, player: pitcher, price: 10, drafted_position: "UTIL")
+        pick = build(:draft_pick, team: team, league: league, player: pitcher, price: 10, drafted_position: "MI")
         expect(pick).not_to be_valid
-        expect(pick.errors[:drafted_position]).to include(match(/not eligible for UTIL/))
+        expect(pick.errors[:drafted_position]).to include(match(/not eligible for MI/))
       end
 
       it "provides helpful error message with eligible positions" do

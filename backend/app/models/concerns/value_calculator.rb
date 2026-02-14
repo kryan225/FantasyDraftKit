@@ -471,8 +471,8 @@ module ValueCalculator
 
     case roster_position
     when "UTIL"
-      # UTIL accepts any batter position
-      (positions & ["C", "1B", "2B", "3B", "SS", "OF"]).any?
+      # UTIL accepts any player (batters and pitchers)
+      (positions & ["C", "1B", "2B", "3B", "SS", "OF", "SP", "RP"]).any?
     when "MI"
       # MI (Middle Infield) accepts 2B or SS
       (positions & ["2B", "SS"]).any?

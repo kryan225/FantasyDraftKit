@@ -6,7 +6,7 @@
 # accounting for flex positions (UTIL, MI, CI) and their eligibility rules.
 #
 # Eligibility Rules:
-# - UTIL: Can be filled by any batter (C, 1B, 2B, 3B, SS, OF)
+# - UTIL: Can be filled by any player (batters and pitchers)
 # - MI: Can be filled by middle infielders (2B, SS)
 # - CI: Can be filled by corner infielders (1B, 3B)
 # - Standard positions: Direct match required (C, 1B, 2B, 3B, SS, OF, SP, RP, BENCH)
@@ -24,8 +24,8 @@ module PositionEligibility
 
     case position
     when "UTIL"
-      # UTIL accepts any batter position
-      (positions & ["C", "1B", "2B", "3B", "SS", "OF"]).any?
+      # UTIL accepts any player (batters and pitchers)
+      (positions & ["C", "1B", "2B", "3B", "SS", "OF", "SP", "RP"]).any?
     when "MI"
       # MI (Middle Infield) accepts 2B or SS
       (positions & ["2B", "SS"]).any?
@@ -58,8 +58,11 @@ module PositionEligibility
     when "CI"
       # CI can take from UTIL
       ["UTIL"]
-    when "SP", "RP", "BENCH"
-      # Pitchers and bench don't have flex positions
+    when "SP", "RP"
+      # Pitchers can use UTIL as a flex position
+      ["UTIL"]
+    when "BENCH"
+      # Bench has no flex positions
       []
     else
       []

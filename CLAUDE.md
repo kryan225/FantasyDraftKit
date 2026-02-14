@@ -105,7 +105,7 @@ lsof -i :3639  # Rails app - should be empty or show ruby
 
 ## 📊 Project Status
 
-**Last Updated:** 2026-02-08
+**Last Updated:** 2026-02-13
 **Current Phase:** Full-Stack Application - Production Ready with Comprehensive Testing
 
 ### Completed ✅
@@ -156,7 +156,7 @@ lsof -i :3639  # Rails app - should be empty or show ruby
   - Comprehensive test coverage added
 - **Feature: Draft Player Modal** ✅
   - Interactive modal to draft players from draft board
-  - Position eligibility logic (UTIL for all, CI for 1B/3B, MI for 2B/SS)
+  - Position eligibility logic (UTIL for any player, CI for 1B/3B, MI for 2B/SS)
   - Team selection, price input, position dropdown
   - Roster validation to prevent drafting to full positions
   - Turbo Streams for live UI updates without reload
@@ -203,7 +203,7 @@ lsof -i :3639  # Rails app - should be empty or show ruby
   - **Roster Fill Rate by Position**: Shows league-wide availability for each position
   - Collapsible sections using reusable collapsible_controller.js
   - Accessible from draft board via "Draft Analyzer" button
-  - Documents position eligibility rules (UTIL, MI, CI)
+  - Documents position eligibility rules (UTIL for any player, MI, CI)
   - Placeholder for future analytics with prioritized roadmap
   - Ready for incremental feature additions
   - **Bidirectional Lookahead Algorithm**: Checks if team can draft position via inbound/outbound moves
@@ -247,6 +247,21 @@ lsof -i :3639  # Rails app - should be empty or show ruby
   - **Files Updated**: CLAUDE.md, db/seeds.rb, spec/factories/leagues.rb, spec/requests/draft_analyzer_spec.rb
   - **Seed Data**: Adjusted Dingers team roster to 22/22 complete (removed Ketel Marte)
   - **Test Coverage**: All draft analyzer tests updated and passing
+- **Feature: Nomination Strategy Suggestions** ✅
+  - New section in Draft Analyzer for strategic nomination guidance
+  - Team selector dropdown to identify user's team
+  - Algorithm scores available players across four weighted factors:
+    opponent demand (0.35), position scarcity (0.20), player value (0.25), your need (0.20)
+  - Multi-position players evaluated at best nomination angle
+  - Reason tags with color coding (green/yellow) for each suggestion
+  - Top 15 suggestions displayed in collapsible table
+  - 10 new tests (32 total draft analyzer tests passing)
+- **Eligibility Change: Pitchers Can Play UTIL** ✅
+  - UTIL now accepts any player (batters AND pitchers), not just batters
+  - SP/RP get UTIL as a flex position for roster move lookahead
+  - Updated in all three eligibility implementations: Ruby concern, JS utility, value calculator
+  - Draft modal now offers UTIL for pitchers
+  - All tests updated and passing (93 examples across affected specs)
 
 ### In Progress 🚧
 - None currently
@@ -269,6 +284,15 @@ lsof -i :3639  # Rails app - should be empty or show ruby
 - Jest test files exist but can't run without npm (kept as documentation)
 
 ### Recent Decisions 🎯
+- **2026-02-13:** Allowed pitchers to play UTIL position
+  - Rationale: League rules permit any player (including SP/RP) in UTIL slot
+  - Updated Ruby concern, JavaScript utility, and value calculator (all three eligibility implementations)
+  - Pitchers now get UTIL as a flex position for roster move lookahead
+  - Affects draft modal position options, nomination algorithm, and team needs matrix
+- **2026-02-13:** Added Nomination Strategy Suggestions to Draft Analyzer
+  - Rationale: Strategic nominations are a key auction draft skill — app should guide users
+  - Algorithm weights four factors: opponent demand, position scarcity, player value, user's need
+  - Reuses existing position fill rates and team_can_draft_position? lookahead
 - **2026-02-03:** Decided to prioritize local development over Docker (YAGNI principle)
   - Rationale: Docker adds complexity; local dev is faster for iteration
   - Docker can be added later for deployment
@@ -356,15 +380,25 @@ lsof -i :3639  # Rails app - should be empty or show ruby
 8. ✅ ~~Add form validations and error handling in views~~ - ConfirmationModal for all validations
 9. ✅ ~~Add RSpec tests for models, controllers, and views~~ - Comprehensive test coverage:
    - Draft Board: 42 passing tests
-   - Draft Analyzer: 13 passing tests
+   - Draft Analyzer: 32 passing tests
    - BaseModalController: 30+ passing tests
    - EditPlayerModal: 15+ passing tests
    - ConfirmationModal: 4+ passing tests
    - UndoPick: 3+ passing tests
    - LeagueResolvable: 15 passing tests
-   - **Total: 120+ passing tests**
+   - Position Eligibility: 39 passing tests
+   - DraftPick Model: 16 passing tests
+   - **Total: 200+ passing tests**
 
 ### Recent Commits 📝
+- **2026-02-13 (commit 892fe11):** Allow pitchers to play UTIL position
+  - UTIL eligibility updated to accept SP and RP across all three implementations
+  - Pitchers get UTIL as flex position for roster move lookahead
+  - Updated tests: 93 examples passing across affected specs
+- **2026-02-13 (commit d3f6b27):** Add nomination strategy suggestions to Draft Analyzer
+  - Team selector dropdown, scoring algorithm, collapsible suggestions table
+  - Reason tags with color coding for nomination factors
+  - 10 new tests (32 total draft analyzer tests)
 - **2026-02-08 (commit 1ad4259):** Replace Turbo confirm with ConfirmationModal for undo draft pick
   - Created UndoPickController to handle undo confirmation
   - Replaced browser's native confirm dialog with styled modal
@@ -442,7 +476,7 @@ lsof -i :3639  # Rails app - should be empty or show ruby
 - **2026-02-07 (commit 7efd0f3, a27406c):** Add draft player modal with position eligibility
   - Created draft_modal_controller.js with position logic
   - Modal includes player details, team select, position select, price input
-  - Position eligibility: UTIL for all, CI for 1B/3B, MI for 2B/SS
+  - Position eligibility: UTIL for any player, CI for 1B/3B, MI for 2B/SS
   - Comprehensive styling and UX polish
 - **2026-02-07 (commit e29ac54):** Fix DraftBoard league resolution error with reusable LeagueResolvable concern
   - 12 files changed, 524 insertions, 13 deletions
@@ -581,7 +615,7 @@ Based on `SETUP_STATUS.md`, these models need to be created:
      "MI" => 1,     # Middle Infield (2B or SS eligible)
      "CI" => 1,     # Corner Infield (1B or 3B eligible)
      "OF" => 5,     # Outfielders
-     "UTIL" => 1,   # Utility (any batter)
+     "UTIL" => 1,   # Utility (any player — batters and pitchers)
      "SP" => 5,     # Starting Pitchers
      "RP" => 3,     # Relief Pitchers
      "BENCH" => 0   # No bench spots

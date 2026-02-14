@@ -6,7 +6,7 @@
  * behavior between backend and frontend.
  *
  * Eligibility Rules:
- * - UTIL: Can be filled by any batter (C, 1B, 2B, 3B, SS, OF)
+ * - UTIL: Can be filled by any player (batters and pitchers)
  * - MI: Can be filled by middle infielders (2B, SS)
  * - CI: Can be filled by corner infielders (1B, 3B)
  * - Standard positions: Direct match required (C, 1B, 2B, 3B, SS, OF, SP, RP)
@@ -28,8 +28,8 @@ export const PositionEligibility = {
 
     switch (targetPosition) {
       case "UTIL":
-        // UTIL accepts any batter position
-        return playerPositions.some(p => ["C", "1B", "2B", "3B", "SS", "OF"].includes(p))
+        // UTIL accepts any player (batters and pitchers)
+        return playerPositions.some(p => ["C", "1B", "2B", "3B", "SS", "OF", "SP", "RP"].includes(p))
 
       case "MI":
         // MI (Middle Infield) accepts 2B or SS

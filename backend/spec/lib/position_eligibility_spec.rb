@@ -47,14 +47,14 @@ RSpec.describe PositionEligibility do
         expect(subject.player_eligible_for_position?(player, "UTIL")).to be true
       end
 
-      it "rejects starting pitchers" do
+      it "accepts starting pitchers" do
         player = create(:player, positions: "SP")
-        expect(subject.player_eligible_for_position?(player, "UTIL")).to be false
+        expect(subject.player_eligible_for_position?(player, "UTIL")).to be true
       end
 
-      it "rejects relief pitchers" do
+      it "accepts relief pitchers" do
         player = create(:player, positions: "RP")
-        expect(subject.player_eligible_for_position?(player, "UTIL")).to be false
+        expect(subject.player_eligible_for_position?(player, "UTIL")).to be true
       end
     end
 
@@ -184,9 +184,9 @@ RSpec.describe PositionEligibility do
       expect(subject.get_flex_positions_for("CI")).to eq(["UTIL"])
     end
 
-    it "returns empty array for pitcher positions" do
-      expect(subject.get_flex_positions_for("SP")).to eq([])
-      expect(subject.get_flex_positions_for("RP")).to eq([])
+    it "returns UTIL as flex option for pitcher positions" do
+      expect(subject.get_flex_positions_for("SP")).to eq(["UTIL"])
+      expect(subject.get_flex_positions_for("RP")).to eq(["UTIL"])
     end
 
     it "returns empty array for bench" do
@@ -228,13 +228,13 @@ RSpec.describe PositionEligibility do
       expect(eligible).not_to include("MI") # 1B can't go to MI
     end
 
-    it "includes pitcher position and bench only" do
+    it "includes pitcher position, UTIL, and bench" do
       player = create(:player, positions: "SP")
       eligible = subject.eligible_positions_for(player)
 
       expect(eligible).to include("SP")     # Natural position
+      expect(eligible).to include("UTIL")   # Pitchers can go to UTIL
       expect(eligible).to include("BENCH")  # Anyone can go to bench
-      expect(eligible).not_to include("UTIL") # Pitcher can't go to UTIL
       expect(eligible).not_to include("MI")   # Pitcher can't go to MI
       expect(eligible).not_to include("CI")   # Pitcher can't go to CI
     end
