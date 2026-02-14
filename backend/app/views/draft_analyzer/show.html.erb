@@ -9,6 +9,27 @@
   </p>
 </div>
 
+<!-- Your Team Selector -->
+<div class="card mb-3 team-selector">
+  <%= form_with url: draft_analyzer_path, method: :get, local: true, class: "team-selector-form" do |f| %>
+    <% if params[:league_id].present? %>
+      <input type="hidden" name="league_id" value="<%= params[:league_id] %>">
+    <% end %>
+    <label for="my_team" class="team-selector-label">Your Team</label>
+    <div class="team-selector-controls">
+      <select name="my_team" id="my_team" class="team-selector-select" onchange="this.form.submit()">
+        <option value="">Select your team...</option>
+        <% @teams.each do |team| %>
+          <option value="<%= team.id %>" <%= "selected" if @my_team&.id == team.id %>><%= team.name %></option>
+        <% end %>
+      </select>
+      <% if @my_team %>
+        <span class="team-selector-active">Showing suggestions for <strong><%= @my_team.name %></strong></span>
+      <% end %>
+    </div>
+  <% end %>
+</div>
+
 <!-- Roster Fill Rate by Position -->
 <div data-controller="teams-can-draft-modal">
   <div class="card" data-controller="collapsible" data-collapsible-key="rosterFillRateCollapsed">
@@ -69,7 +90,7 @@
     <div class="mt-3 pt-3" style="border-top: 1px solid var(--border-color);">
       <p class="text-sm text-muted">
         <strong>Position Eligibility Notes:</strong><br>
-        • UTIL can be filled by any batter (C, 1B, 2B, 3B, SS, OF)<br>
+        • UTIL can be filled by any player (batters and pitchers)<br>
         • MI (Middle Infield) can be filled by 2B or SS<br>
         • CI (Corner Infield) can be filled by 1B or 3B
       </p>
@@ -165,5 +186,72 @@
         <span class="needs-cell needs-closed" style="display: inline-block; padding: 0.1rem 0.5rem; font-size: 0.75rem;">&mdash;</span> Cannot draft
       </p>
     </div>
+  </div>
+</div>
+
+<!-- Nomination Suggestions -->
+<div class="card mt-3" data-controller="collapsible" data-collapsible-key="nominationSuggestionsCollapsed">
+  <div class="collapsible-header" data-action="click->collapsible#toggle">
+    <h3 class="card-title">Nomination Suggestions</h3>
+    <button type="button" class="collapsible-toggle" data-collapsible-target="icon">▼</button>
+  </div>
+
+  <div class="collapsible-content" data-collapsible-target="content">
+    <% if @my_team.nil? %>
+      <p class="text-muted">
+        Select your team above to get strategic nomination suggestions. The algorithm ranks available players
+        by how effectively they drain opponent budgets without helping your roster.
+      </p>
+    <% elsif @nomination_suggestions.empty? %>
+      <p class="text-muted">
+        No nomination suggestions available. This can happen when there are no available players with value above $1,
+        or when no opponents need any remaining positions.
+      </p>
+    <% else %>
+      <p class="text-muted mb-3">
+        Players ranked by nomination value &mdash; nominate these to drive up bidding among opponents while keeping your budget safe.
+      </p>
+
+      <div style="max-height: 600px; overflow-y: auto;">
+        <table>
+          <thead>
+            <tr>
+              <th>#</th>
+              <th>Player</th>
+              <th>Pos</th>
+              <th>Value ($)</th>
+              <th>Demand</th>
+              <th>Reasons</th>
+            </tr>
+          </thead>
+          <tbody>
+            <% @nomination_suggestions.each_with_index do |suggestion, index| %>
+              <tr>
+                <td><span class="nomination-rank"><%= index + 1 %></span></td>
+                <td><strong><%= suggestion[:player].name %></strong></td>
+                <td><%= suggestion[:target_position] %></td>
+                <td>$<%= suggestion[:player].calculated_value.to_i %></td>
+                <td>
+                  <span class="badge <%= suggestion[:opponent_demand] >= 0.5 ? 'badge-warning' : 'badge-info' %>">
+                    <%= (suggestion[:opponent_demand] * 100).round(0) %>%
+                  </span>
+                </td>
+                <td>
+                  <% suggestion[:reasons].each do |reason| %>
+                    <% if reason.include?("don't need") || reason.include?("opponents need") %>
+                      <span class="reason-tag reason-tag-good"><%= reason %></span>
+                    <% elsif reason.include?("you also need") %>
+                      <span class="reason-tag reason-tag-warn"><%= reason %></span>
+                    <% else %>
+                      <span class="reason-tag"><%= reason %></span>
+                    <% end %>
+                  <% end %>
+                </td>
+              </tr>
+            <% end %>
+          </tbody>
+        </table>
+      </div>
+    <% end %>
   </div>
 </div>

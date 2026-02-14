@@ -260,6 +260,124 @@ RSpec.describe "DraftAnalyzer", type: :request do
     end
   end
 
+  describe "Nomination Suggestions" do
+    let!(:sp_player) { create(:player, name: "Ace Pitcher", positions: "SP", calculated_value: 30.0) }
+    let!(:rp_player) { create(:player, name: "Closer", positions: "RP", calculated_value: 20.0) }
+    let!(:of_player) { create(:player, name: "Slugger", positions: "OF", calculated_value: 25.0) }
+    let!(:low_value) { create(:player, name: "Scrub", positions: "OF", calculated_value: 0.5) }
+
+    context "with no my_team param" do
+      it "sets nomination_suggestions to empty array" do
+        get draft_analyzer_path
+        expect(assigns(:nomination_suggestions)).to eq([])
+      end
+
+      it "shows prompt to select a team" do
+        get draft_analyzer_path
+        expect(response.body).to include("Select your team above")
+      end
+    end
+
+    context "with valid my_team param" do
+      it "returns nomination suggestions" do
+        get draft_analyzer_path, params: { my_team: team1.id }
+        suggestions = assigns(:nomination_suggestions)
+
+        expect(suggestions).to be_an(Array)
+        expect(suggestions).not_to be_empty
+      end
+
+      it "includes required keys in each suggestion" do
+        get draft_analyzer_path, params: { my_team: team1.id }
+        suggestion = assigns(:nomination_suggestions).first
+
+        expect(suggestion).to have_key(:player)
+        expect(suggestion).to have_key(:score)
+        expect(suggestion).to have_key(:target_position)
+        expect(suggestion).to have_key(:opponent_demand)
+        expect(suggestion).to have_key(:reasons)
+      end
+
+      it "includes reason strings in suggestions" do
+        get draft_analyzer_path, params: { my_team: team1.id }
+        suggestion = assigns(:nomination_suggestions).first
+
+        expect(suggestion[:reasons]).to be_an(Array)
+        expect(suggestion[:reasons]).not_to be_empty
+        expect(suggestion[:reasons].any? { |r| r.include?("opponents need") }).to be true
+      end
+
+      it "excludes players with calculated_value <= 1" do
+        get draft_analyzer_path, params: { my_team: team1.id }
+        players = assigns(:nomination_suggestions).map { |s| s[:player] }
+
+        expect(players).not_to include(low_value)
+      end
+
+      it "limits to at most 15 suggestions" do
+        # Create many available players
+        20.times do |i|
+          create(:player, name: "Player #{i}", positions: "OF", calculated_value: 5.0 + i)
+        end
+
+        get draft_analyzer_path, params: { my_team: team1.id }
+        expect(assigns(:nomination_suggestions).size).to be <= 15
+      end
+    end
+
+    context "ranking behavior" do
+      it "ranks players at positions user doesn't need higher than positions they do need" do
+        # Fill all SP slots for team1 so team1 doesn't need SP
+        5.times do
+          sp = create(:player, positions: "SP", calculated_value: 2.0)
+          create(:draft_pick, team: team1, player: sp, league: league, drafted_position: "SP", price: 10)
+        end
+
+        # Create two equal-value players: one SP (team1 doesn't need), one OF (team1 does need)
+        sp_nom = create(:player, name: "SP Nomination", positions: "SP", calculated_value: 15.0)
+        of_nom = create(:player, name: "OF Nomination", positions: "OF", calculated_value: 15.0)
+
+        get draft_analyzer_path, params: { my_team: team1.id }
+        suggestions = assigns(:nomination_suggestions)
+        sp_entry = suggestions.find { |s| s[:player] == sp_nom }
+        of_entry = suggestions.find { |s| s[:player] == of_nom }
+
+        # SP should rank higher because team1 doesn't need it
+        expect(sp_entry).not_to be_nil
+        expect(of_entry).not_to be_nil
+        expect(sp_entry[:score]).to be > of_entry[:score]
+      end
+
+      it "ranks higher-value players above lower-value players (all else equal)" do
+        high_val = create(:player, name: "High Value SP", positions: "SP", calculated_value: 40.0)
+        low_val = create(:player, name: "Low Value SP", positions: "SP", calculated_value: 5.0)
+
+        get draft_analyzer_path, params: { my_team: team1.id }
+        suggestions = assigns(:nomination_suggestions)
+        high_entry = suggestions.find { |s| s[:player] == high_val }
+        low_entry = suggestions.find { |s| s[:player] == low_val }
+
+        expect(high_entry).not_to be_nil
+        expect(low_entry).not_to be_nil
+        expect(high_entry[:score]).to be > low_entry[:score]
+      end
+    end
+
+    context "with invalid my_team param" do
+      it "falls back to empty suggestions without crashing" do
+        get draft_analyzer_path, params: { my_team: 999999 }
+        expect(response).to have_http_status(:success)
+        expect(assigns(:nomination_suggestions)).to eq([])
+      end
+
+      it "falls back for non-numeric my_team param" do
+        get draft_analyzer_path, params: { my_team: "garbage" }
+        expect(response).to have_http_status(:success)
+        expect(assigns(:nomination_suggestions)).to eq([])
+      end
+    end
+  end
+
   describe "Team Needs Matrix" do
     it "returns a hash with :positions and :teams keys" do
       get draft_analyzer_path

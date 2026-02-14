@@ -15,6 +15,10 @@ class DraftAnalyzerController < ApplicationController
 
     # Calculate per-team position needs matrix
     @team_needs_matrix = calculate_team_needs_matrix
+
+    # Resolve selected team for nomination suggestions
+    @my_team = @teams.find_by(id: params[:my_team]) if params[:my_team].present?
+    @nomination_suggestions = @my_team ? calculate_nomination_suggestions : []
   end
 
   private
@@ -111,6 +115,95 @@ class DraftAnalyzerController < ApplicationController
     end
 
     false
+  end
+
+  def calculate_nomination_suggestions
+    candidates = Player.available
+                       .where("calculated_value > ?", 1.0)
+                       .order(calculated_value: :desc)
+                       .limit(100)
+
+    return [] if candidates.empty?
+
+    max_value = candidates.first.calculated_value.to_f
+    opponent_teams = @teams.reject { |t| t.id == @my_team.id }
+    fill_rate_lookup = @position_fill_rates.index_by { |fr| fr[:position] }
+
+    scored = candidates.filter_map do |player|
+      score_player_for_nomination(player, opponent_teams, fill_rate_lookup, max_value)
+    end
+
+    scored.sort_by { |s| -s[:score] }.first(15)
+  end
+
+  def score_player_for_nomination(player, opponent_teams, fill_rate_lookup, max_value)
+    roster_positions = eligible_roster_positions(player)
+    return nil if roster_positions.empty?
+
+    best = nil
+
+    roster_positions.each do |position|
+      fill_data = fill_rate_lookup[position]
+      next unless fill_data
+
+      # Opponent demand: fraction of opponents who can draft this position
+      demand_count = opponent_teams.count { |t| team_can_draft_position?(t, position) }
+      next if demand_count == 0 # No opponents need it — useless nomination
+
+      opponent_demand = demand_count.to_f / opponent_teams.size
+
+      # Position scarcity: league-wide fill percentage (0.0 to 1.0)
+      scarcity = fill_data[:fill_percentage].to_f / 100.0
+
+      # Player value: normalized against max available
+      value_norm = max_value > 0 ? player.calculated_value.to_f / max_value : 0.0
+
+      # Your need: can your team draft this position?
+      my_team_needs = team_can_draft_position?(@my_team, position)
+      need_modifier = my_team_needs ? -0.3 : 0.5
+
+      score = (opponent_demand * 0.35) +
+              (scarcity * 0.20) +
+              (value_norm * 0.25) +
+              (need_modifier * 0.20)
+
+      # Prefer positions where user does NOT need
+      if best.nil? || score > best[:score] || (score == best[:score] && !my_team_needs)
+        reasons = build_nomination_reasons(demand_count, opponent_teams.size, position,
+                                           fill_data[:fill_percentage], my_team_needs)
+        best = {
+          player: player,
+          score: score.round(3),
+          target_position: position,
+          opponent_demand: opponent_demand.round(2),
+          my_team_needs: my_team_needs,
+          reasons: reasons
+        }
+      end
+    end
+
+    best
+  end
+
+  # Returns roster positions (from the league config) this player is eligible for,
+  # excluding BENCH.
+  def eligible_roster_positions(player)
+    roster_config = @league.roster_config || {}
+    roster_config.select { |pos, slots| slots.to_i > 0 && pos != "BENCH" }
+                 .keys
+                 .select { |pos| player_eligible_for_position?(player, pos) }
+  end
+
+  def build_nomination_reasons(demand_count, opponent_count, position, fill_pct, my_team_needs)
+    reasons = []
+    reasons << "#{demand_count}/#{opponent_count} opponents need #{position}"
+    reasons << "#{fill_pct.round(0).to_i}% filled" if fill_pct >= 25
+    if my_team_needs
+      reasons << "you also need #{position}"
+    else
+      reasons << "you don't need #{position}"
+    end
+    reasons
   end
 
   def calculate_team_needs_matrix
