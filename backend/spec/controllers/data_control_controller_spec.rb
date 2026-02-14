@@ -160,8 +160,9 @@ RSpec.describe DataControlController, type: :controller do
         expect(flash[:alert]).to include("Please select a CSV file")
       end
 
-      it 'skips existing players' do
-        create(:player, name: "Aaron Judge", mlb_team: "NYY")
+      it 'merges projections for existing players instead of skipping' do
+        existing = create(:player, name: "Aaron Judge", mlb_team: "NYY", positions: "OF",
+                                   projections: { "runs" => 50 })
 
         hitter_csv = CSV.generate do |csv|
           csv << ["All Players", "Projections Standard Categories"]
@@ -179,7 +180,83 @@ RSpec.describe DataControlController, type: :controller do
           post :import_players, params: { league_id: league.id, file: uploaded_file }
         }.not_to change(Player, :count)
 
-        expect(flash[:notice]).to include("Skipped 1 existing players")
+        existing.reload
+        expect(existing.projections["at_bats"]).to eq(600)
+        expect(existing.projections["home_runs"]).to eq(58)
+        expect(flash[:notice]).to include("Merged 1 existing")
+
+        file.close
+        file.unlink
+      end
+
+      it 'merges hitter then pitcher CSV for a two-way player' do
+        # First import: hitter CSV
+        hitter_csv = CSV.generate do |csv|
+          csv << ["All Players", "Projections Standard Categories"]
+          csv << ["Avail", "Player", "AB", "R", "H", "1B", "2B", "3B", "HR", "RBI", "BB", "K", "SB", "CS", "AVG", "OBP", "SLG", "Rank"]
+          csv << ["", "Shohei Ohtani OF | LAD", "530", "100", "154", "70", "25", "4", "45", "110", "60", "130", "25", "5", "0.290", "0.370", "0.600", "1"]
+        end
+
+        hitter_file = Tempfile.new(['hitters', '.csv'])
+        hitter_file.write(hitter_csv)
+        hitter_file.rewind
+
+        post :import_players, params: { league_id: league.id, file: Rack::Test::UploadedFile.new(hitter_file.path, 'text/csv') }
+
+        ohtani = Player.find_by(name: "Shohei Ohtani")
+        expect(ohtani.positions).to eq("OF")
+        expect(ohtani.projections["home_runs"]).to eq(45)
+        expect(ohtani.projections["era"]).to be_nil
+
+        # Second import: pitcher CSV
+        pitcher_csv = CSV.generate do |csv|
+          csv << ["All Players", "Projections Standard Categories"]
+          csv << ["Avail", "Player", "INNs", "APP", "GS", "QS", "CG", "W", "L", "S", "BS", "HD", "K", "BB", "H", "ERA", "WHIP", "Rank"]
+          csv << ["", "Shohei Ohtani UTIL,SP | LAD", "103.0", "26", "26", "5", "0", "6", "2", "0", "0", "0", "132", "21", "74", "2.80", "0.92", "3"]
+        end
+
+        pitcher_file = Tempfile.new(['pitchers', '.csv'])
+        pitcher_file.write(pitcher_csv)
+        pitcher_file.rewind
+
+        post :import_players, params: { league_id: league.id, file: Rack::Test::UploadedFile.new(pitcher_file.path, 'text/csv') }
+
+        ohtani.reload
+        # Positions should be unioned
+        expect(ohtani.positions.split(',')).to contain_exactly("OF", "UTIL", "SP")
+        # Both hitter and pitcher projections should be present
+        expect(ohtani.projections["home_runs"]).to eq(45)
+        expect(ohtani.projections["era"]).to eq(2.80)
+        expect(ohtani.projections["innings_pitched"]).to eq(103.0)
+
+        hitter_file.close
+        hitter_file.unlink
+        pitcher_file.close
+        pitcher_file.unlink
+      end
+
+      it 'handles idempotent re-import without duplicating data' do
+        pitcher_csv = CSV.generate do |csv|
+          csv << ["All Players", "Projections Standard Categories"]
+          csv << ["Avail", "Player", "INNs", "APP", "GS", "QS", "CG", "W", "L", "S", "BS", "HD", "K", "BB", "H", "ERA", "WHIP", "Rank"]
+          csv << ["", "Paul Skenes SP | PIT", "181.0", "30", "30", "21", "1", "10", "8", "0", "0", "0", "204", "40", "135", "2.39", "0.97", "10"]
+        end
+
+        file = Tempfile.new(['pitchers', '.csv'])
+        file.write(pitcher_csv)
+        file.rewind
+
+        uploaded = Rack::Test::UploadedFile.new(file.path, 'text/csv')
+
+        # Import twice
+        post :import_players, params: { league_id: league.id, file: uploaded }
+        file.rewind
+        post :import_players, params: { league_id: league.id, file: Rack::Test::UploadedFile.new(file.path, 'text/csv') }
+
+        # Should still only be one player
+        expect(Player.where(name: "Paul Skenes").count).to eq(1)
+        skenes = Player.find_by(name: "Paul Skenes")
+        expect(skenes.projections["wins"]).to eq(10)
 
         file.close
         file.unlink

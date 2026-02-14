@@ -115,6 +115,11 @@ RSpec.describe ValueCalculator do
       player = create(:player, positions: 'SP')
       expect(subject.send(:hitter?, player)).to be false
     end
+
+    it 'returns true for two-way player' do
+      player = create(:player, positions: 'OF,SP')
+      expect(subject.send(:hitter?, player)).to be true
+    end
   end
 
   describe '#pitcher?' do
@@ -131,6 +136,11 @@ RSpec.describe ValueCalculator do
     it 'rejects hitters' do
       player = create(:player, positions: 'OF')
       expect(subject.send(:pitcher?, player)).to be false
+    end
+
+    it 'returns true for two-way player' do
+      player = create(:player, positions: 'OF,SP')
+      expect(subject.send(:pitcher?, player)).to be true
     end
   end
 
@@ -173,6 +183,43 @@ RSpec.describe ValueCalculator do
       player = create(:player, positions: 'SP',
                                projections: { 'wins' => 12, 'saves' => 0, 'strikeouts' => 175, 'era' => 3.75, 'whip' => 1.22, 'innings_pitched' => 185 })
       expect(subject.send(:skip_player?, player)).to be false
+    end
+
+    context 'with two-way player (hitter + pitcher positions)' do
+      it 'does not skip two-way player with both valid stat sets' do
+        player = create(:player, positions: 'OF,SP',
+                                 projections: {
+                                   'home_runs' => 45, 'runs' => 100, 'rbi' => 110, 'stolen_bases' => 25,
+                                   'batting_average' => 0.290, 'at_bats' => 530,
+                                   'wins' => 6, 'saves' => 0, 'strikeouts' => 132, 'era' => 2.80,
+                                   'whip' => 0.92, 'innings_pitched' => 103
+                                 })
+        expect(subject.send(:skip_player?, player)).to be false
+      end
+
+      it 'does not skip two-way player with only valid hitter stats' do
+        player = create(:player, positions: 'OF,SP',
+                                 projections: {
+                                   'home_runs' => 45, 'runs' => 100, 'rbi' => 110, 'stolen_bases' => 25,
+                                   'batting_average' => 0.290, 'at_bats' => 530
+                                 })
+        expect(subject.send(:skip_player?, player)).to be false
+      end
+
+      it 'does not skip two-way player with only valid pitcher stats' do
+        player = create(:player, positions: 'OF,SP',
+                                 projections: {
+                                   'wins' => 6, 'saves' => 0, 'strikeouts' => 132, 'era' => 2.80,
+                                   'whip' => 0.92, 'innings_pitched' => 103
+                                 })
+        expect(subject.send(:skip_player?, player)).to be false
+      end
+
+      it 'skips two-way player with no valid stats for either side' do
+        player = create(:player, positions: 'OF,SP',
+                                 projections: { 'at_bats' => 0, 'innings_pitched' => 0 })
+        expect(subject.send(:skip_player?, player)).to be true
+      end
     end
   end
 
@@ -346,6 +393,38 @@ RSpec.describe ValueCalculator do
 
       expect(elite_hitter.calculated_value).to be > 1.0
       expect(elite_pitcher.calculated_value).to be > 1.0
+    end
+
+    it 'sums hitter and pitcher values for two-way player' do
+      two_way = create(:player, positions: 'OF,SP',
+                                projections: {
+                                  'home_runs' => 45, 'runs' => 100, 'rbi' => 110, 'stolen_bases' => 25,
+                                  'batting_average' => 0.290, 'at_bats' => 530,
+                                  'wins' => 6, 'saves' => 0, 'strikeouts' => 132, 'era' => 2.80,
+                                  'whip' => 0.92, 'innings_pitched' => 103
+                                })
+
+      # Create a hitter-only clone and pitcher-only clone for comparison
+      hitter_only = create(:player, positions: 'OF',
+                                    projections: {
+                                      'home_runs' => 45, 'runs' => 100, 'rbi' => 110, 'stolen_bases' => 25,
+                                      'batting_average' => 0.290, 'at_bats' => 530
+                                    })
+      pitcher_only = create(:player, positions: 'SP',
+                                     projections: {
+                                       'wins' => 6, 'saves' => 0, 'strikeouts' => 132, 'era' => 2.80,
+                                       'whip' => 0.92, 'innings_pitched' => 103
+                                     })
+
+      subject.recalculate_values(league)
+
+      two_way.reload
+      hitter_only.reload
+      pitcher_only.reload
+
+      # Two-way player value should be greater than either individual component
+      expect(two_way.calculated_value).to be > hitter_only.calculated_value
+      expect(two_way.calculated_value).to be > pitcher_only.calculated_value
     end
   end
 

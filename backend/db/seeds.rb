@@ -62,8 +62,13 @@ players_data = [
   { name: "Ronald Acuña Jr.", positions: "OF", mlb_team: "ATL",
     projections: { "runs" => 120, "home_runs" => 40, "rbi" => 100, "stolen_bases" => 70, "batting_average" => 0.285, "at_bats" => 560 },
     calculated_value: 45 },
-  { name: "Shohei Ohtani", positions: "OF,DH", mlb_team: "LAD",
-    projections: { "runs" => 100, "home_runs" => 45, "rbi" => 110, "stolen_bases" => 25, "batting_average" => 0.290, "at_bats" => 530 },
+  { name: "Shohei Ohtani", positions: "OF,SP", mlb_team: "LAD",
+    projections: {
+      "runs" => 100, "home_runs" => 45, "rbi" => 110, "stolen_bases" => 25,
+      "batting_average" => 0.290, "at_bats" => 530,
+      "wins" => 6, "saves" => 0, "strikeouts" => 132, "era" => 2.80,
+      "whip" => 0.92, "innings_pitched" => 103
+    },
     calculated_value: 42 },
   { name: "Mookie Betts", positions: "OF", mlb_team: "LAD",
     projections: { "runs" => 110, "home_runs" => 35, "rbi" => 95, "stolen_bases" => 15, "batting_average" => 0.295, "at_bats" => 560 },

@@ -24,7 +24,7 @@ class DataControlController < ApplicationController
 
     begin
       imported_count = 0
-      skipped_count = 0
+      merged_count = 0
 
       CSV.foreach(file.path, headers: false, encoding: 'UTF-8') do |row|
         # Skip header rows
@@ -34,22 +34,25 @@ class DataControlController < ApplicationController
         player_name, positions, mlb_team = parse_player_info(row[1])
         next unless player_name && positions && mlb_team
 
-        # Check if player already exists
-        existing_player = Player.find_by(name: player_name, mlb_team: mlb_team)
-        if existing_player
-          skipped_count += 1
-          next
-        end
-
         # Determine if this is a pitcher or hitter based on positions
         is_pitcher = positions.split(',').any? { |pos| ['SP', 'RP'].include?(pos) }
 
-        # Parse stats based on player type
+        # Parse stats based on player type (must happen before duplicate check for merging)
         projections = if is_pitcher
                         parse_pitcher_stats(row)
                       else
                         parse_hitter_stats(row)
                       end
+
+        # Check if player already exists — merge projections for two-way players
+        existing_player = Player.find_by(name: player_name, mlb_team: mlb_team)
+        if existing_player
+          merged_projections = (existing_player.projections || {}).merge(projections)
+          merged_positions = (existing_player.positions.to_s.split(',') | positions.split(',')).join(',')
+          existing_player.update!(projections: merged_projections, positions: merged_positions)
+          merged_count += 1
+          next
+        end
 
         Player.create!(
           name: player_name,
@@ -63,7 +66,9 @@ class DataControlController < ApplicationController
         imported_count += 1
       end
 
-      redirect_to league_data_control_path(@league), notice: "Successfully imported #{imported_count} players. Skipped #{skipped_count} existing players."
+      message = "Successfully imported #{imported_count} new players."
+      message += " Merged #{merged_count} existing players." if merged_count > 0
+      redirect_to league_data_control_path(@league), notice: message
     rescue CSV::MalformedCSVError => e
       redirect_to league_data_control_path(@league), alert: "Error parsing CSV file: #{e.message}"
     rescue StandardError => e

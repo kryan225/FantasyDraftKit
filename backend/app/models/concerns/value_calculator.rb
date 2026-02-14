@@ -89,7 +89,8 @@ module ValueCalculator
     pitcher_dollars = convert_to_dollars(pitcher_var, league, is_hitter: false)
 
     # Bulk update all players at once (performance optimization)
-    all_values = hitter_dollars.merge(pitcher_dollars)
+    # Two-way players appear in both hashes — sum their hitter + pitcher values
+    all_values = hitter_dollars.merge(pitcher_dollars) { |_id, hitter_val, pitcher_val| hitter_val + pitcher_val }
     update_player_values(all_values)
 
     # Return summary statistics
@@ -134,24 +135,43 @@ module ValueCalculator
   end
 
   # Skip players with missing critical projections
+  #
+  # Two-way players (e.g., "OF,SP") are NOT skipped if they have valid stats
+  # for either side. Uses independent checks rather than if/elsif so a player
+  # with both hitter and pitcher positions is evaluated for both.
   def skip_player?(player)
     return true if player.projections.blank?
 
-    if hitter?(player)
-      # Hitters need at_bats and at least one counting stat
-      ab = player.projections['at_bats'].to_f
-      hr = player.projections['home_runs'].to_f
-      return true if ab <= 0 || (hr == 0 && player.projections['runs'].to_f == 0 && player.projections['rbi'].to_f == 0)
-    elsif pitcher?(player)
-      # Pitchers need innings_pitched and at least one counting stat
-      ip = player.projections['innings_pitched'].to_f
-      w = player.projections['wins'].to_f
-      return true if ip <= 0 || (w == 0 && player.projections['saves'].to_f == 0 && player.projections['strikeouts'].to_f == 0)
-    else
-      return true # Not a valid hitter or pitcher
-    end
+    is_hitter = hitter?(player)
+    is_pitcher = pitcher?(player)
+    return true unless is_hitter || is_pitcher
 
-    false
+    has_valid_hitter = is_hitter && valid_hitter_stats?(player)
+    has_valid_pitcher = is_pitcher && valid_pitcher_stats?(player)
+
+    !has_valid_hitter && !has_valid_pitcher
+  end
+
+  # Check if a hitter has sufficient projections for value calculation
+  def valid_hitter_stats?(player)
+    ab = player.projections['at_bats'].to_f
+    return false if ab <= 0
+
+    hr = player.projections['home_runs'].to_f
+    r = player.projections['runs'].to_f
+    rbi = player.projections['rbi'].to_f
+    hr > 0 || r > 0 || rbi > 0
+  end
+
+  # Check if a pitcher has sufficient projections for value calculation
+  def valid_pitcher_stats?(player)
+    ip = player.projections['innings_pitched'].to_f
+    return false if ip <= 0
+
+    w = player.projections['wins'].to_f
+    sv = player.projections['saves'].to_f
+    k = player.projections['strikeouts'].to_f
+    w > 0 || sv > 0 || k > 0
   end
 
   # Phase 2: Calculate z-scores for each player
