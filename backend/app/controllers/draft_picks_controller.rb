@@ -29,7 +29,7 @@ class DraftPicksController < ApplicationController
       @draft_picks = @league.draft_picks.includes(:team, :player).order(:pick_number)
 
       # Apply same filters as draft_board to maintain user's view
-      @players = build_filtered_players_list
+      @players = filtered_players
       @interested_available_players = @players
 
       respond_to do |format|
@@ -97,7 +97,7 @@ class DraftPicksController < ApplicationController
     @draft_picks = @league.draft_picks.includes(:team, :player).order(:pick_number)
 
     # Apply same filters as draft_board to maintain user's view
-    @players = build_filtered_players_list
+    @players = filtered_players
     @interested_available_players = @players
 
     respond_to do |format|
@@ -118,59 +118,7 @@ class DraftPicksController < ApplicationController
     params.require(:draft_pick).permit(:team_id, :player_id, :price, :is_keeper, :pick_number, :drafted_position)
   end
 
-  # Build filtered players list based on params (same logic as draft_board_controller)
-  def build_filtered_players_list
-    players = Player.all
-
-    # Apply position filter
-    if params[:position].present?
-      players = players.by_position(params[:position])
-    end
-
-    # Apply search filter
-    if params[:search].present?
-      players = players.where("name ILIKE ?", "%#{params[:search]}%")
-    end
-
-    # Apply drafted/available filter (default to available only unless explicitly filtering)
-    if params.key?(:drafted)
-      # User has explicitly chosen a filter
-      if params[:drafted] == "true"
-        players = players.drafted
-      elsif params[:drafted] == "false"
-        players = players.available
-      end
-      # If params[:drafted] is "", show all players (no filter)
-    else
-      # No filter parameter provided, default to available only
-      players = players.available
-    end
-
-    # Apply interested filter
-    if params[:interested] == "true"
-      players = players.interested
-    end
-
-    # Apply sorting
-    sort_column = params[:sort] || 'calculated_value'
-    sort_direction = params[:direction] || 'desc'
-
-    case sort_column
-    when 'name'
-      players = players.order("name #{sort_direction}")
-    when 'positions'
-      players = players.order("positions #{sort_direction}")
-    when 'mlb_team'
-      players = players.order("mlb_team #{sort_direction}")
-    when 'calculated_value'
-      players = players.order("calculated_value #{sort_direction} NULLS LAST")
-    when 'home_runs', 'runs', 'rbi', 'stolen_bases', 'batting_average', 'wins', 'saves', 'strikeouts', 'era', 'whip', 'at_bats', 'innings_pitched'
-      # Sort by JSONB field
-      players = players.order(Arel.sql("(projections->>'#{sort_column}')::float #{sort_direction} NULLS LAST"))
-    else
-      players = players.order(calculated_value: :desc)
-    end
-
-    players
+  def filtered_players
+    PlayerFilterService.new(params).call
   end
 end
