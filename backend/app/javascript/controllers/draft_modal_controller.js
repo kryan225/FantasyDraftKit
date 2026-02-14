@@ -22,6 +22,10 @@ export default class extends BaseModalController {
     "playerId"
   ]
 
+  static values = {
+    activePositions: Array
+  }
+
   connect() {
     super.connect() // Call parent's connect method
     console.log("Draft modal controller connected")
@@ -67,7 +71,7 @@ export default class extends BaseModalController {
    * Implements fantasy baseball position eligibility rules
    */
   populatePositionOptions(positions) {
-    const positionArray = positions.split('/').map(p => p.trim())
+    const positionArray = positions.split(/[,\/]/).map(p => p.trim())
     const eligiblePositions = this.calculateEligiblePositions(positionArray)
 
     // Clear existing options
@@ -96,13 +100,18 @@ export default class extends BaseModalController {
     // Get all eligible positions using centralized utility
     const eligible = PositionEligibility.getEligiblePositions(positions)
 
-    // Sort with actual positions first, then flex positions (CI, MI, UTIL), then BENCH
-    const flexPositions = ['CI', 'MI', 'UTIL']
-    const actualPositions = eligible.filter(p => !flexPositions.includes(p) && p !== 'BENCH')
-    const addedFlexPositions = eligible.filter(p => flexPositions.includes(p))
-    const hasBench = eligible.includes('BENCH') ? ['BENCH'] : []
+    // Filter to only positions with slots in this league's roster config
+    const active = this.hasActivePositionsValue ? this.activePositionsValue : []
+    const filtered = active.length > 0
+      ? eligible.filter(p => active.includes(p))
+      : eligible
 
-    return [...actualPositions, ...addedFlexPositions, ...hasBench]
+    // Sort with actual positions first, then flex positions (CI, MI, UTIL)
+    const flexPositions = ['CI', 'MI', 'UTIL']
+    const actualPositions = filtered.filter(p => !flexPositions.includes(p))
+    const addedFlexPositions = filtered.filter(p => flexPositions.includes(p))
+
+    return [...actualPositions, ...addedFlexPositions]
   }
 
   /**

@@ -17,6 +17,7 @@ class Player < ApplicationRecord
   scope :available, -> { where(is_drafted: [false, nil]) }  # Available means not explicitly drafted
   scope :by_position, ->(position) { where("positions LIKE ?", "%#{position}%") }
   scope :interested, -> { where(interested: true) }
+  scope :multi_position, -> { where("positions LIKE '%,%' OR positions LIKE '%/%'") }
 
   # Instance Methods
   def mark_as_drafted!

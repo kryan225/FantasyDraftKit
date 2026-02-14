@@ -12,6 +12,9 @@ class DraftAnalyzerController < ApplicationController
 
     # Calculate roster fill rate by position
     @position_fill_rates = calculate_position_fill_rates
+
+    # Calculate per-team position needs matrix
+    @team_needs_matrix = calculate_team_needs_matrix
   end
 
   private
@@ -108,6 +111,45 @@ class DraftAnalyzerController < ApplicationController
     end
 
     false
+  end
+
+  def calculate_team_needs_matrix
+    roster_config = @league.roster_config || {}
+    active_positions = roster_config.select { |pos, slots| slots.to_i > 0 && pos != "BENCH" }.keys
+    total_roster_slots = roster_config.values.sum
+
+    # Single aggregated query: { [team_id, drafted_position] => count }
+    position_counts = @league.draft_picks.group(:team_id, :drafted_position).count
+
+    # Pre-compute total filled per team
+    team_totals = Hash.new(0)
+    position_counts.each { |(team_id, _), count| team_totals[team_id] += count }
+
+    teams_data = @teams.map do |team|
+      total_filled = team_totals[team.id]
+      roster_full = total_filled >= total_roster_slots
+
+      needs = {}
+      active_positions.each do |position|
+        max_slots = roster_config[position].to_i
+        filled = position_counts[[team.id, position]].to_i
+        open_slots = max_slots - filled
+
+        state = if roster_full
+                  :closed
+                elsif open_slots > 0
+                  :open
+                else
+                  team_can_draft_position?(team, position) ? :flex : :closed
+                end
+
+        needs[position] = { state: state, open_slots: open_slots }
+      end
+
+      { team: team, total_filled: total_filled, total_slots: total_roster_slots, needs: needs }
+    end
+
+    { positions: active_positions, teams: teams_data }
   end
 
 end

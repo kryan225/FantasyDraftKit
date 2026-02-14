@@ -107,10 +107,63 @@
   </div>
 </div>
 
-<!-- Placeholder for future analytics -->
-<div class="card mt-3">
-  <div class="text-center text-muted" style="padding: 2rem;">
-    <p><strong>More analytics coming soon!</strong></p>
-    <p class="text-sm">Check DRAFT_ANALYZER.md for planned features</p>
+<!-- Team Needs Matrix -->
+<div class="card mt-3" data-controller="collapsible" data-collapsible-key="teamNeedsMatrixCollapsed">
+  <div class="collapsible-header" data-action="click->collapsible#toggle">
+    <h3 class="card-title">Team Needs Matrix</h3>
+    <button type="button" class="collapsible-toggle" data-collapsible-target="icon">▼</button>
+  </div>
+
+  <div class="collapsible-content" data-collapsible-target="content">
+    <p class="text-muted mb-3">
+      Per-team position availability. Green = open slots, Yellow = can draft via roster move, Gray = cannot draft.
+    </p>
+
+    <div style="overflow-x: auto;">
+      <table class="team-needs-matrix">
+        <thead>
+          <tr>
+            <th>Team</th>
+            <% @team_needs_matrix[:positions].each do |pos| %>
+              <th class="text-center"><%= pos %></th>
+            <% end %>
+            <th class="text-center">Roster</th>
+          </tr>
+        </thead>
+        <tbody>
+          <% @team_needs_matrix[:teams].each do |team_data| %>
+            <tr>
+              <td>
+                <%= link_to team_data[:team].name, team_path(team_data[:team]), class: "player-link" %>
+              </td>
+              <% @team_needs_matrix[:positions].each do |pos| %>
+                <% cell = team_data[:needs][pos] %>
+                <% case cell[:state] %>
+                <% when :open %>
+                  <td class="needs-cell needs-open text-center"><%= cell[:open_slots] %></td>
+                <% when :flex %>
+                  <td class="needs-cell needs-flex text-center">&#10003;</td>
+                <% when :closed %>
+                  <td class="needs-cell needs-closed text-center">&mdash;</td>
+                <% end %>
+              <% end %>
+              <td class="text-center">
+                <span class="badge <%= team_data[:total_filled] >= team_data[:total_slots] ? 'badge-warning' : 'badge-info' %>">
+                  <%= team_data[:total_filled] %>/<%= team_data[:total_slots] %>
+                </span>
+              </td>
+            </tr>
+          <% end %>
+        </tbody>
+      </table>
+    </div>
+
+    <div class="mt-3 pt-3" style="border-top: 1px solid var(--border-color);">
+      <p class="text-sm text-muted">
+        <span class="needs-cell needs-open" style="display: inline-block; padding: 0.1rem 0.5rem; font-size: 0.75rem;">3</span> Open slots &nbsp;
+        <span class="needs-cell needs-flex" style="display: inline-block; padding: 0.1rem 0.5rem; font-size: 0.75rem;">&#10003;</span> Can draft via roster move &nbsp;
+        <span class="needs-cell needs-closed" style="display: inline-block; padding: 0.1rem 0.5rem; font-size: 0.75rem;">&mdash;</span> Cannot draft
+      </p>
+    </div>
   </div>
 </div>

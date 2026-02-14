@@ -259,4 +259,115 @@ RSpec.describe "DraftAnalyzer", type: :request do
       end
     end
   end
+
+  describe "Team Needs Matrix" do
+    it "returns a hash with :positions and :teams keys" do
+      get draft_analyzer_path
+      matrix = assigns(:team_needs_matrix)
+
+      expect(matrix).to be_a(Hash)
+      expect(matrix).to have_key(:positions)
+      expect(matrix).to have_key(:teams)
+    end
+
+    it "includes all active positions excluding BENCH" do
+      get draft_analyzer_path
+      positions = assigns(:team_needs_matrix)[:positions]
+
+      expect(positions).to include("C", "1B", "2B", "3B", "SS", "MI", "CI", "OF", "UTIL", "SP", "RP")
+      expect(positions).not_to include("BENCH")
+    end
+
+    it "includes all teams in the league" do
+      get draft_analyzer_path
+      teams = assigns(:team_needs_matrix)[:teams].map { |td| td[:team] }
+
+      expect(teams).to contain_exactly(team1, team2)
+    end
+
+    it "shows :open state with correct count for empty roster" do
+      get draft_analyzer_path
+      team1_data = assigns(:team_needs_matrix)[:teams].find { |td| td[:team] == team1 }
+
+      of_needs = team1_data[:needs]["OF"]
+      expect(of_needs[:state]).to eq(:open)
+      expect(of_needs[:open_slots]).to eq(5)
+
+      c_needs = team1_data[:needs]["C"]
+      expect(c_needs[:state]).to eq(:open)
+      expect(c_needs[:open_slots]).to eq(2)
+    end
+
+    it "shows :flex state when position is full but roster move is possible" do
+      # Fill all 5 OF slots for team1
+      5.times do
+        player = create(:player, positions: "OF")
+        create(:draft_pick, team: team1, player: player, league: league, drafted_position: "OF", price: 10)
+      end
+      # UTIL is still open (0/1), so OF can be drafted via UTIL or by moving an OF player there
+
+      get draft_analyzer_path
+      team1_data = assigns(:team_needs_matrix)[:teams].find { |td| td[:team] == team1 }
+
+      of_needs = team1_data[:needs]["OF"]
+      expect(of_needs[:state]).to eq(:flex)
+      expect(of_needs[:open_slots]).to eq(0)
+    end
+
+    it "shows :closed state when position is full and no roster move available" do
+      # Fill 1B (1/1)
+      fb = create(:player, positions: "1B")
+      create(:draft_pick, team: team1, player: fb, league: league, drafted_position: "1B", price: 10)
+      # Fill CI with a 3B (not moveable to 1B)
+      tb = create(:player, positions: "3B")
+      create(:draft_pick, team: team1, player: tb, league: league, drafted_position: "CI", price: 10)
+      # Fill UTIL with an OF (not moveable to 1B)
+      of = create(:player, positions: "OF")
+      create(:draft_pick, team: team1, player: of, league: league, drafted_position: "UTIL", price: 10)
+
+      get draft_analyzer_path
+      team1_data = assigns(:team_needs_matrix)[:teams].find { |td| td[:team] == team1 }
+
+      fb_needs = team1_data[:needs]["1B"]
+      expect(fb_needs[:state]).to eq(:closed)
+    end
+
+    it "shows all positions :closed when roster is full" do
+      roster_config = league.roster_config
+      # Fill every position to capacity
+      create(:draft_pick, team: team1, player: create(:player, positions: "C"), league: league, drafted_position: "C", price: 1)
+      create(:draft_pick, team: team1, player: create(:player, positions: "C"), league: league, drafted_position: "C", price: 1)
+      create(:draft_pick, team: team1, player: create(:player, positions: "1B"), league: league, drafted_position: "1B", price: 1)
+      create(:draft_pick, team: team1, player: create(:player, positions: "2B"), league: league, drafted_position: "2B", price: 1)
+      create(:draft_pick, team: team1, player: create(:player, positions: "3B"), league: league, drafted_position: "3B", price: 1)
+      create(:draft_pick, team: team1, player: create(:player, positions: "SS"), league: league, drafted_position: "SS", price: 1)
+      create(:draft_pick, team: team1, player: create(:player, positions: "2B"), league: league, drafted_position: "MI", price: 1)
+      create(:draft_pick, team: team1, player: create(:player, positions: "1B"), league: league, drafted_position: "CI", price: 1)
+      5.times { create(:draft_pick, team: team1, player: create(:player, positions: "OF"), league: league, drafted_position: "OF", price: 1) }
+      create(:draft_pick, team: team1, player: create(:player, positions: "OF"), league: league, drafted_position: "UTIL", price: 1)
+      5.times { create(:draft_pick, team: team1, player: create(:player, positions: "SP"), league: league, drafted_position: "SP", price: 1) }
+      3.times { create(:draft_pick, team: team1, player: create(:player, positions: "RP"), league: league, drafted_position: "RP", price: 1) }
+
+      get draft_analyzer_path
+      team1_data = assigns(:team_needs_matrix)[:teams].find { |td| td[:team] == team1 }
+
+      team1_data[:needs].each do |position, cell|
+        expect(cell[:state]).to eq(:closed), "Expected #{position} to be :closed but was #{cell[:state]}"
+      end
+    end
+
+    it "reports accurate roster counts" do
+      # Draft 3 players for team1
+      3.times do
+        player = create(:player, positions: "OF")
+        create(:draft_pick, team: team1, player: player, league: league, drafted_position: "OF", price: 10)
+      end
+
+      get draft_analyzer_path
+      team1_data = assigns(:team_needs_matrix)[:teams].find { |td| td[:team] == team1 }
+
+      expect(team1_data[:total_filled]).to eq(3)
+      expect(team1_data[:total_slots]).to eq(22)
+    end
+  end
 end

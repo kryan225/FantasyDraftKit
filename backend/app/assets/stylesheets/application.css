@@ -697,3 +697,50 @@ tr.empty-slot td {
 .text-primary {
   color: var(--primary-color);
 }
+
+/* Team Needs Matrix */
+.team-needs-matrix {
+  font-size: 0.875rem;
+  border-collapse: separate;
+  border-spacing: 0;
+}
+
+.team-needs-matrix thead,
+.team-needs-matrix thead th {
+  position: static;
+  box-shadow: none;
+}
+
+.team-needs-matrix thead th:first-child,
+.team-needs-matrix tbody td:first-child,
+.team-needs-matrix thead th:last-child,
+.team-needs-matrix tbody td:last-child {
+  position: static;
+  box-shadow: none;
+}
+
+.team-needs-matrix th,
+.team-needs-matrix td {
+  padding: 0.5rem 0.625rem;
+}
+
+.needs-cell {
+  font-weight: 600;
+  min-width: 2.5rem;
+  border-radius: 0.25rem;
+}
+
+.needs-open {
+  background: #d1fae5;
+  color: #065f46;
+}
+
+.needs-flex {
+  background: #fef3c7;
+  color: #92400e;
+}
+
+.needs-closed {
+  background: #f3f4f6;
+  color: #9ca3af;
+}

@@ -15,7 +15,8 @@
 </div>
 
 <!-- Player Database -->
-<div class="card mb-3" data-controller="draft-modal">
+<% active_positions = (@league.roster_config || {}).select { |_, slots| slots.to_i > 0 }.keys %>
+<div class="card mb-3" data-controller="draft-modal" data-draft-modal-active-positions-value="<%= active_positions.to_json %>">
   <h3 class="card-title">Player Database</h3>
 
   <%= form_with url: draft_board_path, method: :get, data: { turbo_frame: "_top" } do |f| %>
@@ -59,6 +60,11 @@
         <%= f.check_box :interested, { checked: params[:interested] == "true", onchange: "this.form.requestSubmit()" }, "true", "false" %>
         <%= f.label :interested, "Interested Only", style: "display: inline; margin-left: 0.25rem; font-weight: normal;" %>
       </div>
+
+      <div class="form-group" style="margin-bottom: 0; margin-left: 1rem;">
+        <%= f.check_box :multi_position, { checked: params[:multi_position] == "true", onchange: "this.form.requestSubmit()" }, "true", "false" %>
+        <%= f.label :multi_position, "Multi-Position Only", style: "display: inline; margin-left: 0.25rem; font-weight: normal;" %>
+      </div>
     </div>
   <% end %>
 
@@ -69,9 +75,11 @@
          data-controller="scroll-memory"
          data-scroll-memory-key-value="playerDatabaseScroll">
       <%
-        # Helper method to generate sort link
-        def sort_link(column, label, current_sort, current_direction, league_id, search, position, drafted)
-          # First click: descending, second click: ascending
+        current_sort = params[:sort]
+        current_direction = params[:direction]
+
+        # Lambda captures current filter params so sort links preserve all filters
+        sort_link = ->(column, label) do
           direction = (current_sort == column && current_direction == 'desc') ? 'asc' : 'desc'
           arrow = if current_sort == column
             current_direction == 'asc' ? ' ↑' : ' ↓'
@@ -79,41 +87,39 @@
             ''
           end
 
-          link_params = { league_id: league_id, sort: column, direction: direction }
-          link_params[:search] = search if search.present?
-          link_params[:position] = position if position.present?
-          # Default to "false" (available only) if drafted is nil, otherwise use the explicit value (including "")
-          link_params[:drafted] = drafted.nil? ? "false" : drafted
+          link_params = { league_id: @league.id, sort: column, direction: direction }
+          link_params[:search] = params[:search] if params[:search].present?
+          link_params[:position] = params[:position] if params[:position].present?
+          link_params[:drafted] = params[:drafted].nil? ? "false" : params[:drafted]
+          link_params[:interested] = params[:interested] if params[:interested] == "true"
+          link_params[:multi_position] = params[:multi_position] if params[:multi_position] == "true"
 
           link_to "#{label}#{arrow}", draft_board_path(link_params), class: 'sort-link'
         end
-
-        current_sort = params[:sort]
-        current_direction = params[:direction]
       %>
 
       <table>
         <thead>
           <tr>
-            <th><%= sort_link('name', 'Player', current_sort, current_direction, @league.id, params[:search], params[:position], params[:drafted]) %></th>
-            <th><%= sort_link('positions', 'Pos', current_sort, current_direction, @league.id, params[:search], params[:position], params[:drafted]) %></th>
-            <th><%= sort_link('mlb_team', 'Team', current_sort, current_direction, @league.id, params[:search], params[:position], params[:drafted]) %></th>
-            <th><%= sort_link('calculated_value', 'Value', current_sort, current_direction, @league.id, params[:search], params[:position], params[:drafted]) %></th>
+            <th><%= sort_link.('name', 'Player') %></th>
+            <th><%= sort_link.('positions', 'Pos') %></th>
+            <th><%= sort_link.('mlb_team', 'Team') %></th>
+            <th><%= sort_link.('calculated_value', 'Value') %></th>
             <th>Status</th>
             <!-- Hitter Stats -->
-            <th><%= sort_link('at_bats', 'AB', current_sort, current_direction, @league.id, params[:search], params[:position], params[:drafted]) %></th>
-            <th><%= sort_link('home_runs', 'HR', current_sort, current_direction, @league.id, params[:search], params[:position], params[:drafted]) %></th>
-            <th><%= sort_link('runs', 'R', current_sort, current_direction, @league.id, params[:search], params[:position], params[:drafted]) %></th>
-            <th><%= sort_link('rbi', 'RBI', current_sort, current_direction, @league.id, params[:search], params[:position], params[:drafted]) %></th>
-            <th><%= sort_link('stolen_bases', 'SB', current_sort, current_direction, @league.id, params[:search], params[:position], params[:drafted]) %></th>
-            <th><%= sort_link('batting_average', 'AVG', current_sort, current_direction, @league.id, params[:search], params[:position], params[:drafted]) %></th>
+            <th><%= sort_link.('at_bats', 'AB') %></th>
+            <th><%= sort_link.('home_runs', 'HR') %></th>
+            <th><%= sort_link.('runs', 'R') %></th>
+            <th><%= sort_link.('rbi', 'RBI') %></th>
+            <th><%= sort_link.('stolen_bases', 'SB') %></th>
+            <th><%= sort_link.('batting_average', 'AVG') %></th>
             <!-- Pitcher Stats -->
-            <th><%= sort_link('innings_pitched', 'IP', current_sort, current_direction, @league.id, params[:search], params[:position], params[:drafted]) %></th>
-            <th><%= sort_link('wins', 'W', current_sort, current_direction, @league.id, params[:search], params[:position], params[:drafted]) %></th>
-            <th><%= sort_link('saves', 'SV', current_sort, current_direction, @league.id, params[:search], params[:position], params[:drafted]) %></th>
-            <th><%= sort_link('strikeouts', 'K', current_sort, current_direction, @league.id, params[:search], params[:position], params[:drafted]) %></th>
-            <th><%= sort_link('era', 'ERA', current_sort, current_direction, @league.id, params[:search], params[:position], params[:drafted]) %></th>
-            <th><%= sort_link('whip', 'WHIP', current_sort, current_direction, @league.id, params[:search], params[:position], params[:drafted]) %></th>
+            <th><%= sort_link.('innings_pitched', 'IP') %></th>
+            <th><%= sort_link.('wins', 'W') %></th>
+            <th><%= sort_link.('saves', 'SV') %></th>
+            <th><%= sort_link.('strikeouts', 'K') %></th>
+            <th><%= sort_link.('era', 'ERA') %></th>
+            <th><%= sort_link.('whip', 'WHIP') %></th>
             <th>Actions</th>
           </tr>
         </thead>

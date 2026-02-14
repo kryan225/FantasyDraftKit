@@ -41,6 +41,10 @@ class DraftBoardController < ApplicationController
       @players = @players.interested
     end
 
+    if params[:multi_position] == "true"
+      @players = @players.multi_position
+    end
+
     # Sort
     sort_column = params[:sort] || 'calculated_value'
     sort_direction = params[:direction] || 'desc'
