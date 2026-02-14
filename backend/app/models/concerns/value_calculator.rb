@@ -45,9 +45,12 @@ module ValueCalculator
 
   # Pitcher stat categories (5 total)
   # Field names must match keys stored by DataControlController#parse_pitcher_stats
+  #
+  # Saves uses a reduced weight (0.5) because the bimodal distribution (closers ~35,
+  # everyone else ~0) creates outsized z-scores that overvalue relievers.
   PITCHER_CATEGORIES = {
     w: { field: 'wins', invert: false, rate: false },
-    sv: { field: 'saves', invert: false, rate: false },
+    sv: { field: 'saves', invert: false, rate: false, weight: 0.25 },
     k: { field: 'strikeouts', invert: false, rate: false },
     era: { field: 'era', invert: true, rate: true, volume_field: 'innings_pitched' },
     whip: { field: 'whip', invert: true, rate: true, volume_field: 'innings_pitched' }
@@ -167,12 +170,13 @@ module ValueCalculator
     # Calculate z-score for each category
     categories.each do |category_key, config|
       category_z_scores = calculate_category_z_score(players, config)
+      weight = config.fetch(:weight, 1.0)
 
       # Store each player's z-score for this category
       category_z_scores.each do |player_id, z_score|
         z_scores[player_id] ||= { total_z: 0.0, categories: {} }
         z_scores[player_id][:categories][category_key] = z_score
-        z_scores[player_id][:total_z] += z_score
+        z_scores[player_id][:total_z] += z_score * weight
       end
     end
 
@@ -208,6 +212,14 @@ module ValueCalculator
     # Handle edge case: all values identical (stddev = 0)
     return players.each_with_object({}) { |p, h| h[p.id] = 0.0 } if stddev.zero?
 
+    # For rate stats, calculate mean volume to scale z-scores by workload.
+    # A pitcher with 200 IP has 4x the impact on team ERA vs one with 50 IP.
+    mean_volume = if rate
+                    volume_field = config[:volume_field]
+                    volumes = players.map { |p| p.projections[volume_field].to_f }.select(&:positive?)
+                    volumes.empty? ? 1.0 : volumes.sum / volumes.size.to_f
+                  end
+
     # Calculate z-score for each player
     z_scores = {}
     players.each do |player|
@@ -216,6 +228,13 @@ module ValueCalculator
 
       # Invert for ERA/WHIP (lower is better)
       z_score = -z_score if invert
+
+      # Scale rate stat z-scores by volume ratio so low-IP pitchers
+      # don't get outsized credit for elite ratios
+      if rate && mean_volume
+        player_volume = player.projections[config[:volume_field]].to_f
+        z_score *= (player_volume / mean_volume) if mean_volume > 0
+      end
 
       z_scores[player.id] = z_score
     end
