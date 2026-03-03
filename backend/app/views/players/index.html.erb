@@ -217,31 +217,3 @@
     </div>
   </div>
 </div>
-
-<!-- Available Players of Interest -->
-<div class="card mt-3" data-controller="collapsible" data-collapsible-key="interestedPlayersCollapsed">
-  <div class="collapsible-header" data-action="click->collapsible#toggle">
-    <h3 class="card-title">Available Players of Interest</h3>
-    <button type="button" class="collapsible-toggle" data-collapsible-target="icon">▼</button>
-  </div>
-
-  <div class="collapsible-content" data-collapsible-target="content">
-    <% if @interested_available_players.any? %>
-      <div style="max-height: 600px; overflow-y: auto;">
-        <table>
-          <thead>
-            <tr>
-              <th>Player</th>
-              <th>Value</th>
-            </tr>
-          </thead>
-          <tbody id="interested-players-list">
-            <%= render partial: "draft_board/available_players_table", locals: { available_players: @interested_available_players } %>
-          </tbody>
-        </table>
-      </div>
-    <% else %>
-      <p class="text-muted text-center">No players marked as interested yet. Use the actions menu (⋮) in the player database to mark players as interested.</p>
-    <% end %>
-  </div>
-</div>

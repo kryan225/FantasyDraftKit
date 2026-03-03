@@ -3,7 +3,6 @@
 
     Params:
     - draft_picks: Array of DraftPick objects to display
-    - available_players: Array of available Player objects to display
     - teams: Array of Team objects for budget display
     - players: Array of filtered Player objects for main database table (optional)
     - league_id: ID of current league (optional, required if players provided)
@@ -13,11 +12,6 @@
 <%# Update the draft picks list %>
 <%= turbo_stream.replace "draft-picks" do %>
   <%= render partial: "draft_board/draft_picks_table", locals: { draft_picks: draft_picks } %>
-<% end %>
-
-<%# Update the interested players list %>
-<%= turbo_stream.update "interested-players-list" do %>
-  <%= render partial: "draft_board/available_players_table", locals: { available_players: available_players } %>
 <% end %>
 
 <%# Update the main player database table (if filters were applied) %>

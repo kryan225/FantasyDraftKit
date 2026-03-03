@@ -30,7 +30,6 @@ class DraftPicksController < ApplicationController
 
       # Apply same filters as draft_board to maintain user's view
       @players = filtered_players
-      @interested_available_players = @players
 
       respond_to do |format|
         format.turbo_stream
@@ -98,7 +97,6 @@ class DraftPicksController < ApplicationController
 
     # Apply same filters as draft_board to maintain user's view
     @players = filtered_players
-    @interested_available_players = @players
 
     respond_to do |format|
       format.turbo_stream

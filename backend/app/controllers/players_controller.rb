@@ -7,8 +7,6 @@ class PlayersController < ApplicationController
   def index
     @league = current_league
     @teams = @league.teams.order(:name)
-    @interested_available_players = Player.available.interested.order(calculated_value: :desc)
-
     @players = PlayerFilterService.new(params).call
   end
 
@@ -35,21 +33,11 @@ class PlayersController < ApplicationController
 
     respond_to do |format|
       format.turbo_stream do
-        # Reload the interested players list
-        @interested_available_players = Player.available.interested.order(calculated_value: :desc)
-
-        render turbo_stream: [
-          turbo_stream.replace(
-            "player-row-#{@player.id}",
-            partial: "draft_board/player_database_row",
-            locals: { player: @player, league_id: league_id }
-          ),
-          turbo_stream.update(
-            "interested-players-list",
-            partial: "draft_board/available_players_table",
-            locals: { available_players: @interested_available_players }
-          )
-        ]
+        render turbo_stream: turbo_stream.replace(
+          "player-row-#{@player.id}",
+          partial: "draft_board/player_database_row",
+          locals: { player: @player, league_id: league_id }
+        )
       end
       format.json { render json: { interested: @player.interested } }
     end

@@ -9,8 +9,6 @@ class DraftBoardController < ApplicationController
 
     @teams = @league.teams.order(:name)
     @draft_picks = @league.draft_picks.includes(:team, :player).order(pick_number: :desc)
-    @interested_available_players = Player.available.interested.order(calculated_value: :desc)
-
     @players = PlayerFilterService.new(params).call
   end
 
