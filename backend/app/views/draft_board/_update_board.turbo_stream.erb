@@ -22,7 +22,7 @@
 <% end %>
 
 <%# Update team budgets %>
-<%= turbo_stream.replace "team-budgets" do %>
+<%= turbo_stream.update "team-budgets" do %>
   <%= render partial: "draft_board/team_budgets", locals: { teams: teams } %>
 <% end %>
 

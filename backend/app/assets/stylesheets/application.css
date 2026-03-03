@@ -110,6 +110,36 @@ nav a:hover {
   box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
 }
 
+/* Draft Board two-column layout */
+.draft-board-layout {
+  display: flex;
+  gap: 1.5rem;
+  align-items: flex-start;
+}
+
+.draft-board-sidebar {
+  width: 200px;
+  flex-shrink: 0;
+  position: sticky;
+  top: 1rem;
+}
+
+.draft-board-main {
+  flex: 1;
+  min-width: 0;
+}
+
+/* Team budget sidebar entries */
+.team-budget-entry {
+  padding: 0.6rem 0;
+  border-bottom: 1px solid var(--border-color);
+}
+
+.team-budget-entry:last-child {
+  border-bottom: none;
+  padding-bottom: 0;
+}
+
 .card-title {
   font-size: 1.25rem;
   font-weight: 600;

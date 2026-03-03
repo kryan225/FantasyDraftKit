@@ -1,5 +1,5 @@
 <% teams.each do |team| %>
-  <div>
+  <div class="team-budget-entry">
     <strong><%= link_to team.name, team_path(team) %></strong>
     <br>
     <span class="text-muted">$<%= team.budget_remaining %> remaining</span>
