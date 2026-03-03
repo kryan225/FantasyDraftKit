@@ -2,9 +2,11 @@ import { Controller } from "@hotwired/stimulus"
 
 /**
  * ScrollMemoryController - Saves and restores scroll position
- * 
- * Remembers scroll position before page navigation and restores it after.
- * Useful for maintaining scroll position when sorting tables.
+ *
+ * Remembers the element's scroll position across Turbo navigations.
+ * Saves on scroll (debounced) and before Turbo visits/renders.
+ * Restores synchronously on connect — no requestAnimationFrame needed
+ * since Stimulus connects after the element is in the DOM.
  */
 export default class extends Controller {
   static values = {
@@ -12,72 +14,47 @@ export default class extends Controller {
   }
 
   connect() {
-    // Restore scroll position on page load
     this.restoreScroll()
 
-    // Bind event handlers
     this.boundSaveScroll = this.saveScroll.bind(this)
-    this.boundThrottledSave = this.throttle(this.boundSaveScroll, 100)
+    this.boundDebouncedSave = this.debounce(this.boundSaveScroll, 100)
 
-    // Save scroll position as user scrolls
-    this.element.addEventListener('scroll', this.boundThrottledSave)
-    window.addEventListener('scroll', this.boundThrottledSave)
-
-    // Save scroll position before navigating away
+    this.element.addEventListener('scroll', this.boundDebouncedSave)
     document.addEventListener('turbo:before-visit', this.boundSaveScroll)
     document.addEventListener('turbo:before-render', this.boundSaveScroll)
   }
 
   disconnect() {
-    this.element.removeEventListener('scroll', this.boundThrottledSave)
-    window.removeEventListener('scroll', this.boundThrottledSave)
+    this.element.removeEventListener('scroll', this.boundDebouncedSave)
     document.removeEventListener('turbo:before-visit', this.boundSaveScroll)
     document.removeEventListener('turbo:before-render', this.boundSaveScroll)
   }
 
   saveScroll() {
-    const scrollData = {
-      x: window.scrollX,
-      y: window.scrollY,
+    sessionStorage.setItem(this.keyValue, JSON.stringify({
       elementX: this.element.scrollLeft,
       elementY: this.element.scrollTop
-    }
-
-    sessionStorage.setItem(this.keyValue, JSON.stringify(scrollData))
-  }
-
-  // Throttle function to limit how often we save scroll position
-  throttle(func, wait) {
-    let timeout
-    return function executedFunction(...args) {
-      const later = () => {
-        clearTimeout(timeout)
-        func(...args)
-      }
-      clearTimeout(timeout)
-      timeout = setTimeout(later, wait)
-    }
+    }))
   }
 
   restoreScroll() {
-    const savedData = sessionStorage.getItem(this.keyValue)
-    
-    if (savedData) {
-      try {
-        const scrollData = JSON.parse(savedData)
-        
-        // Restore after a short delay to ensure content is rendered
-        requestAnimationFrame(() => {
-          // Restore window scroll
-          window.scrollTo(scrollData.x, scrollData.y)
-          
-          // Restore element scroll
-          this.element.scrollLeft = scrollData.elementX
-          this.element.scrollTop = scrollData.elementY
-        })
-      } catch (e) {
-        console.error('Failed to restore scroll position:', e)
-      }
+    const saved = sessionStorage.getItem(this.keyValue)
+    if (!saved) return
+
+    try {
+      const { elementX, elementY } = JSON.parse(saved)
+      this.element.scrollLeft = elementX
+      this.element.scrollTop = elementY
+    } catch (e) {
+      console.error('Failed to restore scroll position:', e)
+    }
+  }
+
+  debounce(func, wait) {
+    let timeout
+    return function (...args) {
+      clearTimeout(timeout)
+      timeout = setTimeout(() => func(...args), wait)
     }
   }
 }
