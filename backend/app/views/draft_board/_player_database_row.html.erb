@@ -7,7 +7,22 @@
       data-controller="player-interest"
       data-action="click->player-interest#toggle"
     <% end %>>
-  <td><%= render partial: "players/player_name", locals: { player: player } %></td>
+  <td>
+    <% if player.is_drafted %>
+      <strong><%= player.name %></strong>
+    <% else %>
+      <a href="#"
+         data-action="click->draft-modal#open"
+         data-player-id="<%= player.id %>"
+         data-player-name="<%= player.name %>"
+         data-player-positions="<%= player.positions %>"
+         data-player-mlb-team="<%= player.mlb_team %>"
+         data-player-value="<%= player.calculated_value&.round || '?' %>"
+         class="player-link">
+        <strong><%= player.name %></strong>
+      </a>
+    <% end %>
+  </td>
   <td><%= player.positions %></td>
   <td><%= player.mlb_team %></td>
   <td><strong>$<%= player.calculated_value&.round || "?" %></strong></td>
@@ -24,23 +39,6 @@
       <%= form_with url: toggle_interested_player_path(player, league_id: league_id), method: :post,
                     data: { turbo: true, player_interest_target: "form" } do %>
       <% end %>
-      <div class="row-actions-container" data-controller="row-actions">
-        <button class="row-actions-button" data-action="click->row-actions#toggle">
-          ⋮
-        </button>
-        <div class="row-actions-menu" data-row-actions-target="menu">
-          <button
-            data-action="click->draft-modal#open"
-            data-player-id="<%= player.id %>"
-            data-player-name="<%= player.name %>"
-            data-player-positions="<%= player.positions %>"
-            data-player-mlb-team="<%= player.mlb_team %>"
-            data-player-value="<%= player.calculated_value&.round || '?' %>"
-          >
-            Draft
-          </button>
-        </div>
-      </div>
     <% end %>
   </td>
 </tr>
