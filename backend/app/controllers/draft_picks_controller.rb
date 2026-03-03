@@ -25,7 +25,7 @@ class DraftPicksController < ApplicationController
 
     if @draft_pick.save
       # Load data for Turbo Stream updates
-      @teams = @league.teams.order(:name)
+      @teams = @league.teams.includes(:draft_picks).order(:name)
       @draft_picks = @league.draft_picks.includes(:team, :player).order(:pick_number)
 
       # Apply same filters as draft_board to maintain user's view
@@ -92,7 +92,7 @@ class DraftPicksController < ApplicationController
     @draft_pick.destroy
 
     # Load data for Turbo Stream updates
-    @teams = @league.teams.order(:name)
+    @teams = @league.teams.includes(:draft_picks).order(:name)
     @draft_picks = @league.draft_picks.includes(:team, :player).order(:pick_number)
 
     # Apply same filters as draft_board to maintain user's view

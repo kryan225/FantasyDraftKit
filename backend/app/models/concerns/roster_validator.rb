@@ -43,7 +43,11 @@ module RosterValidator
   # @param position [String] The position to count
   # @return [Integer] Number of players drafted at this position
   def count_position_usage(position)
-    draft_picks.where(drafted_position: position).count
+    if draft_picks.loaded?
+      draft_picks.count { |dp| dp.drafted_position == position }
+    else
+      draft_picks.where(drafted_position: position).count
+    end
   end
 
   # Get roster status for all positions
