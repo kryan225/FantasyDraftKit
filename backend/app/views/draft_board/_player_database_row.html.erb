@@ -8,6 +8,12 @@
       data-action="click->player-interest#toggle"
     <% end %>>
   <td>
+    <% unless player.is_drafted %>
+      <%= form_with url: toggle_interested_player_path(player, league_id: league_id), method: :post,
+                    data: { turbo: true, player_interest_target: "form" },
+                    style: "display: none;" do %>
+      <% end %>
+    <% end %>
     <% if player.is_drafted %>
       <strong><%= player.name %></strong>
     <% else %>
@@ -34,11 +40,4 @@
     <% end %>
   </td>
   <%= render "players/stats_columns", player: player %>
-  <td>
-    <% unless player.is_drafted %>
-      <%= form_with url: toggle_interested_player_path(player, league_id: league_id), method: :post,
-                    data: { turbo: true, player_interest_target: "form" } do %>
-      <% end %>
-    <% end %>
-  </td>
 </tr>
