@@ -19,7 +19,8 @@ export default class extends BaseModalController {
     "priceInput",
     "teamSelect",
     "positionSelect",
-    "playerId"
+    "playerId",
+    "googleSearchLink"
   ]
 
   static values = {
@@ -51,6 +52,9 @@ export default class extends BaseModalController {
     this.playerTeamTarget.textContent = playerMlbTeam
     this.playerValueTarget.textContent = `$${playerValue}`
     this.playerIdTarget.value = playerId
+
+    // Update Google search link with player name
+    this.googleSearchLinkTarget.href = `https://www.google.com/search?q=${encodeURIComponent(playerName || '')}`
 
     // Pre-fill price with calculated value
     if (playerValue && playerValue !== "?") {
