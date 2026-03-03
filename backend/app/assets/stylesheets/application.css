@@ -189,6 +189,15 @@ tr.player-row-interested:hover {
   background: #fef3c7;
 }
 
+tr.player-row-priority {
+  background: #eff6ff;
+  border-left: 3px solid var(--primary-color);
+}
+
+tr.player-row-priority:hover {
+  background: #dbeafe;
+}
+
 /* Forms */
 .form-group {
   margin-bottom: 1rem;

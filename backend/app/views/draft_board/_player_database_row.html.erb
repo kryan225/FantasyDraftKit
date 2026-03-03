@@ -2,7 +2,7 @@
     For non-drafted players, the entire row is clickable to toggle interest.
 %>
 <tr id="player-row-<%= player.id %>"
-    class="<%= 'player-row-interested' if player.interested %>"
+    class="<%= 'player-row-interested' if player.interested? %> <%= 'player-row-priority' if player.priority? %>"
     <% unless player.is_drafted %>
       data-controller="player-interest"
       data-action="click->player-interest#toggle"

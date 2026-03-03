@@ -80,7 +80,7 @@ class PlayerFilterService
   def filter_by_interested(players)
     return players unless params[:interested] == "true"
 
-    players.interested
+    players.with_any_interest
   end
 
   def filter_by_multi_position(players)

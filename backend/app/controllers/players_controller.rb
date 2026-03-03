@@ -28,7 +28,7 @@ class PlayersController < ApplicationController
   end
 
   def toggle_interested
-    @player.toggle_interested!
+    @player.cycle_interest!
     league_id = params[:league_id]
 
     respond_to do |format|
@@ -39,7 +39,7 @@ class PlayersController < ApplicationController
           locals: { player: @player, league_id: league_id }
         )
       end
-      format.json { render json: { interested: @player.interested } }
+      format.json { render json: { interest_level: @player.interest_level } }
     end
   end
 
