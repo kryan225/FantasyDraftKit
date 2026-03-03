@@ -3,7 +3,7 @@
 
 ## CRITICAL: Non-Standard Port Requirements
 
-⚠️ **EXTREMELY IMPORTANT** ⚠️
+**CRITICALLY IMPORTANT**
 
 This project MUST use non-standard ports to avoid interfering with the developer's professional work projects. This is a hard requirement and violating it could disrupt active work environments.
 
@@ -65,16 +65,16 @@ lsof -i :3639  # Rails app - should be empty or show ruby
 
 ---
 
-## 📊 Project Status
+## Project Status
 
 **Last Updated:** 2026-02-13
 **Current Phase:** Full-Stack Application - Production Ready with Comprehensive Testing
 
 
-### In Progress 🚧
+### In Progress
 - None currently
 
-### Pending ⏳
+### Pending
 - Feature: Add Stimulus controllers for enhanced interactivity (drag-drop, live updates)
 - Feature: Implement player value calculation algorithm
 - Feature: Implement category analysis aggregation
@@ -85,13 +85,13 @@ lsof -i :3639  # Rails app - should be empty or show ruby
 - Testing: Add system tests for full draft workflow
 - Enhancement: Add more ConfirmationModal options (icons, colors, custom buttons)
 
-### Known Issues 🐛
+### Known Issues
 - Value recalculation and category analysis have placeholder implementations (TODOs marked)
 - League creation form not yet implemented (only index and show views exist)
 - Pre-existing auto-generated request spec stubs need implementation (23 failures in scaffold specs)
 - Jest test files exist but can't run without npm (kept as documentation)
 
-### Recent Decisions 🎯
+### Recent Decisions
 - **2026-02-13:** Allowed pitchers to play UTIL position
   - Rationale: League rules permit any player (including SP/RP) in UTIL slot
   - Updated Ruby concern, JavaScript utility, and value calculator (all three eligibility implementations)
@@ -177,7 +177,7 @@ lsof -i :3639  # Rails app - should be empty or show ruby
   - Better UX: styled modals with clear messaging instead of browser alerts
   - Reusable across entire application for any confirmation needs
 
-### Next Steps →
+### Next Steps
 1. ✅ ~~Test the web UI at http://localhost:3639/~~ - Working and fully functional
 2. ✅ ~~Create leagues and teams through the web interface~~ - Implemented with seed data
 3. ✅ ~~Import player projections via CSV upload~~ - Data Control page with CSV import
