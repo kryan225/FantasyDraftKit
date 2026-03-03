@@ -130,6 +130,9 @@ export default class extends Controller {
    * Only closes if there are no errors displayed
    */
   handleSubmitEnd(event) {
+    // Only handle submissions from forms inside this modal
+    if (!this.modalTarget.contains(event.target)) return
+
     const { success, fetchResponse } = event.detail
 
     // Wait for turbo streams to render before checking for errors
