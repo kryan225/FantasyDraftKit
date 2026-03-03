@@ -154,6 +154,10 @@ export default class extends BaseModalController {
       }
     }
 
+    // Immediately hide the player's row so the table doesn't visibly reset
+    const playerRow = document.getElementById(`player-row-${this.playerIdTarget.value}`)
+    if (playerRow) playerRow.style.display = 'none'
+
     // Set loading state on submit button
     const submitButton = event.target.querySelector('button[type="submit"]')
     this.setSubmitLoading(submitButton, "Drafting...")

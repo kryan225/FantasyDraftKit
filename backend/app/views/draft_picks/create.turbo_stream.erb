@@ -3,9 +3,10 @@
 <%= render "draft_board/update_board",
   draft_picks: @draft_picks,
   teams: @teams,
-  players: @players,
-  league_id: @league.id,
   clear_errors: true
 %>
+
+<%# Remove the drafted player's row directly — avoids re-rendering the entire table %>
+<%= turbo_stream.remove "player-row-#{@draft_pick.player_id}" %>
 
 <%# Modal will be automatically closed by BaseModalController's turbo:submit-end listener %>

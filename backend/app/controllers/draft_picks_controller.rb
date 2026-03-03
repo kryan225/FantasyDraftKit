@@ -28,9 +28,6 @@ class DraftPicksController < ApplicationController
       @teams = @league.teams.includes(:draft_picks).order(:name)
       @draft_picks = @league.draft_picks.includes(:team, :player).order(:pick_number)
 
-      # Apply same filters as draft_board to maintain user's view
-      @players = filtered_players
-
       respond_to do |format|
         format.turbo_stream
         format.html { redirect_to draft_board_path, notice: "Player drafted successfully!" }
