@@ -1,4 +1,12 @@
-<tr id="player-row-<%= player.id %>">
+<%# Player database table row
+    For non-drafted players, the entire row is clickable to toggle interest.
+%>
+<tr id="player-row-<%= player.id %>"
+    class="<%= 'player-row-interested' if player.interested %>"
+    <% unless player.is_drafted %>
+      data-controller="player-interest"
+      data-action="click->player-interest#toggle"
+    <% end %>>
   <td><%= render partial: "players/player_name", locals: { player: player } %></td>
   <td><%= player.positions %></td>
   <td><%= player.mlb_team %></td>
@@ -13,6 +21,9 @@
   <%= render "players/stats_columns", player: player %>
   <td>
     <% unless player.is_drafted %>
+      <%= form_with url: toggle_interested_player_path(player, league_id: league_id), method: :post,
+                    data: { turbo: true, player_interest_target: "form" } do %>
+      <% end %>
       <div class="row-actions-container" data-controller="row-actions">
         <button class="row-actions-button" data-action="click->row-actions#toggle">
           ⋮
@@ -28,15 +39,6 @@
           >
             Draft
           </button>
-          <%= form_with url: toggle_interested_player_path(player, league_id: league_id), method: :post, data: { turbo: true } do |f| %>
-            <button type="submit">
-              <% if player.interested %>
-                Remove Interest
-              <% else %>
-                Mark as Interested
-              <% end %>
-            </button>
-          <% end %>
         </div>
       </div>
     <% end %>

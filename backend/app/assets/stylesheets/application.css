@@ -176,6 +176,19 @@ tr:hover {
   background: var(--bg-color);
 }
 
+tr[data-controller~="player-interest"] {
+  cursor: pointer;
+}
+
+tr.player-row-interested {
+  background: #fffbeb;
+  border-left: 3px solid var(--warning-color);
+}
+
+tr.player-row-interested:hover {
+  background: #fef3c7;
+}
+
 /* Forms */
 .form-group {
   margin-bottom: 1rem;
