@@ -160,6 +160,15 @@ export default class extends BaseModalController {
   }
 
   /**
+   * Reload after saving player edits so the updated data appears in all tables.
+   * The server returns only a minimal Turbo Stream (clears error div), so a reload
+   * is needed to reflect changes across the page.
+   */
+  onSuccessfulSubmit() {
+    window.location.reload()
+  }
+
+  /**
    * Show validation error using confirmation modal
    * @param {string} message - Error message to display
    */

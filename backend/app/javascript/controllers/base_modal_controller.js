@@ -142,11 +142,10 @@ export default class extends Controller {
       const errorDiv = document.getElementById('edit-player-error')
       const hasError = errorDiv && errorDiv.innerHTML.trim().length > 0
 
-      // Close modal and reload page on successful submission WITHOUT errors
+      // Close modal on successful submission WITHOUT errors
       if (success && fetchResponse && fetchResponse.succeeded && !hasError) {
         this.close()
-        // Reload page to show updated data
-        window.location.reload()
+        this.onSuccessfulSubmit()
       }
 
       // Re-enable submit button on error or validation failure
@@ -162,6 +161,13 @@ export default class extends Controller {
       }
     }, 100)
   }
+
+  /**
+   * Hook called after a successful form submission.
+   * Override in child classes to perform post-success actions (e.g., page reload).
+   * Default is a no-op — Turbo Streams handle all necessary updates.
+   */
+  onSuccessfulSubmit() {}
 
   /**
    * Helper method to disable submit button and show loading state
