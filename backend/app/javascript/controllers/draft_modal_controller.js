@@ -16,6 +16,7 @@ export default class extends BaseModalController {
     "playerPosition",
     "playerTeam",
     "playerValue",
+    "playerNotes",
     "priceInput",
     "teamSelect",
     "positionSelect",
@@ -45,6 +46,7 @@ export default class extends BaseModalController {
     const playerPositions = button.dataset.playerPositions
     const playerMlbTeam = button.dataset.playerMlbTeam
     const playerValue = button.dataset.playerValue
+    const playerNotes = button.dataset.playerNotes
 
     // Populate modal with player data
     this.playerNameTarget.textContent = playerName
@@ -52,6 +54,7 @@ export default class extends BaseModalController {
     this.playerTeamTarget.textContent = playerMlbTeam
     this.playerValueTarget.textContent = `$${playerValue}`
     this.playerIdTarget.value = playerId
+    this.playerNotesTarget.value = playerNotes || ""
 
     // Update Google search link with player name
     this.googleSearchLinkTarget.href = `https://www.google.com/search?q=${encodeURIComponent(playerName || '')}`
@@ -169,6 +172,29 @@ export default class extends BaseModalController {
    * Show validation error using confirmation modal
    * @param {string} message - Error message to display
    */
+  /**
+   * Save notes to the player record via PATCH
+   */
+  saveNotes() {
+    const playerId = this.playerIdTarget.value
+    const notes = this.playerNotesTarget.value
+    const csrfToken = document.querySelector('meta[name="csrf-token"]')?.content
+
+    fetch(`/players/${playerId}`, {
+      method: "PATCH",
+      headers: {
+        "Content-Type": "application/json",
+        "X-CSRF-Token": csrfToken,
+        "Accept": "application/json"
+      },
+      body: JSON.stringify({ player: { notes } })
+    })
+
+    // Update the data attribute on the row so re-opening reflects the change
+    const row = document.querySelector(`[data-player-id="${playerId}"]`)
+    if (row) row.dataset.playerNotes = notes
+  }
+
   async showValidationError(message) {
     const confirmationModal = this.application.getControllerForElementAndIdentifier(
       document.querySelector("[data-controller='confirmation-modal']"),

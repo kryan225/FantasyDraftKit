@@ -19,6 +19,7 @@ export default class extends BaseModalController {
     "playerTeam",
     "playerPrice",
     "playerDraftedPosition",
+    "playerNotes",
     "priceField",
     "positionField",
     "googleSearchLink",
@@ -45,6 +46,7 @@ export default class extends BaseModalController {
     const playerTeamId = link.dataset.playerTeamId
     const playerPrice = link.dataset.playerPrice
     const playerDraftedPosition = link.dataset.playerDraftedPosition
+    const playerNotes = link.dataset.playerNotes
 
     // Update form action URL to target this specific player
     this.formTarget.action = `/players/${playerId}`
@@ -71,6 +73,7 @@ export default class extends BaseModalController {
     }
 
     this.playerDraftedPositionTarget.value = playerDraftedPosition || ''
+    this.playerNotesTarget.value = playerNotes || ''
 
     // Show/hide position field based on team selection
     this.onTeamChange()

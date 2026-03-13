@@ -52,7 +52,7 @@ class PlayersController < ApplicationController
   end
 
   def player_params
-    params.require(:player).permit(:name, :positions, :mlb_team, :calculated_value, :team_id, :price, :drafted_position)
+    params.require(:player).permit(:name, :positions, :mlb_team, :calculated_value, :team_id, :price, :drafted_position, :notes)
   end
 
   # Handle team ownership change via proper draft/drop workflow
