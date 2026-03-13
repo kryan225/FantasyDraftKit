@@ -175,6 +175,7 @@ ActiveRecord::Base.transaction do
         merged = (player.projections || {}).merge(pd[:projections])
         merged_positions = (player.positions.to_s.split(",") | pd[:positions].split(",")).join(",")
         player.update_columns(projections: merged, positions: merged_positions)
+        puts "    MERGED: #{pd[:name]} (#{pd[:mlb_team]})"
         players_updated += 1
       else
         player = Player.create!(

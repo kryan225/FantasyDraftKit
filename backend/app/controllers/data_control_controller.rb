@@ -25,20 +25,28 @@ class DataControlController < ApplicationController
     begin
       imported_count = 0
       merged_count = 0
+      merged_names = []
+      csv_type = nil # :hitter or :pitcher, auto-detected from header row
 
       CSV.foreach(file.path, headers: false, encoding: 'UTF-8') do |row|
-        # Skip header rows
-        next if row[0]&.include?("All Players") || row[0] == "Avail"
+        first_cell = row[0]&.strip
+
+        # Skip title rows (e.g. "All Players - Batters")
+        next if first_cell&.include?("All Players")
+
+        # Detect CSV type from header row
+        if first_cell == "Avail"
+          csv_type = row[2]&.strip == "AB" ? :hitter : :pitcher
+          next
+        end
+
         next if row[1].nil? || row[1].strip.empty?
 
         player_name, positions, mlb_team = parse_player_info(row[1])
         next unless player_name && positions && mlb_team
 
-        # Determine if this is a pitcher or hitter based on positions
-        is_pitcher = positions.split(',').any? { |pos| ['SP', 'RP'].include?(pos) }
-
-        # Parse stats based on player type (must happen before duplicate check for merging)
-        projections = if is_pitcher
+        # Parse stats based on CSV type (not player positions)
+        projections = if csv_type == :pitcher
                         parse_pitcher_stats(row)
                       else
                         parse_hitter_stats(row)
@@ -50,6 +58,8 @@ class DataControlController < ApplicationController
           merged_projections = (existing_player.projections || {}).merge(projections)
           merged_positions = (existing_player.positions.to_s.split(',') | positions.split(',')).join(',')
           existing_player.update!(projections: merged_projections, positions: merged_positions)
+          merged_names << player_name
+          Rails.logger.info "  MERGED: #{player_name} (#{mlb_team})"
           merged_count += 1
           next
         end
@@ -67,7 +77,7 @@ class DataControlController < ApplicationController
       end
 
       message = "Successfully imported #{imported_count} new players."
-      message += " Merged #{merged_count} existing players." if merged_count > 0
+      message += " Merged #{merged_count} existing players: #{merged_names.join(', ')}." if merged_names.any?
       redirect_to league_data_control_path(@league), notice: message
     rescue CSV::MalformedCSVError => e
       redirect_to league_data_control_path(@league), alert: "Error parsing CSV file: #{e.message}"
