@@ -13,6 +13,7 @@ class DraftPick < ApplicationRecord
   validates :drafted_position, presence: true
   validate :player_eligible_for_drafted_position
   validate :team_has_available_roster_slot
+  validate :team_has_only_one_topper
 
   # Callbacks
   after_create :mark_player_as_drafted
@@ -55,6 +56,18 @@ class DraftPick < ApplicationRecord
     unless player_eligible_for_position?(player, drafted_position)
       eligible_positions = eligible_positions_for(player)
       errors.add(:drafted_position, "Player #{player.name} is not eligible for #{drafted_position}. Eligible positions: #{eligible_positions.join(', ')}")
+    end
+  end
+
+  # Custom validation to ensure only one topper per team per league
+  def team_has_only_one_topper
+    return unless is_topped && team.present? && league.present?
+
+    existing_topper = DraftPick.where(team: team, league: league, is_topped: true)
+    existing_topper = existing_topper.where.not(id: id) if persisted?
+
+    if existing_topper.exists?
+      errors.add(:is_topped, "#{team.name} already has a topper in this league")
     end
   end
 

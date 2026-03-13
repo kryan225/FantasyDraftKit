@@ -21,7 +21,8 @@ export default class extends BaseModalController {
     "teamSelect",
     "positionSelect",
     "playerId",
-    "googleSearchLink"
+    "googleSearchLink",
+    "toppedCheckbox"
   ]
 
   static values = {
@@ -56,8 +57,8 @@ export default class extends BaseModalController {
     this.playerIdTarget.value = playerId
     this.playerNotesTarget.value = playerNotes || ""
 
-    // Update Google search link with player name
-    this.googleSearchLinkTarget.href = `https://www.google.com/search?q=${encodeURIComponent(playerName || '')}`
+    // Update Google search link with player name + cbs fantasy
+    this.googleSearchLinkTarget.href = `https://www.google.com/search?q=${encodeURIComponent((playerName || '') + ' cbs fantasy')}`
 
     // Pre-fill price with calculated value
     if (playerValue && playerValue !== "?") {
@@ -68,6 +69,9 @@ export default class extends BaseModalController {
 
     // Populate position options based on player's positions
     this.populatePositionOptions(playerPositions)
+
+    // Reset topped checkbox
+    this.toppedCheckboxTarget.checked = false
 
     // Call parent's open method to show modal
     super.open()

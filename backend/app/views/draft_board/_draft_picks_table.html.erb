@@ -20,6 +20,9 @@
       <% else %>
         <span class="badge badge-success">Draft</span>
       <% end %>
+      <% if pick.is_topped %>
+        <span class="badge badge-warning">Topped</span>
+      <% end %>
     </td>
   </tr>
 <% end %>

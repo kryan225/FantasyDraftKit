@@ -14,6 +14,7 @@
   data-player-price="<%= draft_pick&.price || 1 %>"
   data-player-drafted-position="<%= draft_pick&.drafted_position || '' %>"
   data-player-notes="<%= player.notes %>"
+  data-player-is-topped="<%= draft_pick&.is_topped ? '1' : '0' %>"
   class="player-link"
 >
   <strong><%= player.name %></strong>

@@ -19,7 +19,7 @@ class TeamsController < ApplicationController
     teams = league.teams.includes(draft_picks: :player).order(:name)
 
     csv_data = CSV.generate do |csv|
-      csv << ["Team", "Player", "Position", "Price"]
+      csv << ["Team", "Player", "Position", "Price", "Topped"]
 
       teams.each do |team|
         picks = team.draft_picks.sort_by(&:pick_number)
@@ -28,7 +28,8 @@ class TeamsController < ApplicationController
             team.name,
             pick.player.name,
             pick.player.positions,
-            pick.price
+            pick.price,
+            pick.is_topped ? "Yes" : "No"
           ]
         end
       end

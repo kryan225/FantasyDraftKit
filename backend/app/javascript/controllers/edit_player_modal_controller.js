@@ -20,6 +20,8 @@ export default class extends BaseModalController {
     "playerPrice",
     "playerDraftedPosition",
     "playerNotes",
+    "toppedCheckbox",
+    "toppedField",
     "priceField",
     "positionField",
     "googleSearchLink",
@@ -47,6 +49,7 @@ export default class extends BaseModalController {
     const playerPrice = link.dataset.playerPrice
     const playerDraftedPosition = link.dataset.playerDraftedPosition
     const playerNotes = link.dataset.playerNotes
+    const playerIsTopped = link.dataset.playerIsTopped
 
     // Update form action URL to target this specific player
     this.formTarget.action = `/players/${playerId}`
@@ -56,8 +59,8 @@ export default class extends BaseModalController {
     this.playerPositionsTarget.value = playerPositions || ''
     this.playerTeamTarget.value = playerTeamId || ''
 
-    // Update Google search link with player name
-    const searchQuery = encodeURIComponent(playerName || '')
+    // Update Google search link with player name + cbs fantasy
+    const searchQuery = encodeURIComponent((playerName || '') + ' cbs fantasy')
     this.googleSearchLinkTarget.href = `https://www.google.com/search?q=${searchQuery}`
 
     // Set price field - "N/A" for undrafted, actual price for drafted
@@ -74,6 +77,7 @@ export default class extends BaseModalController {
 
     this.playerDraftedPositionTarget.value = playerDraftedPosition || ''
     this.playerNotesTarget.value = playerNotes || ''
+    this.toppedCheckboxTarget.checked = playerIsTopped === '1'
 
     // Show/hide position field based on team selection
     this.onTeamChange()
@@ -99,6 +103,7 @@ export default class extends BaseModalController {
         this.playerPriceTarget.value = '1'
       }
       this.positionFieldTarget.style.display = 'block'
+      this.toppedFieldTarget.style.display = 'block'
 
       // Show team link and update href
       this.teamLinkTarget.style.display = 'inline'
@@ -109,6 +114,8 @@ export default class extends BaseModalController {
       this.playerPriceTarget.readOnly = true
       this.playerPriceTarget.value = 'N/A'
       this.positionFieldTarget.style.display = 'none'
+      this.toppedFieldTarget.style.display = 'none'
+      this.toppedCheckboxTarget.checked = false
 
       // Hide team link
       this.teamLinkTarget.style.display = 'none'

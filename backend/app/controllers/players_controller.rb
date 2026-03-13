@@ -52,7 +52,7 @@ class PlayersController < ApplicationController
   end
 
   def player_params
-    params.require(:player).permit(:name, :positions, :mlb_team, :calculated_value, :team_id, :price, :drafted_position, :notes)
+    params.require(:player).permit(:name, :positions, :mlb_team, :calculated_value, :team_id, :price, :drafted_position, :is_topped, :notes)
   end
 
   # Handle team ownership change via proper draft/drop workflow
@@ -79,6 +79,7 @@ class PlayersController < ApplicationController
         player: @player,
         price: price,
         drafted_position: drafted_position,
+        is_topped: params[:player][:is_topped] == "1",
         pick_number: current_league.draft_picks.maximum(:pick_number).to_i + 1
       )
 
@@ -118,7 +119,15 @@ class PlayersController < ApplicationController
 
   # Handle regular player attribute updates (not team-related)
   def handle_regular_update
-    if @player.update(player_params.except(:team_id, :price, :drafted_position))
+    # Update is_topped on the existing draft pick if player is drafted
+    if params[:player].key?(:is_topped) && @player.team_id.present?
+      existing_pick = DraftPick.find_by(player_id: @player.id, league_id: current_league.id)
+      if existing_pick
+        existing_pick.update!(is_topped: params[:player][:is_topped] == "1")
+      end
+    end
+
+    if @player.update(player_params.except(:team_id, :price, :drafted_position, :is_topped))
       render_successful_update
     else
       respond_to do |format|

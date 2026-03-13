@@ -35,9 +35,13 @@
               ["Second Base (2B)", "2B"],
               ["Third Base (3B)", "3B"],
               ["Shortstop (SS)", "SS"],
+              ["Corner Infield (CI)", "CI"],
+              ["Middle Infield (MI)", "MI"],
               ["Outfield (OF)", "OF"],
+              ["Utility (UTIL)", "UTIL"],
               ["Starting Pitcher (SP)", "SP"],
-              ["Relief Pitcher (RP)", "RP"]
+              ["Relief Pitcher (RP)", "RP"],
+              ["Pitcher (P)", "P"]
             ], params[:position]), {}, { class: "form-control", onchange: "this.form.requestSubmit()" } %>
           </div>
 
@@ -184,6 +188,7 @@
               <input type="hidden" name="draft_pick[player_id]" data-draft-modal-target="playerId">
               <input type="hidden" name="draft_pick[league_id]" value="<%= @league.id %>">
               <input type="hidden" name="draft_pick[is_keeper]" value="false">
+              <input type="hidden" name="draft_pick[is_topped]" value="0">
 
               <!-- Pass filter parameters to maintain them after draft -->
               <%= hidden_field_tag :search, params[:search] %>
@@ -236,6 +241,16 @@
                   max="<%= @league.auction_budget %>"
                   required
                 >
+              </div>
+
+              <div class="form-group">
+                <label>
+                  <input type="checkbox" name="draft_pick[is_topped]" value="1" data-draft-modal-target="toppedCheckbox">
+                  Topped
+                </label>
+                <small class="text-muted">
+                  This team used their topper rights on this player
+                </small>
               </div>
 
               <div class="modal-footer">

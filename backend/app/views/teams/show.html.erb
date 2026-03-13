@@ -110,7 +110,12 @@
                       <br>
                       <small class="text-muted"><%= pick.player.positions %> - <%= pick.player.mlb_team %></small>
                     </td>
-                    <td><strong>$<%= pick.price %></strong></td>
+                    <td>
+                      <strong>$<%= pick.price %></strong>
+                      <% if pick.is_topped %>
+                        <span class="badge badge-warning">Topped</span>
+                      <% end %>
+                    </td>
                     <%= render "players/stats_columns", player: pick.player %>
                   <% else %>
                     <td colspan="14" class="text-muted">

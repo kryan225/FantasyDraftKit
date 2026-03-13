@@ -110,7 +110,7 @@ class DraftPicksController < ApplicationController
   end
 
   def draft_pick_params
-    params.require(:draft_pick).permit(:team_id, :player_id, :price, :is_keeper, :pick_number, :drafted_position)
+    params.require(:draft_pick).permit(:team_id, :player_id, :price, :is_keeper, :is_topped, :pick_number, :drafted_position)
   end
 
   def filtered_players

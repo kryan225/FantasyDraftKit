@@ -6,6 +6,7 @@
   </script>
   <head>
     <title>Fantasy Baseball Draft Kit</title>
+    <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>&#x26be;</text></svg>">
     <meta name="viewport" content="width=device-width,initial-scale=1">
     <%= csrf_meta_tags %>
     <%= csp_meta_tag %>
@@ -175,6 +176,17 @@
               </select>
               <small class="text-muted">
                 Position on the roster for this player
+              </small>
+            </div>
+
+            <div class="form-group" data-edit-player-modal-target="toppedField" style="display: none;">
+              <label>
+                <input type="hidden" name="player[is_topped]" value="0">
+                <input type="checkbox" name="player[is_topped]" value="1" data-edit-player-modal-target="toppedCheckbox">
+                Topped
+              </label>
+              <small class="text-muted">
+                This team used their topper rights on this player
               </small>
             </div>
 

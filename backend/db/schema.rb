@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema[8.1].define(version: 2026_03_13_025613) do
+ActiveRecord::Schema[8.1].define(version: 2026_03_13_233703) do
   # These are extensions that must be enabled in order to support this database
   enable_extension "pg_catalog.plpgsql"
 
@@ -18,6 +18,7 @@ ActiveRecord::Schema[8.1].define(version: 2026_03_13_025613) do
     t.datetime "created_at", null: false
     t.string "drafted_position"
     t.boolean "is_keeper"
+    t.boolean "is_topped", default: false, null: false
     t.bigint "league_id", null: false
     t.integer "pick_number"
     t.bigint "player_id", null: false
