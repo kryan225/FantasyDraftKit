@@ -67,6 +67,7 @@
           <th rowspan="2">Team</th>
           <th rowspan="2"><%= sort_link('total_points', 'Total Points', current_sort, current_direction, @league.id) %></th>
           <th colspan="6" style="text-align: center; background-color: #f0f8ff; border-bottom: 2px solid #4a90e2;">Batting</th>
+          <th rowspan="2" style="width: 3px; padding: 0; background-color: #333; border: none;"></th>
           <th colspan="6" style="text-align: center; background-color: #fff5f0; border-bottom: 2px solid #e2994a;">Pitching</th>
         </tr>
         <tr>
@@ -124,6 +125,7 @@
               <span style="font-size: 0.9em; opacity: 0.8;"><% if stats[:batting_average] > 0 %>(#<%= ranks[:batting_average] %>)<% end %></span>
             </td>
 
+            <td style="width: 3px; padding: 0; background-color: #333; border: none;"></td>
             <!-- Pitcher Stats with Ranks -->
             <td style="<%= heatmap_color(ranks[:wins], num_teams) %>">
               <%= stats[:wins].round(1) %>

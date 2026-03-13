@@ -120,8 +120,6 @@ nav a:hover {
 .draft-board-sidebar {
   width: 200px;
   flex-shrink: 0;
-  position: sticky;
-  top: 1rem;
 }
 
 .draft-board-main {
@@ -301,6 +299,11 @@ textarea:focus {
 /* Utilities */
 .text-muted {
   color: var(--text-secondary);
+}
+
+.text-highlight {
+  color: #f59e0b;
+  font-weight: 600;
 }
 
 .text-sm {
@@ -563,19 +566,6 @@ table thead th:first-child {
   z-index: 15; /* Higher than body cells to stay on top when scrolling both directions */
 }
 
-/* Sticky last column (Actions) */
-table thead th:last-child,
-table tbody td:last-child {
-  position: sticky;
-  right: 0;
-  z-index: 5;
-  background-color: var(--card-bg);
-  box-shadow: -2px 0 4px rgba(0, 0, 0, 0.1);
-}
-
-table thead th:last-child {
-  z-index: 15; /* Higher than body cells to stay on top when scrolling both directions */
-}
 
 /* Collapsible Sections */
 .collapsible-header {
@@ -661,6 +651,39 @@ table thead th:last-child {
 
 .team-list-item:last-child {
   margin-bottom: 0;
+}
+
+.team-list-item--blocked {
+  position: relative;
+  opacity: 0.5;
+  color: var(--text-secondary);
+  text-decoration: none;
+}
+
+.team-list-item--blocked:hover {
+  background: var(--bg-color);
+  color: var(--text-secondary);
+  border-color: var(--border-color);
+  opacity: 0.7;
+}
+
+.blocker-tooltip {
+  display: none;
+  position: absolute;
+  bottom: 100%;
+  left: 0;
+  background: #333;
+  color: #fff;
+  padding: 0.5rem 0.75rem;
+  border-radius: 4px;
+  font-size: 0.8em;
+  white-space: nowrap;
+  z-index: 100;
+  margin-bottom: 4px;
+}
+
+.team-list-item--blocked:hover .blocker-tooltip {
+  display: block;
 }
 
 /* Row Actions Menu */
@@ -873,4 +896,117 @@ tr.empty-slot td {
 .reason-tag-warn {
   background: #fef3c7;
   color: #92400e;
+}
+
+/* Spending Split Chart */
+.spending-split-chart {
+  display: flex;
+  flex-direction: column;
+  gap: 0.6rem;
+}
+
+.spending-row {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+}
+
+.spending-team-name {
+  width: 140px;
+  flex-shrink: 0;
+  font-size: 0.85rem;
+  font-weight: 500;
+  text-align: right;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.spending-team-name a {
+  color: var(--text-color);
+  text-decoration: none;
+}
+
+.spending-team-name a:hover {
+  color: var(--primary-color);
+}
+
+.spending-bar-container {
+  flex: 1;
+  display: flex;
+  height: 28px;
+  background: transparent;
+  border-radius: 4px;
+  overflow: hidden;
+}
+
+.spending-bar {
+  display: flex;
+  height: 100%;
+  border-radius: 4px 0 0 4px;
+  overflow: hidden;
+  transition: width 0.4s ease;
+}
+
+.spending-segment {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  height: 100%;
+  font-size: 0.7rem;
+  font-weight: 600;
+  color: white;
+  overflow: hidden;
+  white-space: nowrap;
+  transition: width 0.4s ease;
+}
+
+.spending-batting {
+  background: linear-gradient(135deg, #3b82f6, #2563eb);
+}
+
+.spending-pitching {
+  background: linear-gradient(135deg, #f97316, #ea580c);
+}
+
+.spending-remaining {
+  height: 100%;
+  background: var(--border-color);
+  opacity: 0.3;
+  border-radius: 0 4px 4px 0;
+}
+
+.spending-total {
+  width: 80px;
+  flex-shrink: 0;
+  font-size: 0.8rem;
+  color: var(--text-secondary);
+  text-align: left;
+  white-space: nowrap;
+}
+
+.spending-legend-swatch {
+  display: inline-block;
+  width: 14px;
+  height: 14px;
+  border-radius: 3px;
+  vertical-align: middle;
+}
+
+.spending-legend-swatch.spending-batting {
+  background: linear-gradient(135deg, #3b82f6, #2563eb);
+}
+
+.spending-legend-swatch.spending-pitching {
+  background: linear-gradient(135deg, #f97316, #ea580c);
+}
+
+.spending-remaining-swatch {
+  display: inline-block;
+  width: 14px;
+  height: 14px;
+  border-radius: 3px;
+  vertical-align: middle;
+  background: var(--border-color);
+  opacity: 0.3;
 }

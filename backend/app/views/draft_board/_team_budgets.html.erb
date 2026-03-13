@@ -1,16 +1,20 @@
-<% teams.each do |team| %>
+<% team_max_bids = teams.map do |team|
+  roster_status = team.roster_status
+  filled_slots = roster_status.values.sum { |v| v[:used] }
+  total_slots = roster_status.values.sum { |v| v[:total] }
+  remaining_spots = total_slots - filled_slots
+  max_bid = remaining_spots > 0 ? team.budget_remaining - (remaining_spots - 1) : team.budget_remaining
+  { team: team, filled_slots: filled_slots, total_slots: total_slots, max_bid: max_bid }
+end %>
+<% highest_max_bid = team_max_bids.map { |t| t[:max_bid] }.max %>
+<% team_max_bids.each do |data| %>
   <div class="team-budget-entry">
-    <strong><%= link_to team.name, team_path(team) %></strong>
+    <strong><%= link_to data[:team].name, team_path(data[:team]) %></strong>
     <br>
-    <span class="text-muted">$<%= team.budget_remaining %> remaining</span>
+    <span class="text-muted">$<%= data[:team].budget_remaining %> remaining</span>
     <br>
-    <% roster_status = team.roster_status %>
-    <% filled_slots = roster_status.values.sum { |v| v[:used] } %>
-    <% total_slots = roster_status.values.sum { |v| v[:total] } %>
-    <% remaining_spots = total_slots - filled_slots %>
-    <% max_bid = remaining_spots > 0 ? team.budget_remaining - (remaining_spots - 1) : team.budget_remaining %>
-    <small class="text-muted">Max bid: $<%= max_bid %></small>
+    <small class="<%= data[:max_bid] == highest_max_bid ? 'text-highlight' : 'text-muted' %>">Max bid: $<%= data[:max_bid] %></small>
     <br>
-    <small class="text-muted"><%= filled_slots %>/<%= total_slots %> roster spots</small>
+    <small class="text-muted"><%= data[:filled_slots] %>/<%= data[:total_slots] %> roster spots</small>
   </div>
 <% end %>
