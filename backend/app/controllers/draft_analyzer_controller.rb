@@ -16,6 +16,9 @@ class DraftAnalyzerController < ApplicationController
     # Calculate per-team position needs matrix
     @team_needs_matrix = calculate_team_needs_matrix
 
+    # Calculate spending split between batting and pitching
+    @spending_splits = calculate_spending_splits
+
     # Resolve selected team for nomination suggestions
     @my_team = @teams.find_by(id: params[:my_team]) if params[:my_team].present?
     @nomination_suggestions = @my_team ? calculate_nomination_suggestions : []
@@ -43,6 +46,12 @@ class DraftAnalyzerController < ApplicationController
 
       # Calculate which teams can still draft this position (one-level lookahead)
       teams_can_draft = @teams.select { |team| team_can_draft_position?(team, position) }
+      teams_cant_draft = @teams.reject { |team| team_can_draft_position?(team, position) }
+
+      # For teams that can't draft, find the players blocking the position
+      teams_cant_draft_with_blockers = teams_cant_draft.map do |team|
+        { team: team, blocking_players: blocking_players_for_position(team, position) }
+      end
 
       {
         position: position,
@@ -51,70 +60,73 @@ class DraftAnalyzerController < ApplicationController
         available_slots: available_slots,
         fill_percentage: fill_percentage,
         teams_can_draft: teams_can_draft,
-        teams_can_draft_count: teams_can_draft.count
+        teams_can_draft_count: teams_can_draft.count,
+        teams_cant_draft: teams_cant_draft_with_blockers
       }
     end.compact
   end
 
+  # Capacity-based check: can a team draft one more player at this position?
+  #
+  # 1. Determine which player positions can fill this roster slot (e.g., MI → 2B, SS)
+  # 2. Count all roster slots that accept any of those player positions
+  # 3. Count players on the team with any of those positions
+  # 4. If count < capacity, team has room
   def team_can_draft_position?(team, position)
     roster_config = @league.roster_config || {}
+    return false if team.draft_picks.count >= roster_config.values.sum
 
-    # CRITICAL: Check if team's entire roster is full first
-    total_roster_slots = roster_config.values.sum
-    total_filled = team.draft_picks.count
-    return false if total_filled >= total_roster_slots
+    player_positions = player_positions_for_slot(position)
+    capacity = roster_capacity_for(roster_config, player_positions)
+    eligible_count = count_eligible_players(team, player_positions)
 
-    max_slots = roster_config[position].to_i
+    eligible_count < capacity
+  end
 
-    # Count how many are currently at this position
-    filled_slots = team.draft_picks.where(drafted_position: position).count
+  # For teams that can't draft a position, list all players occupying competing slots.
+  # E.g., for C: show players at C slots AND UTIL slots (since UTIL can hold a C player).
+  def blocking_players_for_position(team, position)
+    player_positions = player_positions_for_slot(position)
 
-    # If under max, they have room
-    return true if filled_slots < max_slots
-
-    # Bidirectional lookahead: Check both directions for flexibility
-
-    # Direction 1: Can a flex player move TO this position (creating space at flex for new player)?
-    flex_positions = get_flex_positions_for(position)
-    flex_positions.each do |flex_pos|
-      # CRITICAL: Check if flex position has space for the new player
-      # For a swap to work, the new player needs somewhere to go (the flex position)
-      flex_max = roster_config[flex_pos].to_i
-      next if flex_max == 0 # Position not used in this league
-
-      flex_filled = team.draft_picks.where(drafted_position: flex_pos).count
-      next if flex_filled >= flex_max # No space at flex for new player
-
-      # Find players in flex position who are eligible for this position
-      moveable_players = team.draft_picks.where(drafted_position: flex_pos).select do |pick|
-        player_eligible_for_position?(pick.player, position)
-      end
-
-      return true if moveable_players.any?
+    # Find all roster slots that could hold a player eligible for this position
+    competing_slots = (@league.roster_config || {}).keys.select do |slot|
+      next false if slot == "BENCH"
+      slot_accepts = player_positions_for_slot(slot)
+      (slot_accepts & player_positions).any?
     end
 
-    # Direction 2: Can a player at this position move OUT to ANY other position with space?
-    current_players = team.draft_picks.where(drafted_position: position)
+    # Show all players sitting in those competing slots
+    team.draft_picks.includes(:player).select { |dp|
+      competing_slots.include?(dp.drafted_position)
+    }.map { |dp| "#{dp.player.name} (#{dp.drafted_position})" }
+  end
 
-    ALL_POSITIONS.each do |target_pos|
-      next if target_pos == position # Can't move to same position
-
-      # Check if target position has available slots
-      target_max = roster_config[target_pos].to_i
-      next if target_max == 0 # Position not used in this league
-
-      target_filled = team.draft_picks.where(drafted_position: target_pos).count
-      next if target_filled >= target_max # Target position is full
-
-      # Check if any current player at this position could move to the target position
-      moveable_players = current_players.select do |pick|
-        player_eligible_for_position?(pick.player, target_pos)
-      end
-
-      return true if moveable_players.any?
+  # Which real player positions can fill a given roster slot?
+  # MI is a slot, not a player position — players have 2B or SS.
+  def player_positions_for_slot(slot)
+    case slot
+    when "MI" then %w[2B SS]
+    when "CI" then %w[1B 3B]
+    when "UTIL" then %w[C 1B 2B 3B SS OF SP RP]
+    else [slot]
     end
+  end
 
-    false
+  # How many roster slots can hold players with any of the given positions?
+  def roster_capacity_for(roster_config, player_positions)
+    roster_config.sum do |slot, count|
+      next 0 if slot == "BENCH" || count.to_i == 0
+
+      slot_accepts = player_positions_for_slot(slot)
+      (slot_accepts & player_positions).any? ? count.to_i : 0
+    end
+  end
+
+  # Count players on a team who have any of the given positions.
+  def count_eligible_players(team, player_positions)
+    team.draft_picks.includes(:player).count do |pick|
+      (pick.player.positions.to_s.split(/[,\/]/).map(&:strip) & player_positions).any?
+    end
   end
 
   def calculate_nomination_suggestions
@@ -185,11 +197,11 @@ class DraftAnalyzerController < ApplicationController
     best
   end
 
-  # Returns roster positions (from the league config) this player is eligible for,
-  # excluding BENCH.
+  # Returns natural roster positions (from the league config) this player is eligible for,
+  # excluding BENCH and flex positions (UTIL, MI, CI) which aren't useful for nomination targeting.
   def eligible_roster_positions(player)
     roster_config = @league.roster_config || {}
-    roster_config.select { |pos, slots| slots.to_i > 0 && pos != "BENCH" }
+    roster_config.select { |pos, slots| slots.to_i > 0 && !%w[BENCH UTIL MI CI].include?(pos) }
                  .keys
                  .select { |pos| player_eligible_for_position?(player, pos) }
   end
@@ -197,7 +209,7 @@ class DraftAnalyzerController < ApplicationController
   def build_nomination_reasons(demand_count, opponent_count, position, fill_pct, my_team_needs)
     reasons = []
     reasons << "#{demand_count}/#{opponent_count} opponents need #{position}"
-    reasons << "#{fill_pct.round(0).to_i}% filled" if fill_pct >= 25
+    reasons << "#{fill_pct.round(0).to_i}% filled"
     if my_team_needs
       reasons << "you also need #{position}"
     else
@@ -243,6 +255,42 @@ class DraftAnalyzerController < ApplicationController
     end
 
     { positions: active_positions, teams: teams_data }
+  end
+
+  def calculate_spending_splits
+    pitcher_positions = %w[SP RP]
+    budget = @league.auction_budget
+
+    # Single query: { [team_id, drafted_position] => sum(price) }
+    spending = @league.draft_picks.group(:team_id, :drafted_position).sum(:price)
+
+    @teams.map do |team|
+      batting_spend = 0
+      pitching_spend = 0
+
+      spending.each do |(tid, pos), amount|
+        next unless tid == team.id
+        if pitcher_positions.include?(pos)
+          pitching_spend += amount
+        else
+          batting_spend += amount
+        end
+      end
+
+      total_spend = batting_spend + pitching_spend
+      batting_pct = total_spend > 0 ? (batting_spend.to_f / total_spend * 100).round(1) : 0
+      pitching_pct = total_spend > 0 ? (pitching_spend.to_f / total_spend * 100).round(1) : 0
+
+      {
+        team: team,
+        batting_spend: batting_spend,
+        pitching_spend: pitching_spend,
+        total_spend: total_spend,
+        remaining: budget - total_spend,
+        batting_pct: batting_pct,
+        pitching_pct: pitching_pct
+      }
+    end.sort_by { |s| -s[:total_spend] }
   end
 
 end

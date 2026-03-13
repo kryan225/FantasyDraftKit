@@ -27,6 +27,68 @@
   <% end %>
 </div>
 
+<!-- Spending Split -->
+<div class="card mb-3" data-controller="collapsible" data-collapsible-key="spendingSplitCollapsed">
+  <div class="collapsible-header" data-action="click->collapsible#toggle">
+    <h3 class="card-title">Spending Split: Batting vs Pitching</h3>
+    <button type="button" class="collapsible-toggle" data-collapsible-target="icon">▼</button>
+  </div>
+
+  <div class="collapsible-content" data-collapsible-target="content">
+    <p class="text-muted mb-3">
+      How each team is allocating their budget between batting and pitching.
+    </p>
+
+    <% max_spend = @spending_splits.map { |s| s[:total_spend] }.max.to_i %>
+    <% budget = @league.auction_budget %>
+
+    <div class="spending-split-chart">
+      <% @spending_splits.each do |data| %>
+        <div class="spending-row">
+          <div class="spending-team-name">
+            <%= link_to data[:team].name, team_path(data[:team]) %>
+          </div>
+          <div class="spending-bar-container">
+            <% bar_width = budget > 0 ? (data[:total_spend].to_f / budget * 100) : 0 %>
+            <div class="spending-bar" style="width: <%= bar_width %>%;">
+              <% if data[:batting_spend] > 0 %>
+                <div class="spending-segment spending-batting" style="width: <%= data[:batting_pct] %>%;"
+                     title="Batting: $<%= data[:batting_spend] %> (<%= data[:batting_pct] %>%)">
+                  <% if data[:batting_pct] >= 15 %>
+                    <span>$<%= data[:batting_spend] %></span>
+                  <% end %>
+                </div>
+              <% end %>
+              <% if data[:pitching_spend] > 0 %>
+                <div class="spending-segment spending-pitching" style="width: <%= data[:pitching_pct] %>%;"
+                     title="Pitching: $<%= data[:pitching_spend] %> (<%= data[:pitching_pct] %>%)">
+                  <% if data[:pitching_pct] >= 15 %>
+                    <span>$<%= data[:pitching_spend] %></span>
+                  <% end %>
+                </div>
+              <% end %>
+            </div>
+            <div class="spending-remaining" style="width: <%= 100 - bar_width %>%;"
+                 title="Remaining: $<%= data[:remaining] %>">
+            </div>
+          </div>
+          <div class="spending-total">
+            $<%= data[:total_spend] %>/<%= budget %>
+          </div>
+        </div>
+      <% end %>
+    </div>
+
+    <div class="mt-3 pt-3" style="border-top: 1px solid var(--border-color);">
+      <p class="text-sm text-muted">
+        <span class="spending-legend-swatch spending-batting"></span> Batting &nbsp;
+        <span class="spending-legend-swatch spending-pitching"></span> Pitching &nbsp;
+        <span class="spending-legend-swatch spending-remaining-swatch"></span> Remaining
+      </p>
+    </div>
+  </div>
+</div>
+
 <!-- Roster Fill Rate by Position -->
 <div data-controller="teams-can-draft-modal">
   <div class="card" data-controller="collapsible" data-collapsible-key="rosterFillRateCollapsed">
@@ -74,6 +136,7 @@
                   data-action="click->teams-can-draft-modal#show"
                   data-position="<%= data[:position] %>"
                   data-teams="<%= data[:teams_can_draft].map { |t| { id: t.id, name: t.name } }.to_json %>"
+                  data-teams-cant-draft="<%= data[:teams_cant_draft].map { |d| { id: d[:team].id, name: d[:team].name, blockers: d[:blocking_players] } }.to_json %>"
                 >
                   <%= data[:teams_can_draft_count] %> / <%= @teams.count %>
                 </button>
@@ -114,6 +177,11 @@
           These teams can draft this position either because they have an open slot, or they have a player in a flex position (UTIL/MI/CI) who can be moved to make room.
         </p>
         <div data-teams-can-draft-modal-target="teamsList"></div>
+
+        <div data-teams-can-draft-modal-target="cantDraftSection" style="display: none;">
+          <h4 style="margin-top: 1rem; margin-bottom: 0.5rem; color: #999; font-size: 0.9em;">Can't Draft</h4>
+          <div data-teams-can-draft-modal-target="cantDraftList"></div>
+        </div>
       </div>
 
       <div class="modal-footer">
@@ -226,7 +294,7 @@
               <tr>
                 <td><span class="nomination-rank"><%= index + 1 %></span></td>
                 <td><strong><%= suggestion[:player].name %></strong></td>
-                <td><%= suggestion[:target_position] %></td>
+                <td><%= suggestion[:player].positions %></td>
                 <td>$<%= suggestion[:player].calculated_value.to_i %></td>
                 <td>
                   <span class="badge <%= suggestion[:opponent_demand] >= 0.5 ? 'badge-warning' : 'badge-info' %>">
