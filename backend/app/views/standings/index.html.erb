@@ -71,12 +71,12 @@
         </tr>
         <tr>
           <!-- Hitter Categories -->
-          <th><%= sort_link('home_runs', 'HR', current_sort, current_direction, @league.id, '#f0f8ff') %></th>
+          <th><%= sort_link('at_bats', 'AB', current_sort, current_direction, @league.id, '#f0f8ff') %></th>
           <th><%= sort_link('runs', 'R', current_sort, current_direction, @league.id, '#f0f8ff') %></th>
+          <th><%= sort_link('home_runs', 'HR', current_sort, current_direction, @league.id, '#f0f8ff') %></th>
           <th><%= sort_link('rbi', 'RBI', current_sort, current_direction, @league.id, '#f0f8ff') %></th>
           <th><%= sort_link('stolen_bases', 'SB', current_sort, current_direction, @league.id, '#f0f8ff') %></th>
           <th><%= sort_link('batting_average', 'AVG', current_sort, current_direction, @league.id, '#f0f8ff') %></th>
-          <th><%= sort_link('at_bats', 'AB', current_sort, current_direction, @league.id, '#f0f8ff') %></th>
           <!-- Pitcher Categories -->
           <th><%= sort_link('wins', 'W', current_sort, current_direction, @league.id, '#fff5f0') %></th>
           <th><%= sort_link('saves', 'SV', current_sort, current_direction, @league.id, '#fff5f0') %></th>
@@ -99,13 +99,17 @@
             </td>
 
             <!-- Hitter Stats with Ranks -->
-            <td style="<%= heatmap_color(ranks[:home_runs], num_teams) %>">
-              <%= stats[:home_runs].round(1) %>
-              <span style="font-size: 0.9em; opacity: 0.8;">(#<%= ranks[:home_runs] %>)</span>
+            <td style="<%= heatmap_color(ranks[:at_bats], num_teams) %>">
+              <%= stats[:at_bats].round(0) %>
+              <span style="font-size: 0.9em; opacity: 0.8;">(#<%= ranks[:at_bats] %>)</span>
             </td>
             <td style="<%= heatmap_color(ranks[:runs], num_teams) %>">
               <%= stats[:runs].round(1) %>
               <span style="font-size: 0.9em; opacity: 0.8;">(#<%= ranks[:runs] %>)</span>
+            </td>
+            <td style="<%= heatmap_color(ranks[:home_runs], num_teams) %>">
+              <%= stats[:home_runs].round(1) %>
+              <span style="font-size: 0.9em; opacity: 0.8;">(#<%= ranks[:home_runs] %>)</span>
             </td>
             <td style="<%= heatmap_color(ranks[:rbi], num_teams) %>">
               <%= stats[:rbi].round(1) %>
@@ -118,10 +122,6 @@
             <td style="<%= heatmap_color(ranks[:batting_average], num_teams) %>">
               <%= stats[:batting_average] == 0.0 ? "-" : stats[:batting_average].round(3) %>
               <span style="font-size: 0.9em; opacity: 0.8;"><% if stats[:batting_average] > 0 %>(#<%= ranks[:batting_average] %>)<% end %></span>
-            </td>
-            <td style="<%= heatmap_color(ranks[:at_bats], num_teams) %>">
-              <%= stats[:at_bats].round(0) %>
-              <span style="font-size: 0.9em; opacity: 0.8;">(#<%= ranks[:at_bats] %>)</span>
             </td>
 
             <!-- Pitcher Stats with Ranks -->
