@@ -33,12 +33,14 @@
   <td><%= player.positions %></td>
   <td><%= player.mlb_team %></td>
   <td><strong>$<%= player.calculated_value&.round || "?" %></strong></td>
-  <td>
-    <% if player.is_drafted %>
-      <span class="badge badge-warning">Drafted</span>
-    <% else %>
-      <span class="badge badge-success">Available</span>
-    <% end %>
-  </td>
+  <% if defined?(show_status) && show_status %>
+    <td>
+      <% if player.is_drafted %>
+        <span class="badge badge-warning">Drafted</span>
+      <% else %>
+        <span class="badge badge-success">Available</span>
+      <% end %>
+    </td>
+  <% end %>
   <%= render "players/stats_columns", player: player %>
 </tr>

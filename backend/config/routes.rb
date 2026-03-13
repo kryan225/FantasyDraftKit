@@ -12,7 +12,7 @@ Rails.application.routes.draw do
     # Nested draft board route with explicit league_id
     get "draft_board", to: "draft_board#show", as: :league_draft_board
     get "draft_history", to: "draft_board#history", as: :league_draft_history
-    get "draft_analyzer", to: "draft_analyzer#show", as: :league_draft_analyzer
+    get "draft_analytics", to: "draft_analytics#show", as: :league_draft_analytics
     get "standings", to: "standings#index", as: :standings
 
     # Data control routes (scoped to league)
@@ -50,7 +50,7 @@ Rails.application.routes.draw do
   # Standalone draft board route (uses auto-resolution for single league)
   get "draft_board", to: "draft_board#show", as: :draft_board
   get "draft_history", to: "draft_board#history", as: :draft_history
-  get "draft_analyzer", to: "draft_analyzer#show", as: :draft_analyzer
+  get "draft_analytics", to: "draft_analytics#show", as: :draft_analytics
   get "standings", to: "standings#index", as: :standings
 
   # API routes

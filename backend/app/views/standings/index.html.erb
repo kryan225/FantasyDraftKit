@@ -23,34 +23,53 @@
 
     link_params = { sort: column, direction: direction }
 
-    style = bg_color ? "background-color: #{bg_color};" : ""
-    link_to "#{label}#{arrow}", league_standings_path(league_id, link_params), class: 'sort-link', style: style
+    css_class = case bg_color
+                when '#f0f8ff' then 'sort-link standings-batting-header'
+                when '#fff5f0' then 'sort-link standings-pitching-header'
+                else 'sort-link'
+                end
+    link_to "#{label}#{arrow}", league_standings_path(league_id, link_params), class: css_class
   end
 
   current_sort = params[:sort]
   current_direction = params[:direction]
 
   # Helper method to generate heatmap color based on rank
+  # Returns a CSS class name based on rank quintile for styling via CSS
   def heatmap_color(rank, num_teams)
-    return "background-color: #f5f5f5;" if rank.nil?  # Gray for missing values
+    return "background-color: #f5f5f5;" if rank.nil?
 
-    # Calculate percentage: 0% = best (rank 1), 100% = worst (rank = num_teams)
     percentage = (rank - 1).to_f / [num_teams - 1, 1].max
 
-    # Color gradient: Green (best) → Yellow (middle) → Red (worst)
+    # Light mode: bright Green → Yellow → Red gradient
     if percentage <= 0.5
-      # Green to Yellow
       r = (255 * (percentage * 2)).to_i
       g = 200
       b = 50
     else
-      # Yellow to Red
       r = 255
       g = (200 * (1 - (percentage - 0.5) * 2)).to_i
       b = 50
     end
 
-    "background-color: rgb(#{r}, #{g}, #{b}); color: #{percentage > 0.6 ? 'white' : 'black'};"
+    light_bg = "rgb(#{r}, #{g}, #{b})"
+    light_fg = percentage > 0.6 ? 'white' : 'black'
+
+    # Dark mode: muted/darker versions
+    if percentage <= 0.5
+      dr = (120 * (percentage * 2)).to_i
+      dg = 120
+      db = 30
+    else
+      dr = 160
+      dg = (100 * (1 - (percentage - 0.5) * 2)).to_i
+      db = 30
+    end
+
+    dark_bg = "rgb(#{dr}, #{dg}, #{db})"
+    dark_fg = '#e5e7eb'
+
+    "--heatmap-light-bg: #{light_bg}; --heatmap-light-fg: #{light_fg}; --heatmap-dark-bg: #{dark_bg}; --heatmap-dark-fg: #{dark_fg}; background-color: #{light_bg}; color: #{light_fg};"
   end
 
   num_teams = @team_stats.size
@@ -66,9 +85,9 @@
         <tr>
           <th rowspan="2">Team</th>
           <th rowspan="2"><%= sort_link('total_points', 'Total Points', current_sort, current_direction, @league.id) %></th>
-          <th colspan="6" style="text-align: center; background-color: #f0f8ff; border-bottom: 2px solid #4a90e2;">Batting</th>
-          <th rowspan="2" style="width: 3px; padding: 0; background-color: #333; border: none;"></th>
-          <th colspan="6" style="text-align: center; background-color: #fff5f0; border-bottom: 2px solid #e2994a;">Pitching</th>
+          <th colspan="6" class="standings-batting-group">Batting</th>
+          <th rowspan="2" class="standings-separator"></th>
+          <th colspan="6" class="standings-pitching-group">Pitching</th>
         </tr>
         <tr>
           <!-- Hitter Categories -->
@@ -125,7 +144,7 @@
               <span style="font-size: 0.9em; opacity: 0.8;"><% if stats[:batting_average] > 0 %>(#<%= ranks[:batting_average] %>)<% end %></span>
             </td>
 
-            <td style="width: 3px; padding: 0; background-color: #333; border: none;"></td>
+            <td class="standings-separator"></td>
             <!-- Pitcher Stats with Ranks -->
             <td style="<%= heatmap_color(ranks[:wins], num_teams) %>">
               <%= stats[:wins].round(1) %>
@@ -159,7 +178,7 @@
 
   <div class="mt-3 text-muted">
     <p><strong>Scoring:</strong> Rotisserie format with inverted scoring. Teams are ranked 1st through Nth in each of 10 categories. Points are awarded: 1st place = N points, 2nd place = (N-1) points, etc. Higher total points is better.</p>
-    <p><strong>Heatmap Visualization:</strong> Cell colors indicate rank performance - <span style="background-color: rgb(50, 200, 50); padding: 2px 8px; border-radius: 3px; color: white;">Green = Best</span> <span style="background-color: rgb(255, 200, 50); padding: 2px 8px; border-radius: 3px;">Yellow = Middle</span> <span style="background-color: rgb(255, 100, 50); padding: 2px 8px; border-radius: 3px; color: white;">Red = Worst</span></p>
+    <p><strong>Heatmap Visualization:</strong> Cell colors indicate rank performance - <span class="heatmap-legend heatmap-legend-best">Green = Best</span> <span class="heatmap-legend heatmap-legend-mid">Yellow = Middle</span> <span class="heatmap-legend heatmap-legend-worst">Red = Worst</span></p>
     <p><strong>Scored Categories (10):</strong></p>
     <ul>
       <li><strong>Hitters (5):</strong> HR (Home Runs), R (Runs), RBI (Runs Batted In), SB (Stolen Bases), AVG (Batting Average - weighted by AB)</li>

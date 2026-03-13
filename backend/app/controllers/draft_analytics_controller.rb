@@ -1,4 +1,4 @@
-class DraftAnalyzerController < ApplicationController
+class DraftAnalyticsController < ApplicationController
   include LeagueResolvable
   include PositionEligibility
 

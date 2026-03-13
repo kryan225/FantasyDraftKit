@@ -6,5 +6,5 @@
     - league_id: ID of the current league
 %>
 <% players.each do |player| %>
-  <%= render partial: "draft_board/player_database_row", locals: { player: player, league_id: league_id } %>
+  <%= render partial: "draft_board/player_database_row", locals: { player: player, league_id: league_id, show_status: local_assigns.fetch(:show_status, false) } %>
 <% end %>

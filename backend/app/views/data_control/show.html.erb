@@ -1,13 +1,35 @@
-<div class="mb-2">
-  <%= link_to "← Back to League", league_path(@league), class: "btn btn-sm" %>
-</div>
-
 <div class="page-header">
   <h1>Data Control</h1>
   <p class="subtitle">Manage player data and draft state for <%= @league.name %></p>
 </div>
 
 <div class="data-control-container">
+  <!-- Display Settings -->
+  <div class="control-section">
+    <h2>Display Settings</h2>
+    <p class="section-description">
+      Customize the application appearance. Settings are saved in your browser.
+    </p>
+
+    <div class="display-settings-grid">
+      <div class="display-setting" data-controller="dark-mode">
+        <div class="display-setting-label">Theme</div>
+        <button class="btn btn-sm" data-action="click->dark-mode#toggle" data-dark-mode-target="toggle">
+          Switch to Dark Mode
+        </button>
+      </div>
+
+      <div class="display-setting" data-controller="font-size">
+        <div class="display-setting-label">Font Size</div>
+        <div class="font-size-controls">
+          <button class="btn btn-sm" data-action="click->font-size#decrease">A-</button>
+          <span class="font-size-display" data-font-size-target="display">100%</span>
+          <button class="btn btn-sm" data-action="click->font-size#increase">A+</button>
+          <button class="btn btn-sm" data-action="click->font-size#reset" style="margin-left: 0.5rem;">Reset</button>
+        </div>
+      </div>
+    </div>
+  </div>
   <!-- Player Statistics -->
   <div class="stats-section">
     <h2>Current Data Status</h2>
@@ -162,7 +184,7 @@
 .stats-section {
   margin-bottom: 2rem;
   padding: 1.5rem;
-  background: white;
+  background: var(--card-bg);
   border-radius: 8px;
   box-shadow: 0 1px 3px rgba(0,0,0,0.1);
 }
@@ -177,26 +199,26 @@
 .stat-card {
   text-align: center;
   padding: 1rem;
-  background: #f8f9fa;
+  background: var(--hover-bg);
   border-radius: 6px;
 }
 
 .stat-value {
   font-size: 2rem;
   font-weight: bold;
-  color: #2c3e50;
+  color: var(--text-primary);
 }
 
 .stat-label {
   font-size: 0.875rem;
-  color: #666;
+  color: var(--text-secondary);
   margin-top: 0.25rem;
 }
 
 .control-section {
   margin-bottom: 2rem;
   padding: 1.5rem;
-  background: white;
+  background: var(--card-bg);
   border-radius: 8px;
   box-shadow: 0 1px 3px rgba(0,0,0,0.1);
 }
@@ -204,11 +226,11 @@
 .control-section h2 {
   margin-top: 0;
   margin-bottom: 0.5rem;
-  color: #2c3e50;
+  color: var(--text-primary);
 }
 
 .section-description {
-  color: #666;
+  color: var(--text-secondary);
   margin-bottom: 1.5rem;
 }
 
@@ -220,28 +242,29 @@
   display: block;
   margin-bottom: 0.5rem;
   font-weight: 500;
-  color: #2c3e50;
+  color: var(--text-primary);
 }
 
 .file-input {
   display: block;
   width: 100%;
   padding: 0.5rem;
-  border: 2px dashed #ddd;
+  border: 2px dashed var(--input-border);
   border-radius: 6px;
-  background: #f8f9fa;
+  background: var(--input-bg);
+  color: var(--text-primary);
   cursor: pointer;
 }
 
 .file-input:hover {
-  border-color: #3498db;
-  background: #e8f4f8;
+  border-color: var(--primary-color);
+  background: var(--hover-bg);
 }
 
 .form-hint {
   display: block;
   margin-top: 0.5rem;
-  color: #666;
+  color: var(--text-secondary);
   font-size: 0.875rem;
 }
 
@@ -250,11 +273,11 @@
 }
 
 .danger-zone {
-  border: 2px solid #e74c3c;
+  border: 2px solid var(--danger-color);
 }
 
 .danger-zone h2 {
-  color: #e74c3c;
+  color: var(--danger-color);
 }
 
 .danger-action {
@@ -263,8 +286,8 @@
   align-items: center;
   padding: 1rem;
   margin-bottom: 1rem;
-  background: #fff5f5;
-  border: 1px solid #fdd;
+  background: var(--danger-bg);
+  border: 1px solid var(--danger-border);
   border-radius: 6px;
 }
 
@@ -275,13 +298,13 @@
 .danger-action-info h3 {
   margin: 0 0 0.25rem 0;
   font-size: 1rem;
-  color: #2c3e50;
+  color: var(--text-primary);
 }
 
 .danger-action-info p {
   margin: 0;
   font-size: 0.875rem;
-  color: #666;
+  color: var(--text-secondary);
 }
 
 .btn-warning {
@@ -301,7 +324,7 @@
 }
 
 .valuation-info {
-  background: #f8f9fa;
+  background: var(--hover-bg);
   border-radius: 6px;
   padding: 1rem;
   margin: 1rem 0;
@@ -311,7 +334,7 @@
   display: flex;
   justify-content: space-between;
   padding: 0.5rem 0;
-  border-bottom: 1px solid #e0e0e0;
+  border-bottom: 1px solid var(--border-color);
 }
 
 .info-row:last-child {
@@ -320,11 +343,56 @@
 
 .info-label {
   font-weight: 500;
-  color: #666;
+  color: var(--text-secondary);
 }
 
 .info-value {
   font-weight: 600;
-  color: #2c3e50;
+  color: var(--text-primary);
+}
+
+.display-settings-grid {
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+}
+
+.display-setting {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 0.75rem 1rem;
+  background: var(--hover-bg);
+  border-radius: 6px;
+}
+
+.display-setting .btn-sm {
+  background: var(--primary-color);
+  color: #fff;
+  border: none;
+  font-weight: 600;
+}
+
+.display-setting .btn-sm:hover {
+  opacity: 0.85;
+}
+
+.display-setting-label {
+  font-weight: 600;
+  color: var(--text-primary);
+}
+
+.font-size-controls {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.font-size-display {
+  display: inline-block;
+  min-width: 3rem;
+  text-align: center;
+  font-weight: 600;
+  color: var(--text-primary);
 }
 </style>

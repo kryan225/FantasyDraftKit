@@ -75,6 +75,7 @@
 
         current_sort = params[:sort]
         current_direction = params[:direction]
+        show_status = params.key?(:drafted) && params[:drafted] == ""
       %>
 
       <table>
@@ -84,7 +85,7 @@
             <th><%= sort_link('positions', 'Pos', current_sort, current_direction, @league.id, params[:search], params[:position], params[:drafted]) %></th>
             <th><%= sort_link('mlb_team', 'Team', current_sort, current_direction, @league.id, params[:search], params[:position], params[:drafted]) %></th>
             <th><%= sort_link('calculated_value', 'Value', current_sort, current_direction, @league.id, params[:search], params[:position], params[:drafted]) %></th>
-            <th>Status</th>
+            <% if show_status %><th>Status</th><% end %>
             <!-- Hitter Stats -->
             <th><%= sort_link('at_bats', 'AB', current_sort, current_direction, @league.id, params[:search], params[:position], params[:drafted]) %></th>
             <th><%= sort_link('runs', 'R', current_sort, current_direction, @league.id, params[:search], params[:position], params[:drafted]) %></th>
@@ -102,7 +103,7 @@
           </tr>
         </thead>
         <tbody id="player-database-list">
-          <%= render partial: "draft_board/player_database_table", locals: { players: @players, league_id: @league.id } %>
+          <%= render partial: "draft_board/player_database_table", locals: { players: @players, league_id: @league.id, show_status: show_status } %>
         </tbody>
       </table>
     </div>

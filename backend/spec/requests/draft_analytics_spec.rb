@@ -1,6 +1,6 @@
 require 'rails_helper'
 
-RSpec.describe "DraftAnalyzer", type: :request do
+RSpec.describe "DraftAnalytics", type: :request do
   let!(:league) do
     create(:league,
       name: "Test League",
@@ -26,20 +26,20 @@ RSpec.describe "DraftAnalyzer", type: :request do
   let!(:team1) { create(:team, league: league, name: "Team 1", budget_remaining: 260) }
   let!(:team2) { create(:team, league: league, name: "Team 2", budget_remaining: 260) }
 
-  describe "GET /draft_analyzer" do
+  describe "GET /draft_analytics" do
     it "loads the draft analyzer page successfully" do
-      get draft_analyzer_path
+      get draft_analytics_path
       expect(response).to have_http_status(:success)
     end
 
     it "calculates position fill rates for all positions" do
-      get draft_analyzer_path
+      get draft_analytics_path
       expect(assigns(:position_fill_rates)).to be_an(Array)
       expect(assigns(:position_fill_rates)).not_to be_empty
     end
 
     it "includes required metrics in position fill rates" do
-      get draft_analyzer_path
+      get draft_analytics_path
       position_data = assigns(:position_fill_rates).first
 
       expect(position_data).to have_key(:position)
@@ -61,7 +61,7 @@ RSpec.describe "DraftAnalyzer", type: :request do
       end
 
       it "correctly counts filled slots" do
-        get draft_analyzer_path
+        get draft_analytics_path
 
         c_data = assigns(:position_fill_rates).find { |p| p[:position] == "C" }
         expect(c_data[:filled_slots]).to eq(1)
@@ -73,7 +73,7 @@ RSpec.describe "DraftAnalyzer", type: :request do
       end
 
       it "calculates fill percentage" do
-        get draft_analyzer_path
+        get draft_analytics_path
 
         c_data = assigns(:position_fill_rates).find { |p| p[:position] == "C" }
         expect(c_data[:fill_percentage]).to be_within(0.1).of(4.2) # 1/24 ≈ 4.2%
@@ -82,7 +82,7 @@ RSpec.describe "DraftAnalyzer", type: :request do
   end
 
   describe "Teams Can Draft Logic (Integration)" do
-    let(:controller) { DraftAnalyzerController.new }
+    let(:controller) { DraftAnalyticsController.new }
 
     before do
       controller.instance_variable_set(:@league, league)
@@ -268,19 +268,19 @@ RSpec.describe "DraftAnalyzer", type: :request do
 
     context "with no my_team param" do
       it "sets nomination_suggestions to empty array" do
-        get draft_analyzer_path
+        get draft_analytics_path
         expect(assigns(:nomination_suggestions)).to eq([])
       end
 
       it "shows prompt to select a team" do
-        get draft_analyzer_path
+        get draft_analytics_path
         expect(response.body).to include("Select your team above")
       end
     end
 
     context "with valid my_team param" do
       it "returns nomination suggestions" do
-        get draft_analyzer_path, params: { my_team: team1.id }
+        get draft_analytics_path, params: { my_team: team1.id }
         suggestions = assigns(:nomination_suggestions)
 
         expect(suggestions).to be_an(Array)
@@ -288,7 +288,7 @@ RSpec.describe "DraftAnalyzer", type: :request do
       end
 
       it "includes required keys in each suggestion" do
-        get draft_analyzer_path, params: { my_team: team1.id }
+        get draft_analytics_path, params: { my_team: team1.id }
         suggestion = assigns(:nomination_suggestions).first
 
         expect(suggestion).to have_key(:player)
@@ -299,7 +299,7 @@ RSpec.describe "DraftAnalyzer", type: :request do
       end
 
       it "includes reason strings in suggestions" do
-        get draft_analyzer_path, params: { my_team: team1.id }
+        get draft_analytics_path, params: { my_team: team1.id }
         suggestion = assigns(:nomination_suggestions).first
 
         expect(suggestion[:reasons]).to be_an(Array)
@@ -308,7 +308,7 @@ RSpec.describe "DraftAnalyzer", type: :request do
       end
 
       it "excludes players with calculated_value <= 1" do
-        get draft_analyzer_path, params: { my_team: team1.id }
+        get draft_analytics_path, params: { my_team: team1.id }
         players = assigns(:nomination_suggestions).map { |s| s[:player] }
 
         expect(players).not_to include(low_value)
@@ -320,7 +320,7 @@ RSpec.describe "DraftAnalyzer", type: :request do
           create(:player, name: "Player #{i}", positions: "OF", calculated_value: 5.0 + i)
         end
 
-        get draft_analyzer_path, params: { my_team: team1.id }
+        get draft_analytics_path, params: { my_team: team1.id }
         expect(assigns(:nomination_suggestions).size).to be <= 15
       end
     end
@@ -337,7 +337,7 @@ RSpec.describe "DraftAnalyzer", type: :request do
         sp_nom = create(:player, name: "SP Nomination", positions: "SP", calculated_value: 15.0)
         of_nom = create(:player, name: "OF Nomination", positions: "OF", calculated_value: 15.0)
 
-        get draft_analyzer_path, params: { my_team: team1.id }
+        get draft_analytics_path, params: { my_team: team1.id }
         suggestions = assigns(:nomination_suggestions)
         sp_entry = suggestions.find { |s| s[:player] == sp_nom }
         of_entry = suggestions.find { |s| s[:player] == of_nom }
@@ -352,7 +352,7 @@ RSpec.describe "DraftAnalyzer", type: :request do
         high_val = create(:player, name: "High Value SP", positions: "SP", calculated_value: 40.0)
         low_val = create(:player, name: "Low Value SP", positions: "SP", calculated_value: 5.0)
 
-        get draft_analyzer_path, params: { my_team: team1.id }
+        get draft_analytics_path, params: { my_team: team1.id }
         suggestions = assigns(:nomination_suggestions)
         high_entry = suggestions.find { |s| s[:player] == high_val }
         low_entry = suggestions.find { |s| s[:player] == low_val }
@@ -365,13 +365,13 @@ RSpec.describe "DraftAnalyzer", type: :request do
 
     context "with invalid my_team param" do
       it "falls back to empty suggestions without crashing" do
-        get draft_analyzer_path, params: { my_team: 999999 }
+        get draft_analytics_path, params: { my_team: 999999 }
         expect(response).to have_http_status(:success)
         expect(assigns(:nomination_suggestions)).to eq([])
       end
 
       it "falls back for non-numeric my_team param" do
-        get draft_analyzer_path, params: { my_team: "garbage" }
+        get draft_analytics_path, params: { my_team: "garbage" }
         expect(response).to have_http_status(:success)
         expect(assigns(:nomination_suggestions)).to eq([])
       end
@@ -380,7 +380,7 @@ RSpec.describe "DraftAnalyzer", type: :request do
 
   describe "Team Needs Matrix" do
     it "returns a hash with :positions and :teams keys" do
-      get draft_analyzer_path
+      get draft_analytics_path
       matrix = assigns(:team_needs_matrix)
 
       expect(matrix).to be_a(Hash)
@@ -389,7 +389,7 @@ RSpec.describe "DraftAnalyzer", type: :request do
     end
 
     it "includes all active positions excluding BENCH" do
-      get draft_analyzer_path
+      get draft_analytics_path
       positions = assigns(:team_needs_matrix)[:positions]
 
       expect(positions).to include("C", "1B", "2B", "3B", "SS", "MI", "CI", "OF", "UTIL", "SP", "RP")
@@ -397,14 +397,14 @@ RSpec.describe "DraftAnalyzer", type: :request do
     end
 
     it "includes all teams in the league" do
-      get draft_analyzer_path
+      get draft_analytics_path
       teams = assigns(:team_needs_matrix)[:teams].map { |td| td[:team] }
 
       expect(teams).to contain_exactly(team1, team2)
     end
 
     it "shows :open state with correct count for empty roster" do
-      get draft_analyzer_path
+      get draft_analytics_path
       team1_data = assigns(:team_needs_matrix)[:teams].find { |td| td[:team] == team1 }
 
       of_needs = team1_data[:needs]["OF"]
@@ -424,7 +424,7 @@ RSpec.describe "DraftAnalyzer", type: :request do
       end
       # UTIL is still open (0/1), so OF can be drafted via UTIL or by moving an OF player there
 
-      get draft_analyzer_path
+      get draft_analytics_path
       team1_data = assigns(:team_needs_matrix)[:teams].find { |td| td[:team] == team1 }
 
       of_needs = team1_data[:needs]["OF"]
@@ -443,7 +443,7 @@ RSpec.describe "DraftAnalyzer", type: :request do
       of = create(:player, positions: "OF")
       create(:draft_pick, team: team1, player: of, league: league, drafted_position: "UTIL", price: 10)
 
-      get draft_analyzer_path
+      get draft_analytics_path
       team1_data = assigns(:team_needs_matrix)[:teams].find { |td| td[:team] == team1 }
 
       fb_needs = team1_data[:needs]["1B"]
@@ -466,7 +466,7 @@ RSpec.describe "DraftAnalyzer", type: :request do
       5.times { create(:draft_pick, team: team1, player: create(:player, positions: "SP"), league: league, drafted_position: "SP", price: 1) }
       3.times { create(:draft_pick, team: team1, player: create(:player, positions: "RP"), league: league, drafted_position: "RP", price: 1) }
 
-      get draft_analyzer_path
+      get draft_analytics_path
       team1_data = assigns(:team_needs_matrix)[:teams].find { |td| td[:team] == team1 }
 
       team1_data[:needs].each do |position, cell|
@@ -481,7 +481,7 @@ RSpec.describe "DraftAnalyzer", type: :request do
         create(:draft_pick, team: team1, player: player, league: league, drafted_position: "OF", price: 10)
       end
 
-      get draft_analyzer_path
+      get draft_analytics_path
       team1_data = assigns(:team_needs_matrix)[:teams].find { |td| td[:team] == team1 }
 
       expect(team1_data[:total_filled]).to eq(3)

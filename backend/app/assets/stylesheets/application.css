@@ -16,6 +16,28 @@
   --border-color: #e5e7eb;
   --text-primary: #111827;
   --text-secondary: #6b7280;
+  --input-bg: #ffffff;
+  --input-border: #d1d5db;
+  --hover-bg: #f3f4f6;
+  --danger-bg: #fff5f5;
+  --danger-border: #fdd;
+}
+
+html.dark {
+  --primary-color: #60a5fa;
+  --secondary-color: #34d399;
+  --danger-color: #f87171;
+  --warning-color: #fbbf24;
+  --bg-color: #111827;
+  --card-bg: #1f2937;
+  --border-color: #374151;
+  --text-primary: #f9fafb;
+  --text-secondary: #9ca3af;
+  --input-bg: #374151;
+  --input-border: #4b5563;
+  --hover-bg: #374151;
+  --danger-bg: #2d1b1b;
+  --danger-border: #5c2a2a;
 }
 
 * {
@@ -129,8 +151,14 @@ nav a:hover {
 
 /* Team budget sidebar entries */
 .team-budget-entry {
-  padding: 0.6rem 0;
+  padding: 0.6rem 0.5rem;
   border-bottom: 1px solid var(--border-color);
+  border-radius: 4px;
+  transition: background-color 0.15s;
+}
+
+.team-budget-entry:hover {
+  background-color: var(--hover-bg);
 }
 
 .team-budget-entry:last-child {
@@ -1009,4 +1037,263 @@ tr.empty-slot td {
   vertical-align: middle;
   background: var(--border-color);
   opacity: 0.3;
+}
+
+/* Dark Mode Overrides */
+html.dark table {
+  background: var(--card-bg);
+}
+
+html.dark table th {
+  background: #1a2332;
+  color: var(--text-primary);
+  border-color: var(--border-color);
+}
+
+html.dark table td {
+  color: var(--text-primary);
+  border-color: var(--border-color);
+}
+
+html.dark table tbody tr:nth-child(even) {
+  background: #1a2332;
+}
+
+html.dark table tbody tr:hover {
+  background: #263548;
+}
+
+html.dark .card {
+  background: var(--card-bg);
+  border-color: var(--border-color);
+}
+
+html.dark .modal-content {
+  background: var(--card-bg);
+  color: var(--text-primary);
+}
+
+html.dark .btn {
+  color: #fff;
+}
+
+html.dark .btn-sm:not(.btn-primary):not(.btn-warning):not(.btn-danger) {
+  background: var(--input-bg);
+  color: var(--text-primary);
+  border-color: var(--border-color);
+}
+
+html.dark input,
+html.dark select,
+html.dark textarea {
+  background: var(--input-bg);
+  color: var(--text-primary);
+  border-color: var(--input-border);
+}
+
+html.dark .flash-notice {
+  background: #1a3326;
+  color: #6ee7b7;
+  border-color: #065f46;
+}
+
+html.dark .flash-alert {
+  background: #3b1c1c;
+  color: #fca5a5;
+  border-color: #991b1b;
+}
+
+html.dark .badge-info {
+  background: #1e3a5f;
+  color: #93c5fd;
+}
+
+html.dark .badge-warning {
+  background: #422006;
+  color: #fcd34d;
+}
+
+html.dark .reason-tag {
+  background: var(--input-bg);
+  color: var(--text-secondary);
+}
+
+html.dark .reason-tag-good {
+  background: #064e3b;
+  color: #6ee7b7;
+}
+
+html.dark .reason-tag-warn {
+  background: #451a03;
+  color: #fcd34d;
+}
+
+html.dark .needs-cell.needs-open {
+  background: #064e3b;
+  color: #6ee7b7;
+}
+
+html.dark .needs-cell.needs-flex {
+  background: #422006;
+  color: #fcd34d;
+}
+
+html.dark .needs-cell.needs-closed {
+  background: var(--input-bg);
+  color: var(--text-secondary);
+}
+
+html.dark .page-header .subtitle {
+  color: var(--text-secondary);
+}
+
+html.dark a,
+html.dark .player-link {
+  color: #93c5fd;
+  border-bottom-color: #93c5fd;
+}
+
+html.dark a:hover,
+html.dark .player-link:hover {
+  color: #bfdbfe;
+  border-bottom-color: #bfdbfe;
+}
+
+html.dark header {
+  background: var(--card-bg);
+  border-color: var(--border-color);
+}
+
+html.dark .league-nav-tabs {
+  background: var(--card-bg);
+  border-color: var(--border-color);
+}
+
+html.dark .tab {
+  color: var(--text-secondary);
+}
+
+html.dark .tab:hover {
+  color: var(--text-primary);
+}
+
+html.dark .tab.active {
+  color: var(--primary-color);
+  border-bottom-color: var(--primary-color);
+}
+
+/* Standings header styles */
+.standings-batting-header {
+  background-color: #f0f8ff;
+}
+
+.standings-pitching-header {
+  background-color: #fff5f0;
+}
+
+.standings-batting-group {
+  text-align: center;
+  background-color: #f0f8ff;
+  border-bottom: 2px solid #4a90e2;
+}
+
+.standings-pitching-group {
+  text-align: center;
+  background-color: #fff5f0;
+  border-bottom: 2px solid #e2994a;
+}
+
+.standings-separator {
+  width: 3px;
+  padding: 0;
+  background-color: #333;
+  border: none;
+}
+
+html.dark .standings-batting-header,
+html.dark th.standings-batting-header {
+  background-color: #1a2a4a;
+}
+
+html.dark .standings-pitching-header,
+html.dark th.standings-pitching-header {
+  background-color: #3a2215;
+}
+
+html.dark .standings-batting-group,
+html.dark th.standings-batting-group {
+  background-color: #1a2a4a;
+  border-bottom-color: #60a5fa;
+}
+
+html.dark .standings-pitching-group,
+html.dark th.standings-pitching-group {
+  background-color: #3a2215;
+  border-bottom-color: #f59e0b;
+}
+
+html.dark .standings-separator,
+html.dark td.standings-separator {
+  background-color: #6b7280;
+}
+
+html.dark table tbody td[style*="--heatmap-dark-bg"] {
+  background-color: var(--heatmap-dark-bg) !important;
+  color: var(--heatmap-dark-fg) !important;
+}
+
+/* Heatmap legend swatches */
+.heatmap-legend {
+  padding: 2px 8px;
+  border-radius: 3px;
+}
+
+.heatmap-legend-best {
+  background-color: rgb(50, 200, 50);
+  color: white;
+}
+
+.heatmap-legend-mid {
+  background-color: rgb(255, 200, 50);
+  color: black;
+}
+
+.heatmap-legend-worst {
+  background-color: rgb(255, 100, 50);
+  color: white;
+}
+
+html.dark .heatmap-legend-best {
+  background-color: rgb(30, 120, 30);
+  color: #e5e7eb;
+}
+
+html.dark .heatmap-legend-mid {
+  background-color: rgb(120, 120, 30);
+  color: #e5e7eb;
+}
+
+html.dark .heatmap-legend-worst {
+  background-color: rgb(160, 50, 30);
+  color: #e5e7eb;
+}
+
+html.dark table tbody tr.player-row-interested,
+html.dark table tbody tr.player-row-interested:nth-child(even) {
+  background: rgba(255, 229, 102, 0.15);
+  border-left-color: #FFE566;
+}
+
+html.dark table tbody tr.player-row-interested:hover {
+  background: rgba(255, 229, 102, 0.25);
+}
+
+html.dark table tbody tr.player-row-priority,
+html.dark table tbody tr.player-row-priority:nth-child(even) {
+  background: rgba(236, 72, 153, 0.18);
+  border-left-color: #ec4899;
+}
+
+html.dark table tbody tr.player-row-priority:hover {
+  background: rgba(236, 72, 153, 0.28);
 }
