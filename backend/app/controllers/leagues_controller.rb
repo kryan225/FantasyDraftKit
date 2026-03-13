@@ -1,8 +1,16 @@
 class LeaguesController < ApplicationController
+  include LeagueResolvable
+
   before_action :set_league, only: [:show, :settings, :update]
 
   def index
-    @leagues = League.all
+    # Single-league app: redirect straight to the league if one exists
+    league = League.first
+    if league
+      redirect_to league_path(league)
+    else
+      redirect_to new_league_path
+    end
   end
 
   def show
@@ -27,10 +35,20 @@ class LeaguesController < ApplicationController
   end
 
   def new
+    # Prevent creating a second league
+    if League.any?
+      redirect_to league_path(League.first), alert: "A league already exists. Only one league is supported."
+      return
+    end
     @league = League.new
   end
 
   def create
+    if League.any?
+      redirect_to league_path(League.first), alert: "A league already exists. Only one league is supported."
+      return
+    end
+
     @league = League.new(league_params)
 
     if @league.save
@@ -50,8 +68,7 @@ class LeaguesController < ApplicationController
     params.require(:league).permit(:name, :team_count, :auction_budget, :keeper_limit, roster_config: {})
   end
 
-  # Override the ApplicationController stub to return @league for league-specific actions
   def current_league
-    @league
+    @league || super
   end
 end

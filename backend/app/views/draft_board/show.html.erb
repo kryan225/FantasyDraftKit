@@ -6,8 +6,8 @@
   <h2 class="card-title"><%= @league.name %> - Draft Board</h2>
   <p class="text-muted"><%= @draft_picks.count %> picks made</p>
   <div class="mt-2 flex gap-2">
-    <%= link_to "View Draft History", draft_history_path(league_id: @league.id), class: "btn btn-primary btn-sm" %>
-    <%= link_to "Draft Analyzer", draft_analyzer_path(league_id: @league.id), class: "btn btn-secondary btn-sm" %>
+    <%= link_to "View Draft History", league_league_draft_history_path(@league), class: "btn btn-primary btn-sm" %>
+    <%= link_to "Draft Analyzer", league_league_draft_analyzer_path(@league), class: "btn btn-secondary btn-sm" %>
   </div>
 </div>
 
@@ -31,8 +31,7 @@
     <div class="card mb-3" data-controller="draft-modal" data-draft-modal-active-positions-value="<%= active_positions.to_json %>">
       <h3 class="card-title">Player Database</h3>
 
-      <%= form_with url: draft_board_path, method: :get, data: { turbo_frame: "_top" } do |f| %>
-        <%= hidden_field_tag :league_id, @league.id %>
+      <%= form_with url: league_league_draft_board_path(@league), method: :get, data: { turbo_frame: "_top" } do |f| %>
 
         <div class="grid grid-3 mb-3">
           <div class="form-group">
@@ -66,7 +65,7 @@
         </div>
 
         <div class="flex items-center gap-2">
-          <%= link_to "Clear Filters", draft_board_path(league_id: @league.id, drafted: "false"), class: "btn btn-sm" %>
+          <%= link_to "Clear Filters", league_league_draft_board_path(@league, drafted: "false"), class: "btn btn-sm" %>
 
           <div class="form-group" style="margin-bottom: 0; margin-left: 1rem;">
             <%= f.check_box :interested, { checked: params[:interested] == "true", onchange: "this.form.requestSubmit()" }, "true", "false" %>
@@ -97,14 +96,14 @@
                 ''
               end
 
-              link_params = { league_id: @league.id, sort: column, direction: direction }
+              link_params = { sort: column, direction: direction }
               link_params[:search] = params[:search] if params[:search].present?
               link_params[:position] = params[:position] if params[:position].present?
               link_params[:drafted] = params[:drafted].nil? ? "false" : params[:drafted]
               link_params[:interested] = params[:interested] if params[:interested] == "true"
               link_params[:multi_position] = params[:multi_position] if params[:multi_position] == "true"
 
-              link_to "#{label}#{arrow}", draft_board_path(link_params), class: 'sort-link'
+              link_to "#{label}#{arrow}", league_league_draft_board_path(@league, link_params), class: 'sort-link'
             end
           %>
 

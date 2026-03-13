@@ -14,11 +14,9 @@
     <header>
       <div class="container">
         <div class="flex justify-between items-center">
-          <h1>⚾ Fantasy Baseball Draft Kit</h1>
-          <nav>
-            <%= link_to "Leagues", leagues_path %>
-            <%= link_to "API Docs", "/api_testing_guide.html" %>
-          </nav>
+          <%= link_to root_path, style: "text-decoration: none; color: inherit;" do %>
+            <h1>⚾ Fantasy Baseball Draft Kit</h1>
+          <% end %>
         </div>
       </div>
     </header>
@@ -28,10 +26,10 @@
         <div class="container">
           <nav class="tabs">
             <%= link_to "League Home", league_path(current_league), class: "tab #{current_page?(league_path(current_league)) ? 'active' : ''}" %>
-            <%= link_to "Draft Board", draft_board_path, class: "tab #{current_page?(draft_board_path) ? 'active' : ''}" %>
-            <%= link_to "Draft Analyzer", draft_analyzer_path, class: "tab #{current_page?(draft_analyzer_path) ? 'active' : ''}" %>
+            <%= link_to "Draft Board", league_league_draft_board_path(current_league), class: "tab #{current_page?(league_league_draft_board_path(current_league)) ? 'active' : ''}" %>
+            <%= link_to "Draft Analyzer", league_league_draft_analyzer_path(current_league), class: "tab #{current_page?(league_league_draft_analyzer_path(current_league)) ? 'active' : ''}" %>
             <%= link_to "Teams", league_teams_path(current_league), class: "tab #{current_page?(league_teams_path(current_league)) ? 'active' : ''}" %>
-            <%= link_to "Standings", standings_path, class: "tab #{current_page?(standings_path) ? 'active' : ''}" %>
+            <%= link_to "Standings", league_standings_path(current_league), class: "tab #{current_page?(league_standings_path(current_league)) ? 'active' : ''}" %>
             <%= link_to "Data Control", league_data_control_path(current_league), class: "tab #{current_page?(league_data_control_path(current_league)) ? 'active' : ''}" %>
           </nav>
         </div>
