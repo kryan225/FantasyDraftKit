@@ -51,10 +51,32 @@ class PlayerFilterService
     players
   end
 
+  # Flex positions map to multiple real positions:
+  #   CI  → 1B or 3B
+  #   MI  → 2B or SS
+  #   P   → SP or RP
+  #   UTIL → all players (no filter needed)
+  FLEX_POSITION_MAP = {
+    "CI" => %w[1B 3B],
+    "MI" => %w[2B SS],
+    "P" => %w[SP RP],
+    "UTIL" => nil
+  }.freeze
+
   def filter_by_position(players)
     return players unless params[:position].present?
 
-    players.by_position(params[:position])
+    position = params[:position]
+
+    if position == "UTIL"
+      players
+    elsif FLEX_POSITION_MAP.key?(position)
+      conditions = FLEX_POSITION_MAP[position].map { |pos| "positions LIKE ?" }
+      values = FLEX_POSITION_MAP[position].map { |pos| "%#{pos}%" }
+      players.where(conditions.join(" OR "), *values)
+    else
+      players.by_position(position)
+    end
   end
 
   def filter_by_search(players)
