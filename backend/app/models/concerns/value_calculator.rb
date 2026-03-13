@@ -5,14 +5,14 @@
 # Implements z-score based auction value calculation for fantasy baseball players.
 #
 # Algorithm Overview:
-# 1. Separate hitters vs pitchers by position
+# 1. Separate batters vs pitchers by position
 # 2. Calculate z-scores for each stat category (standardize: (value - mean) / stddev)
 # 3. Determine replacement level per position (e.g., 24th best C for 12-team league)
 # 4. Calculate value above replacement (z-score minus replacement z-score, floored at 0)
-# 5. Convert to dollars using 67% hitter / 33% pitcher budget split, minimum $1
+# 5. Convert to dollars using 67% batter / 33% pitcher budget split, minimum $1
 #
 # Categories:
-# - Hitters (5): HR, R, RBI, SB, AVG (weighted by AB)
+# - Batters (5): HR, R, RBI, SB, AVG (weighted by AB)
 # - Pitchers (5): W, SV, K, ERA (inverted), WHIP (inverted)
 #
 # Position Scarcity:
@@ -34,8 +34,8 @@
 module ValueCalculator
   extend ActiveSupport::Concern
 
-  # Hitter stat categories (5 total)
-  HITTER_CATEGORIES = {
+  # Batter stat categories (5 total)
+  BATTER_CATEGORIES = {
     hr: { field: 'home_runs', invert: false, rate: false },
     r: { field: 'runs', invert: false, rate: false },
     rbi: { field: 'rbi', invert: false, rate: false },
@@ -45,19 +45,20 @@ module ValueCalculator
 
   # Pitcher stat categories (5 total)
   # Field names must match keys stored by DataControlController#parse_pitcher_stats
-  #
-  # Saves uses a reduced weight (0.5) because the bimodal distribution (closers ~35,
-  # everyone else ~0) creates outsized z-scores that overvalue relievers.
   PITCHER_CATEGORIES = {
     w: { field: 'wins', invert: false, rate: false },
-    sv: { field: 'saves', invert: false, rate: false, weight: 0.25 },
+    sv: { field: 'saves', invert: false, rate: false },
     k: { field: 'strikeouts', invert: false, rate: false },
     era: { field: 'era', invert: true, rate: true, volume_field: 'innings_pitched' },
     whip: { field: 'whip', invert: true, rate: true, volume_field: 'innings_pitched' }
   }.freeze
 
+  # Roster position groups
+  BATTER_POSITIONS = %w[C 1B 2B 3B SS MI CI OF UTIL].freeze
+  PITCHER_POSITIONS = %w[SP RP].freeze
+
   # Budget allocation (industry standard)
-  HITTER_BUDGET_PERCENT = 0.67
+  BATTER_BUDGET_PERCENT = 0.67
   PITCHER_BUDGET_PERCENT = 0.33
 
   # Public API - orchestrates full value calculation
@@ -67,30 +68,32 @@ module ValueCalculator
   def recalculate_values(league)
     # Step 1: Separate players by type
     players_by_type = separate_players_by_type(league)
-    hitters = players_by_type[:hitters]
+    batters = players_by_type[:batters]
     pitchers = players_by_type[:pitchers]
 
-    return { count: 0, min_value: 0, max_value: 0, avg_value: 0 } if hitters.empty? && pitchers.empty?
+    return { count: 0, min_value: 0, max_value: 0, avg_value: 0 } if batters.empty? && pitchers.empty?
 
     # Step 2: Calculate z-scores for each group
-    hitter_zscores = calculate_z_scores(hitters, HITTER_CATEGORIES)
+    batter_zscores = calculate_z_scores(batters, BATTER_CATEGORIES)
     pitcher_zscores = calculate_z_scores(pitchers, PITCHER_CATEGORIES)
 
-    # Step 3: Determine replacement level per position
-    hitter_replacements = calculate_replacement_levels(league, hitters, hitter_zscores)
-    pitcher_replacements = calculate_replacement_levels(league, pitchers, pitcher_zscores)
+    # Step 3: Determine replacement level
+    # Batters: single replacement level based on total batter roster slots
+    # Pitchers: per-position replacement (SP vs RP have very different value profiles)
+    batter_replacement = calculate_pool_replacement_level(league, batters, batter_zscores, BATTER_POSITIONS)
+    pitcher_replacement = calculate_pool_replacement_level(league, pitchers, pitcher_zscores, PITCHER_POSITIONS)
 
     # Step 4: Calculate value above replacement
-    hitter_var = calculate_value_above_replacement(hitters, hitter_zscores, hitter_replacements)
-    pitcher_var = calculate_value_above_replacement(pitchers, pitcher_zscores, pitcher_replacements)
+    batter_var = calculate_pool_var(batters, batter_zscores, batter_replacement)
+    pitcher_var = calculate_pool_var(pitchers, pitcher_zscores, pitcher_replacement)
 
     # Step 5: Convert to dollars with budget split
-    hitter_dollars = convert_to_dollars(hitter_var, league, is_hitter: true)
-    pitcher_dollars = convert_to_dollars(pitcher_var, league, is_hitter: false)
+    batter_dollars = convert_to_dollars(batter_var, league, is_batter: true)
+    pitcher_dollars = convert_to_dollars(pitcher_var, league, is_batter: false)
 
     # Bulk update all players at once (performance optimization)
-    # Two-way players appear in both hashes — sum their hitter + pitcher values
-    all_values = hitter_dollars.merge(pitcher_dollars) { |_id, hitter_val, pitcher_val| hitter_val + pitcher_val }
+    # Two-way players appear in both hashes — sum their batter + pitcher values
+    all_values = batter_dollars.merge(pitcher_dollars) { |_id, batter_val, pitcher_val| batter_val + pitcher_val }
     update_player_values(all_values)
 
     # Return summary statistics
@@ -105,55 +108,46 @@ module ValueCalculator
 
   private
 
-  # Phase 1: Separate players into hitters and pitchers
+  # Phase 1: Separate players into batters and pitchers
   #
-  # Hitter: positions include C, 1B, 2B, 3B, SS, OF (or multi-position like 2B/SS)
+  # Batter: positions include C, 1B, 2B, 3B, SS, OF (or multi-position like 2B/SS)
   # Pitcher: positions include SP, RP
   #
   # @param league [League] The league context
-  # @return [Hash] { hitters: [Player], pitchers: [Player] }
+  # @return [Hash] { batters: [Player], pitchers: [Player] }
   def separate_players_by_type(league)
     players = Player.where(is_drafted: false).to_a
     players.reject! { |p| skip_player?(p) }
 
-    hitters = players.select { |p| hitter?(p) }
+    batters = players.select { |p| batter?(p) }
     pitchers = players.select { |p| pitcher?(p) }
 
-    { hitters: hitters, pitchers: pitchers }
+    { batters: batters, pitchers: pitchers }
   end
 
-  # Check if player is a hitter
-  def hitter?(player)
-    positions = player.positions.to_s.split(/[,\/]/).map(&:strip)
-    (positions & %w[C 1B 2B 3B SS OF]).any?
+  # Check if player is a batter — uses projections so UTIL-only players like Ohtani are included
+  def batter?(player)
+    valid_batter_stats?(player)
   end
 
-  # Check if player is a pitcher
+  # Check if player is a pitcher — uses projections so two-way players are included
   def pitcher?(player)
-    positions = player.positions.to_s.split(/[,\/]/).map(&:strip)
-    (positions & %w[SP RP]).any?
+    valid_pitcher_stats?(player)
   end
 
   # Skip players with missing critical projections
   #
   # Two-way players (e.g., "OF,SP") are NOT skipped if they have valid stats
   # for either side. Uses independent checks rather than if/elsif so a player
-  # with both hitter and pitcher positions is evaluated for both.
+  # with both batter and pitcher positions is evaluated for both.
   def skip_player?(player)
     return true if player.projections.blank?
 
-    is_hitter = hitter?(player)
-    is_pitcher = pitcher?(player)
-    return true unless is_hitter || is_pitcher
-
-    has_valid_hitter = is_hitter && valid_hitter_stats?(player)
-    has_valid_pitcher = is_pitcher && valid_pitcher_stats?(player)
-
-    !has_valid_hitter && !has_valid_pitcher
+    !batter?(player) && !pitcher?(player)
   end
 
-  # Check if a hitter has sufficient projections for value calculation
-  def valid_hitter_stats?(player)
+  # Check if a batter has sufficient projections for value calculation
+  def valid_batter_stats?(player)
     ab = player.projections['at_bats'].to_f
     return false if ab <= 0
 
@@ -319,13 +313,14 @@ module ValueCalculator
   # @param players [Array<Player>] Players to evaluate
   # @param z_scores [Hash] Player z-scores from Phase 2
   # @return [Hash] { "C" => z_score, "1B" => z_score, ... }
-  def calculate_replacement_levels(league, players, z_scores)
+  def calculate_replacement_levels(league, players, z_scores, positions)
     roster_config = league.roster_config
     replacement_levels = {}
 
     roster_config.each do |position, slots|
-      next if position == 'BENCH' # Bench doesn't affect replacement
+      next if position == 'BENCH'
       next if slots.zero?
+      next unless positions.include?(position)
 
       # Find all players eligible for this position
       eligible_players = players.select do |player|
@@ -348,6 +343,31 @@ module ValueCalculator
     end
 
     replacement_levels
+  end
+
+  # Calculate a single replacement level for a pool of players
+  #
+  # Replacement = z-score of Nth best player where N = total roster slots × teams
+  # All players in the pool compete together regardless of specific position.
+  def calculate_pool_replacement_level(league, players, z_scores, positions)
+    total_slots = positions.sum { |pos| league.roster_config[pos].to_i }
+    replacement_index = league.team_count * total_slots
+
+    sorted = players.sort_by { |p| -z_scores.dig(p.id, :total_z).to_f }
+
+    if replacement_index <= sorted.size
+      z_scores.dig(sorted[replacement_index - 1].id, :total_z).to_f
+    else
+      sorted.empty? ? 0.0 : z_scores.dig(sorted.last.id, :total_z).to_f
+    end
+  end
+
+  # Calculate VAR for a pool using a single replacement level
+  def calculate_pool_var(players, z_scores, replacement_z)
+    players.each_with_object({}) do |player, var_values|
+      player_z = z_scores.dig(player.id, :total_z).to_f
+      var_values[player.id] = [player_z - replacement_z, 0.0].max
+    end
   end
 
   # Phase 4: Calculate value above replacement (VAR)
@@ -393,21 +413,21 @@ module ValueCalculator
 
   # Phase 5: Convert VAR to auction dollars
   #
-  # Budget split: 67% hitters, 33% pitchers (industry standard)
+  # Budget split: 67% batters, 33% pitchers (industry standard)
   # Dollar per point = available_budget / total_positive_var
   # Floor each player at $1 minimum
   #
   # @param var_values [Hash] { player_id => var }
   # @param league [League] League with budget info
-  # @param is_hitter [Boolean] True for hitters, false for pitchers
+  # @param is_batter [Boolean] True for batters, false for pitchers
   # @return [Hash] { player_id => dollar_value }
-  def convert_to_dollars(var_values, league, is_hitter:)
+  def convert_to_dollars(var_values, league, is_batter:)
     # Calculate budget for this player type
     total_budget = league.auction_budget * league.team_count
-    type_budget = total_budget * (is_hitter ? HITTER_BUDGET_PERCENT : PITCHER_BUDGET_PERCENT)
+    type_budget = total_budget * (is_batter ? BATTER_BUDGET_PERCENT : PITCHER_BUDGET_PERCENT)
 
     # Reserve $1 per roster slot
-    roster_slots = calculate_roster_slots(league, is_hitter)
+    roster_slots = calculate_roster_slots(league, is_batter)
     available_budget = type_budget - roster_slots
 
     # Sum all positive VAR values
@@ -425,13 +445,13 @@ module ValueCalculator
     end
   end
 
-  # Calculate total roster slots for hitters or pitchers
-  def calculate_roster_slots(league, is_hitter)
+  # Calculate total roster slots for batters or pitchers
+  def calculate_roster_slots(league, is_batter)
     roster_config = league.roster_config
 
-    if is_hitter
-      hitter_positions = %w[C 1B 2B 3B SS MI CI OF UTIL]
-      hitter_positions.sum { |pos| roster_config[pos].to_i }
+    if is_batter
+      batter_positions = %w[C 1B 2B 3B SS MI CI OF UTIL]
+      batter_positions.sum { |pos| roster_config[pos].to_i }
     else
       pitcher_positions = %w[SP RP]
       pitcher_positions.sum { |pos| roster_config[pos].to_i }
