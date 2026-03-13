@@ -21,6 +21,8 @@ Rails.application.routes.draw do
     post "data_control/undraft_all_players", to: "data_control#undraft_all_players", as: :undraft_all_players
     delete "data_control/delete_all_players", to: "data_control#delete_all_players", as: :delete_all_players
     post "recalculate_values", to: "data_control#recalculate_values", as: :recalculate_values
+    post "data_control/save_snapshot", to: "data_control#save_snapshot", as: :save_snapshot
+    post "data_control/restore_snapshot", to: "data_control#restore_snapshot", as: :restore_snapshot
 
     # Players routes (scoped to league)
     get "players", to: "players#index", as: :players

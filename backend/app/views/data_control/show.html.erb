@@ -88,6 +88,32 @@
     </small>
   </div>
 
+  <!-- Database Snapshot Section -->
+  <div class="control-section">
+    <h2>Database Snapshot</h2>
+    <p class="section-description">
+      Save or restore the current database state. Useful for resetting after experimental drafts.
+    </p>
+
+    <div class="form-actions" style="display: flex; gap: 1rem;">
+      <%= button_to "Save Snapshot",
+          league_save_snapshot_path(@league),
+          method: :post,
+          class: "btn btn-primary",
+          data: { turbo_confirm: "Overwrite the saved snapshot with the current database state?" } %>
+
+      <%= button_to "Restore Snapshot",
+          league_restore_snapshot_path(@league),
+          method: :post,
+          class: "btn btn-warning",
+          data: { turbo_confirm: "Are you sure? All current data will be replaced with the saved snapshot." } %>
+    </div>
+
+    <small class="form-hint">
+      Snapshot includes all players, draft picks, teams, and league settings.
+    </small>
+  </div>
+
   <!-- Danger Zone Section -->
   <div class="control-section danger-zone">
     <h2>Danger Zone</h2>

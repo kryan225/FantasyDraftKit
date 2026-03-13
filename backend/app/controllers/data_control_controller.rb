@@ -110,6 +110,64 @@ class DataControlController < ApplicationController
     redirect_to league_data_control_path(@league), notice: "Successfully deleted #{deleted_count} players."
   end
 
+  def save_snapshot
+    @league = current_league
+    snapshot_path = Rails.root.join("db", "snapshots", "baseline.sql")
+
+    db_config = ActiveRecord::Base.connection_db_config.configuration_hash
+    db_name = db_config[:database]
+    host = db_config[:host] || "localhost"
+    port = db_config[:port] || 5434
+    username = db_config[:username]
+
+    result = system(
+      { "PGPASSWORD" => db_config[:password].to_s },
+      "pg_dump", "-h", host.to_s, "-p", port.to_s, "-U", username.to_s,
+      "--clean", "--if-exists", db_name.to_s,
+      out: snapshot_path.to_s
+    )
+
+    if result
+      redirect_to league_data_control_path(@league), notice: "Snapshot saved successfully."
+    else
+      redirect_to league_data_control_path(@league), alert: "Failed to save snapshot."
+    end
+  end
+
+  def restore_snapshot
+    @league = current_league
+    snapshot_path = Rails.root.join("db", "snapshots", "baseline.sql")
+
+    unless File.exist?(snapshot_path)
+      return redirect_to league_data_control_path(@league), alert: "No snapshot file found."
+    end
+
+    db_config = ActiveRecord::Base.connection_db_config.configuration_hash
+    db_name = db_config[:database]
+    host = db_config[:host] || "localhost"
+    port = db_config[:port] || 5434
+    username = db_config[:username]
+
+    # Disconnect all active connections before restoring
+    ActiveRecord::Base.connection_pool.disconnect!
+
+    result = system(
+      { "PGPASSWORD" => db_config[:password].to_s },
+      "psql", "-h", host.to_s, "-p", port.to_s, "-U", username.to_s, "-d", db_name.to_s,
+      "-f", snapshot_path.to_s,
+      out: File::NULL, err: File::NULL
+    )
+
+    # Reconnect
+    ActiveRecord::Base.establish_connection
+
+    if result
+      redirect_to league_data_control_path(@league), notice: "Database restored from snapshot successfully."
+    else
+      redirect_to league_data_control_path(@league), alert: "Failed to restore database from snapshot."
+    end
+  end
+
   def recalculate_values
     @league = current_league
     return redirect_to data_control_path(league_id: @league&.id), alert: "League not found" unless @league
