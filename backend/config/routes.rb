@@ -12,6 +12,7 @@ Rails.application.routes.draw do
     # Nested draft board route with explicit league_id
     get "draft_board", to: "draft_board#show", as: :league_draft_board
     get "draft_history", to: "draft_board#history", as: :league_draft_history
+    get "draft_history/export", to: "draft_board#export_history", as: :export_draft_history
     get "draft_analytics", to: "draft_analytics#show", as: :league_draft_analytics
     get "standings", to: "standings#index", as: :standings
 
