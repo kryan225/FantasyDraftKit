@@ -1,6 +1,7 @@
 <div class="card">
   <div class="flex justify-between items-center mb-3">
     <h2 class="card-title" style="margin-bottom: 0;"><%= current_league.name %> - Teams</h2>
+    <%= link_to "Download Rosters", league_export_rosters_path(current_league), class: "btn btn-sm btn-primary" %>
   </div>
 
   <% if @teams.any? %>

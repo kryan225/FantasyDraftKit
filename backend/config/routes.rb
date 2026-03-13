@@ -29,6 +29,7 @@ Rails.application.routes.draw do
 
     # Teams routes (scoped to league)
     get "teams", to: "teams#index", as: :teams
+    get "teams/export_rosters", to: "teams#export_rosters", as: :export_rosters
   end
 
   resources :teams, only: [:show, :index]

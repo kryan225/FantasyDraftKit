@@ -19,7 +19,7 @@
       <div class="container">
         <div class="flex justify-between items-center">
           <%= link_to root_path, style: "text-decoration: none; color: inherit;" do %>
-            <h1>⚾ Fantasy Baseball Draft Kit</h1>
+            <h1>⚾ <%= current_league.present? ? "#{current_league.name} Draft Kit" : "Fantasy Baseball Draft Kit" %></h1>
           <% end %>
         </div>
       </div>
@@ -40,7 +40,7 @@
       </div>
     <% end %>
 
-    <main class="container">
+    <main class="container" style="<%= 'margin-top: 2rem;' unless current_league.present? %>">
       <% if flash[:notice] %>
         <div class="flash flash-notice">
           <%= flash[:notice] %>

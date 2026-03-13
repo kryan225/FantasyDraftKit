@@ -62,9 +62,9 @@ body {
 /* Header */
 header {
   background: var(--card-bg);
-  border-bottom: 1px solid var(--border-color);
-  padding: 1rem 0;
-  margin-bottom: 2rem;
+  border-bottom: none;
+  padding: 1rem 0 0.5rem 0;
+  margin-bottom: 0;
 }
 
 header h1 {
@@ -784,7 +784,7 @@ table thead th:first-child {
 
 /* Empty roster slots */
 tr.empty-slot {
-  background-color: #f9fafb;
+  background-color: var(--bg-color);
 }
 
 tr.empty-slot td {
@@ -1276,6 +1276,11 @@ html.dark .heatmap-legend-mid {
 html.dark .heatmap-legend-worst {
   background-color: rgb(160, 50, 30);
   color: #e5e7eb;
+}
+
+html.dark table tbody tr.empty-slot,
+html.dark table tbody tr.empty-slot:nth-child(even) {
+  background-color: var(--bg-color);
 }
 
 html.dark table tbody tr.player-row-interested,

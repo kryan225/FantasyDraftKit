@@ -1,7 +1,9 @@
+require "csv"
+
 class TeamsController < ApplicationController
   include LeagueResolvable
 
-  before_action :ensure_league, only: [:index]
+  before_action :ensure_league, only: [:index, :export_rosters]
 
   def index
     @teams = current_league.teams.order(:name)
@@ -10,6 +12,32 @@ class TeamsController < ApplicationController
   def show
     @team = Team.includes(draft_picks: :player).find(params[:id])
     @league = @team.league
+  end
+
+  def export_rosters
+    league = current_league
+    teams = league.teams.includes(draft_picks: :player).order(:name)
+
+    csv_data = CSV.generate do |csv|
+      csv << ["Team", "Player", "Position", "Price"]
+
+      teams.each do |team|
+        picks = team.draft_picks.sort_by(&:pick_number)
+        picks.each do |pick|
+          csv << [
+            team.name,
+            pick.player.name,
+            pick.player.positions,
+            pick.price
+          ]
+        end
+      end
+    end
+
+    send_data csv_data,
+              filename: "#{league.name.parameterize}-rosters-#{Date.today}.csv",
+              type: "text/csv",
+              disposition: "attachment"
   end
 
   private
