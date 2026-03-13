@@ -2,7 +2,7 @@
 -- PostgreSQL database dump
 --
 
-\restrict 3EmyBL0a9nD1kZXvUhz7m0BOjUTvD8Q279wELvLUbNViwOBcIKmgJJ3teHAIitB
+\restrict ZoMzbfbJdhKpt9zC3GOMf2bxv5ccHfJFUMNIJrixLAt4yUZzKmeuKdDLhbu4SNi
 
 -- Dumped from database version 16.11 (Debian 16.11-1.pgdg13+1)
 -- Dumped by pg_dump version 18.1
@@ -398,7 +398,6 @@ COPY public.draft_picks (id, league_id, team_id, player_id, price, is_keeper, pi
 536	10	107	19456	5	t	63	2026-03-13 00:53:02.032702	2026-03-13 00:53:02.032702	SP
 537	10	107	19489	1	t	64	2026-03-13 00:53:02.04433	2026-03-13 00:53:02.04433	SP
 538	10	107	19480	6	t	65	2026-03-13 00:53:02.055137	2026-03-13 00:53:02.055137	SP
-540	10	102	28875	30	f	66	2026-03-13 03:51:16.908097	2026-03-13 03:51:16.908097	C
 \.
 
 
@@ -499,7 +498,6 @@ COPY public.players (id, name, positions, mlb_team, projections, calculated_valu
 34941	Andy Beltre	RP	MIA	{"era": 0.0, "whip": 0.0, "wins": 0, "holds": 0, "saves": 0, "walks": 0, "losses": 0, "strikeouts": 0, "appearances": 0, "blown_saves": 0, "hits_allowed": 0, "games_started": 0, "complete_games": 0, "quality_starts": 0, "innings_pitched": 0.0}	0.0	f	2026-03-13 02:13:10.296024	2026-03-13 02:13:10.296024	\N	0	\N
 34942	Zack Weiss	RP	STL	{"era": 0.0, "whip": 0.0, "wins": 0, "holds": 0, "saves": 0, "walks": 0, "losses": 0, "strikeouts": 0, "appearances": 0, "blown_saves": 0, "hits_allowed": 0, "games_started": 0, "complete_games": 0, "quality_starts": 0, "innings_pitched": 0.0}	0.0	f	2026-03-13 02:13:10.303331	2026-03-13 02:13:10.303331	\N	0	\N
 34943	William Ouellette	RP	TOR	{"era": 0.0, "whip": 0.0, "wins": 0, "holds": 0, "saves": 0, "walks": 0, "losses": 0, "strikeouts": 0, "appearances": 0, "blown_saves": 0, "hits_allowed": 0, "games_started": 0, "complete_games": 0, "quality_starts": 0, "innings_pitched": 0.0}	0.0	f	2026-03-13 02:13:10.311515	2026-03-13 02:13:10.311515	\N	0	\N
-28875	Cal Raleigh	C	SEA	{"obp": 0.361, "rbi": 106, "slg": 0.555, "hits": 127, "runs": 93, "at_bats": 510, "doubles": 24, "singles": 59, "triples": 0, "home_runs": 44, "batter_walks": 83, "stolen_bases": 10, "batting_average": 0.249, "caught_stealing": 2, "batter_strikeouts": 153}	29.74	t	2026-03-13 02:05:44.801989	2026-03-13 02:05:44.801989	102	0	\N
 28870	Shohei Ohtani	UTIL,SP	LAD	{"era": 2.74, "obp": 0.398, "rbi": 98, "slg": 0.613, "hits": 163, "runs": 123, "whip": 0.91, "wins": 6, "holds": 0, "saves": 0, "walks": 21, "losses": 2, "at_bats": 548, "doubles": 29, "singles": 83, "triples": 9, "home_runs": 42, "strikeouts": 134, "appearances": 26, "blown_saves": 0, "batter_walks": 87, "hits_allowed": 75, "stolen_bases": 27, "games_started": 26, "complete_games": 0, "quality_starts": 5, "batting_average": 0.297, "caught_stealing": 5, "innings_pitched": 105.0, "batter_strikeouts": 152}	70.05	f	2026-03-13 02:05:44.7845	2026-03-13 02:25:44.329407	\N	0	\N
 32593	Tristan Beck	RP	SF	{"era": 3.86, "whip": 1.07, "wins": 0, "holds": 1, "saves": 0, "walks": 4, "losses": 0, "strikeouts": 10, "appearances": 8, "blown_saves": 0, "hits_allowed": 11, "games_started": 0, "complete_games": 0, "quality_starts": 0, "innings_pitched": 14.0}	1.0	f	2026-03-13 02:12:39.954471	2026-03-13 02:12:39.954471	\N	0	\N
 28876	Jackson Chourio	OF	MIL	{"obp": 0.317, "rbi": 89, "slg": 0.499, "hits": 163, "runs": 94, "at_bats": 589, "doubles": 39, "singles": 91, "triples": 7, "home_runs": 26, "batter_walks": 34, "stolen_bases": 21, "batting_average": 0.277, "caught_stealing": 6, "batter_strikeouts": 141}	30.64	f	2026-03-13 02:05:44.805131	2026-03-13 02:05:44.805131	\N	0	\N
@@ -6810,6 +6808,7 @@ COPY public.players (id, name, positions, mlb_team, projections, calculated_valu
 28967	Harry Ford	C	WAS	{"obp": 0.308, "rbi": 25, "slg": 0.399, "hits": 48, "runs": 22, "at_bats": 193, "doubles": 9, "singles": 32, "triples": 1, "home_runs": 6, "batter_walks": 14, "stolen_bases": 1, "batting_average": 0.249, "caught_stealing": 0, "batter_strikeouts": 49}	1.0	f	2026-03-13 02:05:45.687048	2026-03-13 02:05:45.687048	\N	0	\N
 28968	Jose Caballero	2B,3B,SS,OF	NYY	{"obp": 0.323, "rbi": 47, "slg": 0.379, "hits": 91, "runs": 57, "at_bats": 377, "doubles": 23, "singles": 58, "triples": 1, "home_runs": 9, "batter_walks": 41, "stolen_bases": 44, "batting_average": 0.241, "caught_stealing": 11, "batter_strikeouts": 115}	11.1	f	2026-03-13 02:05:45.708369	2026-03-13 02:05:45.708369	\N	0	\N
 19460	Max Fried	SP	NYY	{"era": 3.33, "whip": 1.25, "wins": 15, "holds": 0, "saves": 0, "walks": 61, "losses": 7, "strikeouts": 176, "appearances": 30, "blown_saves": 0, "hits_allowed": 165, "games_started": 30, "complete_games": 1, "quality_starts": 20, "innings_pitched": 181.0}	16.23	t	2026-02-14 00:09:44.171581	2026-02-14 00:09:44.171581	103	0	\N
+28875	Cal Raleigh	C	SEA	{"obp": 0.361, "rbi": 106, "slg": 0.555, "hits": 127, "runs": 93, "at_bats": 510, "doubles": 24, "singles": 59, "triples": 0, "home_runs": 44, "batter_walks": 83, "stolen_bases": 10, "batting_average": 0.249, "caught_stealing": 2, "batter_strikeouts": 153}	29.74	f	2026-03-13 02:05:44.801989	2026-03-13 04:32:44.149747	\N	0	\N
 \.
 
 
@@ -6838,7 +6837,6 @@ COPY public.schema_migrations (version) FROM stdin;
 COPY public.teams (id, league_id, name, budget_remaining, created_at, updated_at) FROM stdin;
 97	10	Black Flag	217	2026-03-13 00:53:01.412832	2026-03-13 00:53:01.461308
 106	10	THE TEAM WITH THE GOLDEN ARMS	203	2026-03-13 00:53:01.910889	2026-03-13 03:49:16.121921
-102	10	Glory Days	157	2026-03-13 00:53:01.653414	2026-03-13 03:51:16.91312
 98	10	Bone in Green Cart	249	2026-03-13 00:53:01.464754	2026-03-13 00:53:01.501491
 99	10	Boys of Summer	189	2026-03-13 00:53:01.505022	2026-03-13 00:53:01.540841
 100	10	Brothers K	220	2026-03-13 00:53:01.545039	2026-03-13 00:53:01.594791
@@ -6847,6 +6845,7 @@ COPY public.teams (id, league_id, name, budget_remaining, created_at, updated_at
 107	10	West Side Strikeouts	237	2026-03-13 00:53:01.983664	2026-03-13 00:53:02.059148
 104	10	Sandworm Shockers	191	2026-03-13 00:53:01.787571	2026-03-13 00:53:01.835305
 105	10	Sluggers of Shai-Hulud	225	2026-03-13 00:53:01.839085	2026-03-13 00:53:01.9051
+102	10	Glory Days	187	2026-03-13 00:53:01.653414	2026-03-13 04:32:44.147681
 \.
 
 
@@ -7050,5 +7049,5 @@ ALTER TABLE ONLY public.keeper_histories
 -- PostgreSQL database dump complete
 --
 
-\unrestrict 3EmyBL0a9nD1kZXvUhz7m0BOjUTvD8Q279wELvLUbNViwOBcIKmgJJ3teHAIitB
+\unrestrict ZoMzbfbJdhKpt9zC3GOMf2bxv5ccHfJFUMNIJrixLAt4yUZzKmeuKdDLhbu4SNi
 
