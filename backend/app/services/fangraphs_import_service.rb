@@ -20,9 +20,9 @@ class FangraphsImportService
   end
 
   def call
-    imported_count = 0
     merged_count = 0
     merged_names = []
+    skipped_count = 0
 
     csv_type = detect_csv_type
 
@@ -36,32 +36,20 @@ class FangraphsImportService
       mlb_team = clean_row["Team"]&.strip&.delete('"')
       next if mlb_team.blank?
 
-      projections = csv_type == :hitter ? parse_hitter_stats(clean_row) : parse_pitcher_stats(clean_row)
-
       existing_player = Player.find_by(name: player_name, mlb_team: mlb_team)
-      if existing_player
-        merged_projections = (existing_player.projections || {}).merge(projections)
-        existing_player.update!(projections: merged_projections)
-        merged_names << player_name
-        merged_count += 1
+      unless existing_player
+        skipped_count += 1
         next
       end
 
-      default_positions = csv_type == :hitter ? "UTIL" : "SP"
-
-      Player.create!(
-        name: player_name,
-        positions: default_positions,
-        mlb_team: mlb_team,
-        projections: projections,
-        calculated_value: 0,
-        is_drafted: false
-      )
-
-      imported_count += 1
+      projections = csv_type == :hitter ? parse_hitter_stats(clean_row) : parse_pitcher_stats(clean_row)
+      merged_projections = (existing_player.projections || {}).merge(projections)
+      existing_player.update!(projections: merged_projections)
+      merged_names << player_name
+      merged_count += 1
     end
 
-    { imported: imported_count, merged: merged_count, merged_names: merged_names }
+    { merged: merged_count, merged_names: merged_names, skipped: skipped_count }
   end
 
   private

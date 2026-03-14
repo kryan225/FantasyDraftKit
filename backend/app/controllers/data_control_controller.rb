@@ -23,7 +23,12 @@ class DataControlController < ApplicationController
 
       message = "Successfully imported #{result[:imported]} new players."
       if result[:merged_names].any?
-        message += " Merged #{result[:merged]} existing players: #{result[:merged_names].join(', ')}."
+        names = result[:merged_names]
+        message += if names.size <= 10
+                     " Merged #{result[:merged]} existing players: #{names.join(', ')}."
+                   else
+                     " Merged #{result[:merged]} existing players (#{names.first(10).join(', ')}, and #{names.size - 10} more)."
+                   end
       end
       redirect_to league_data_control_path(@league), notice: message
     rescue CSV::MalformedCSVError => e
@@ -44,9 +49,15 @@ class DataControlController < ApplicationController
     begin
       result = FangraphsImportService.new(params[:file].path).call
 
-      message = "Successfully imported #{result[:imported]} new players from FanGraphs."
+      message = "Merged FanGraphs projections for #{result[:merged]} existing players."
+      message += " Skipped #{result[:skipped]} unmatched players." if result[:skipped] > 0
       if result[:merged_names].any?
-        message += " Merged projections for #{result[:merged]} existing players: #{result[:merged_names].join(', ')}."
+        names = result[:merged_names]
+        message += if names.size <= 10
+                     " Merged: #{names.join(', ')}."
+                   else
+                     " Merged: #{names.first(10).join(', ')}, and #{names.size - 10} more."
+                   end
       end
       redirect_to league_data_control_path(@league), notice: message
     rescue CSV::MalformedCSVError => e

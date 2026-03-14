@@ -22,21 +22,12 @@ RSpec.describe FangraphsImportService do
       CSV
     end
 
-    it 'imports a new hitter' do
+    it 'skips hitters not already in the database' do
       result = described_class.new(hitter_csv).call
 
-      expect(result[:imported]).to eq(1)
       expect(result[:merged]).to eq(0)
-
-      player = Player.find_by(name: "Aaron Judge")
-      expect(player).to be_present
-      expect(player.mlb_team).to eq("NYY")
-      expect(player.positions).to eq("UTIL")
-      expect(player.projections["home_runs"]).to eq(49.0)
-      expect(player.projections["fpts"]).to eq(850.5)
-      expect(player.projections["adp"]).to eq(3.2)
-      expect(player.projections["vol"]).to eq(3.8)
-      expect(player.projections["fangraphs_id"]).to eq("28476")
+      expect(result[:skipped]).to eq(1)
+      expect(Player.find_by(name: "Aaron Judge")).to be_nil
     end
 
     it 'merges projections for existing player' do
@@ -45,8 +36,8 @@ RSpec.describe FangraphsImportService do
 
       result = described_class.new(hitter_csv).call
 
-      expect(result[:imported]).to eq(0)
       expect(result[:merged]).to eq(1)
+      expect(result[:skipped]).to eq(0)
       expect(result[:merged_names]).to eq(["Aaron Judge"])
 
       player = Player.find_by(name: "Aaron Judge")
@@ -64,13 +55,23 @@ RSpec.describe FangraphsImportService do
       CSV
     end
 
-    it 'imports a new pitcher' do
+    it 'skips pitchers not already in the database' do
       result = described_class.new(pitcher_csv).call
 
-      expect(result[:imported]).to eq(1)
+      expect(result[:merged]).to eq(0)
+      expect(result[:skipped]).to eq(1)
+      expect(Player.find_by(name: "Gerrit Cole")).to be_nil
+    end
+
+    it 'merges projections for existing pitcher' do
+      create(:player, name: "Gerrit Cole", mlb_team: "NYY", positions: "SP",
+                      projections: { "wins" => 12 })
+
+      result = described_class.new(pitcher_csv).call
+
+      expect(result[:merged]).to eq(1)
 
       player = Player.find_by(name: "Gerrit Cole")
-      expect(player.positions).to eq("SP")
       expect(player.projections["innings_pitched"]).to eq(195.0)
       expect(player.projections["fip"]).to eq(3.00)
       expect(player.projections["era"]).to eq(3.10)
@@ -81,13 +82,14 @@ RSpec.describe FangraphsImportService do
   describe 'auto-detection' do
     it 'detects hitter CSV from PA header' do
       csv = write_csv('detect_hitter.csv', "Name,Team,PA,AB,HR\nTest,NYY,500,450,30\n")
-      # Should not raise
-      expect { described_class.new(csv).call }.not_to raise_error
+      result = described_class.new(csv).call
+      expect(result[:skipped]).to eq(1)
     end
 
     it 'detects pitcher CSV from IP header' do
       csv = write_csv('detect_pitcher.csv', "Name,Team,IP,W,SO\nTest,NYY,180,12,200\n")
-      expect { described_class.new(csv).call }.not_to raise_error
+      result = described_class.new(csv).call
+      expect(result[:skipped]).to eq(1)
     end
 
     it 'raises on unrecognized header' do
@@ -100,28 +102,39 @@ RSpec.describe FangraphsImportService do
     it 'skips rows with blank player name' do
       csv = write_csv('blank_name.csv', "Name,Team,PA,AB,HR\n,NYY,500,450,30\n")
       result = described_class.new(csv).call
-      expect(result[:imported]).to eq(0)
+      expect(result[:merged]).to eq(0)
+      expect(result[:skipped]).to eq(0)
     end
 
     it 'skips rows with blank team' do
       csv = write_csv('blank_team.csv', "Name,Team,PA,AB,HR\nTest,,500,450,30\n")
       result = described_class.new(csv).call
-      expect(result[:imported]).to eq(0)
+      expect(result[:merged]).to eq(0)
+      expect(result[:skipped]).to eq(0)
     end
 
-    it 'handles BOM-encoded CSV' do
+    it 'handles BOM-encoded CSV and merges existing player' do
+      create(:player, name: "Test Player", mlb_team: "NYY", positions: "UTIL", projections: {})
       content = "\xEF\xBB\xBFName,Team,PA,AB,HR\nTest Player,NYY,500,450,30\n"
       csv = write_csv('bom.csv', content)
       result = described_class.new(csv).call
-      expect(result[:imported]).to eq(1)
-      expect(Player.find_by(name: "Test Player")).to be_present
+      expect(result[:merged]).to eq(1)
     end
 
-    it 'uses NameASCII when available' do
+    it 'skips BOM-encoded CSV players not in database' do
+      content = "\xEF\xBB\xBFName,Team,PA,AB,HR\nTest Player,NYY,500,450,30\n"
+      csv = write_csv('bom.csv', content)
+      result = described_class.new(csv).call
+      expect(result[:skipped]).to eq(1)
+      expect(Player.find_by(name: "Test Player")).to be_nil
+    end
+
+    it 'uses NameASCII when matching existing player' do
+      create(:player, name: "Jose Ramirez", mlb_team: "CLE", positions: "3B", projections: {})
       csv = write_csv('ascii.csv', "Name,NameASCII,Team,PA,AB,HR\nJosé Ramírez,Jose Ramirez,CLE,600,540,28\n")
       result = described_class.new(csv).call
-      expect(result[:imported]).to eq(1)
-      expect(Player.find_by(name: "Jose Ramirez")).to be_present
+      expect(result[:merged]).to eq(1)
+      expect(result[:merged_names]).to eq(["Jose Ramirez"])
     end
 
     it 'raises on malformed CSV' do
