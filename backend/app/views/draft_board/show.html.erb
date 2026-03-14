@@ -135,62 +135,30 @@
 
       <!-- Draft Player Modal -->
       <div class="modal hidden" data-draft-modal-target="modal" data-action="click->draft-modal#closeOnOutsideClick">
-        <div class="modal-content">
+        <div class="modal-content modal-wide">
           <div class="modal-header">
-            <h3 class="modal-title">Draft Player</h3>
+            <h3 class="modal-title">
+              Draft Player:
+              <span data-draft-modal-target="playerName"></span>
+              <a href="#"
+                 target="_blank"
+                 rel="noopener noreferrer"
+                 data-draft-modal-target="googleSearchLink"
+                 style="font-size: 0.6em; margin-left: 0.5rem; font-weight: normal; text-decoration: none;">
+                🔍 <span style="text-decoration: underline;">search</span>
+              </a>
+            </h3>
             <button class="modal-close" data-action="click->draft-modal#close" type="button">
               ×
             </button>
           </div>
 
           <div class="modal-body">
-            <!-- Player Details -->
-            <div class="player-details">
-              <div class="player-details-row">
-                <span class="player-details-label">Player:</span>
-                <span class="player-details-value" data-draft-modal-target="playerName"></span>
-                <a href="#"
-                   target="_blank"
-                   rel="noopener noreferrer"
-                   data-draft-modal-target="googleSearchLink"
-                   style="font-size: 0.8em; margin-left: 0.5rem; color: #0066cc; text-decoration: none;">
-                  🔍 Search
-                </a>
-              </div>
-              <div class="player-details-row">
-                <span class="player-details-label">Position(s):</span>
-                <span class="player-details-value" data-draft-modal-target="playerPosition"></span>
-              </div>
-              <div class="player-details-row">
-                <span class="player-details-label">Team:</span>
-                <span class="player-details-value" data-draft-modal-target="playerTeam"></span>
-              </div>
-              <div class="player-details-row">
-                <span class="player-details-label">Calculated Value:</span>
-                <span class="player-details-value" data-draft-modal-target="playerValue"></span>
-              </div>
-              <div class="player-details-row">
-                <span class="player-details-label">Notes:</span>
-                <span class="player-details-value">
-                  <textarea
-                    data-draft-modal-target="playerNotes"
-                    data-action="change->draft-modal#saveNotes"
-                    rows="2"
-                    style="width: 100%; font-size: 0.9em; resize: vertical;"
-                    placeholder="Add notes..."
-                  ></textarea>
-                </span>
-              </div>
-            </div>
-
-            <!-- Draft Form -->
             <%= form_with url: draft_picks_path, method: :post, data: { action: "submit->draft-modal#submit", turbo: true } do |f| %>
               <input type="hidden" name="draft_pick[player_id]" data-draft-modal-target="playerId">
               <input type="hidden" name="draft_pick[league_id]" value="<%= @league.id %>">
               <input type="hidden" name="draft_pick[is_keeper]" value="false">
               <input type="hidden" name="draft_pick[is_topped]" value="0">
-
-              <!-- Pass filter parameters to maintain them after draft -->
               <%= hidden_field_tag :search, params[:search] %>
               <%= hidden_field_tag :position, params[:position] %>
               <%= hidden_field_tag :drafted, params.key?(:drafted) ? params[:drafted] : "false" %>
@@ -198,59 +166,88 @@
               <%= hidden_field_tag :sort, params[:sort] %>
               <%= hidden_field_tag :direction, params[:direction] %>
 
-              <div class="form-group">
-                <label for="draft-team">Drafting Team</label>
-                <select
-                  id="draft-team"
-                  name="draft_pick[team_id]"
-                  data-draft-modal-target="teamSelect"
-                  required
-                >
-                  <option value="">-- Select Team --</option>
-                  <% @teams.each do |team| %>
-                    <option value="<%= team.id %>">
-                      <%= team.name %> ($<%= team.budget_remaining %> remaining)
-                    </option>
-                  <% end %>
-                </select>
-              </div>
+              <div class="modal-body-columns">
+                <!-- Left: Draft Form -->
+                <div class="modal-col-form">
+                  <div class="form-group">
+                    <label for="draft-team">Drafting Team</label>
+                    <select
+                      id="draft-team"
+                      name="draft_pick[team_id]"
+                      data-draft-modal-target="teamSelect"
+                      required
+                    >
+                      <option value="">-- Select Team --</option>
+                      <%
+                        total_roster_spots = (@league.roster_config || {}).values.sum
+                      %>
+                      <% @teams.each do |team| %>
+                        <%
+                          remaining_spots = total_roster_spots - team.draft_picks.count
+                          max_bid = remaining_spots > 1 ? team.budget_remaining - (remaining_spots - 1) : team.budget_remaining
+                        %>
+                        <option value="<%= team.id %>">
+                          <%= team.name %> (max bid $<%= max_bid %>)
+                        </option>
+                      <% end %>
+                    </select>
+                  </div>
 
-              <div class="form-group">
-                <label for="draft-position">Draft Position</label>
-                <select
-                  id="draft-position"
-                  name="draft_pick[drafted_position]"
-                  data-draft-modal-target="positionSelect"
-                  required
-                >
-                  <!-- Options populated dynamically by Stimulus controller -->
-                </select>
-                <small class="text-muted">
-                  Note: All players can play UTIL. 1B/3B can play CI. 2B/SS can play MI.
-                </small>
-              </div>
+                  <div class="form-group">
+                    <label for="draft-position">Draft Position</label>
+                    <select
+                      id="draft-position"
+                      name="draft_pick[drafted_position]"
+                      data-draft-modal-target="positionSelect"
+                      required
+                    >
+                    </select>
+                  </div>
 
-              <div class="form-group">
-                <label for="draft-price">Draft Price ($)</label>
-                <input
-                  type="number"
-                  id="draft-price"
-                  name="draft_pick[price]"
-                  data-draft-modal-target="priceInput"
-                  min="1"
-                  max="<%= @league.auction_budget %>"
-                  required
-                >
-              </div>
+                  <div class="form-group">
+                    <label for="draft-price">Draft Price ($)</label>
+                    <input
+                      type="number"
+                      id="draft-price"
+                      name="draft_pick[price]"
+                      data-draft-modal-target="priceInput"
+                      min="1"
+                      max="<%= @league.auction_budget %>"
+                      required
+                    >
+                  </div>
 
-              <div class="form-group">
-                <label>
-                  <input type="checkbox" name="draft_pick[is_topped]" value="1" data-draft-modal-target="toppedCheckbox">
-                  Topped
-                </label>
-                <small class="text-muted">
-                  This team used their topper rights on this player
-                </small>
+                  <div class="form-group">
+                    <label>
+                      <input type="checkbox" name="draft_pick[is_topped]" value="1" data-draft-modal-target="toppedCheckbox">
+                      Topped
+                    </label>
+                  </div>
+                </div>
+
+                <!-- Right: Player Details -->
+                <div class="modal-col-details">
+                  <div class="player-details">
+                    <div class="player-details-row">
+                      <span class="player-details-label">Position(s):</span>
+                      <span class="player-details-value" data-draft-modal-target="playerPosition"></span>
+                    </div>
+                    <div class="player-details-row">
+                      <span class="player-details-label">Value:</span>
+                      <span class="player-details-value" data-draft-modal-target="playerValue"></span>
+                    </div>
+                    <div class="player-details-row" style="display: block;">
+                      <span class="player-details-label">Notes:</span>
+                      <textarea
+                        data-draft-modal-target="playerNotes"
+                        data-action="change->draft-modal#saveNotes"
+                        rows="3"
+                        style="width: 100%; font-size: 0.9em; resize: vertical; margin-top: 0.25rem;"
+                        placeholder="Add notes..."
+                      ></textarea>
+                    </div>
+                  </div>
+                </div>
               </div>
 
               <div class="modal-footer">

@@ -6,7 +6,7 @@ class PlayersController < ApplicationController
 
   def index
     @league = current_league
-    @teams = @league.teams.order(:name)
+    @teams = @league.teams.includes(:draft_picks).order(:name)
     @players = PlayerFilterService.new(params).call
   end
 

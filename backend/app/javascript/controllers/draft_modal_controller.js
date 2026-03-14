@@ -14,7 +14,6 @@ export default class extends BaseModalController {
     "modal",
     "playerName",
     "playerPosition",
-    "playerTeam",
     "playerValue",
     "playerNotes",
     "priceInput",
@@ -45,14 +44,12 @@ export default class extends BaseModalController {
     const playerId = button.dataset.playerId
     const playerName = button.dataset.playerName
     const playerPositions = button.dataset.playerPositions
-    const playerMlbTeam = button.dataset.playerMlbTeam
     const playerValue = button.dataset.playerValue
     const playerNotes = button.dataset.playerNotes
 
     // Populate modal with player data
     this.playerNameTarget.textContent = playerName
     this.playerPositionTarget.textContent = playerPositions
-    this.playerTeamTarget.textContent = playerMlbTeam
     this.playerValueTarget.textContent = `$${playerValue}`
     this.playerIdTarget.value = playerId
     this.playerNotesTarget.value = playerNotes || ""
@@ -146,16 +143,16 @@ export default class extends BaseModalController {
       return
     }
 
-    // Budget validation - check selected team's budget
+    // Budget validation - check selected team's max bid
     const selectedTeamOption = this.teamSelectTarget.options[this.teamSelectTarget.selectedIndex]
     const teamText = selectedTeamOption.text
-    const budgetMatch = teamText.match(/\$(\d+) remaining/)
+    const budgetMatch = teamText.match(/max bid \$(\d+)/)
     if (budgetMatch) {
-      const remainingBudget = parseInt(budgetMatch[1])
-      if (price > remainingBudget) {
+      const maxBid = parseInt(budgetMatch[1])
+      if (price > maxBid) {
         event.preventDefault()
         await this.showValidationError(
-          `Price $${price} exceeds team's remaining budget of $${remainingBudget}`
+          `Price $${price} exceeds team's max bid of $${maxBid}`
         )
         return
       }
