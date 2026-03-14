@@ -45,8 +45,8 @@ module ValueCalculator
     rbi: { field: 'rbi', invert: false, rate: false },
     sb: { field: 'stolen_bases', invert: false, rate: false },
     avg: { field: 'batting_average', invert: false, rate: true, volume_field: 'at_bats' },
-    woba: { field: 'woba', invert: false, rate: true, volume_field: 'at_bats' },
-    wrc_plus: { field: 'wrc_plus', invert: false, rate: true, volume_field: 'at_bats' }
+    woba: { field: 'woba', invert: false, rate: true, volume_field: 'at_bats', weight: 0.5 },
+    wrc_plus: { field: 'wrc_plus', invert: false, rate: true, volume_field: 'at_bats', weight: 0.5 }
   }.freeze
 
   # Pitcher stat categories (8 total)
@@ -57,18 +57,19 @@ module ValueCalculator
     k: { field: 'strikeouts', invert: false, rate: false },
     fip: { field: 'fip', invert: true, rate: true, volume_field: 'innings_pitched' },
     whip: { field: 'whip', invert: true, rate: true, volume_field: 'innings_pitched' },
-    k_pct: { field: 'k_pct', invert: false, rate: true, volume_field: 'innings_pitched' },
-    bb_pct: { field: 'bb_pct', invert: true, rate: true, volume_field: 'innings_pitched' },
-    k_bb_pct: { field: 'k_bb_pct', invert: false, rate: true, volume_field: 'innings_pitched' }
+    k_pct: { field: 'k_pct', invert: false, rate: true, volume_field: 'innings_pitched', weight: 0.5 },
+    bb_pct: { field: 'bb_pct', invert: true, rate: true, volume_field: 'innings_pitched', weight: 0.5 },
+    k_bb_pct: { field: 'k_bb_pct', invert: false, rate: true, volume_field: 'innings_pitched', weight: 0.5 }
   }.freeze
 
   # Roster position groups
   BATTER_POSITIONS = %w[C 1B 2B 3B SS MI CI OF UTIL].freeze
   PITCHER_POSITIONS = %w[SP RP].freeze
 
-  # Budget allocation (industry standard)
-  BATTER_BUDGET_PERCENT = 0.67
-  PITCHER_BUDGET_PERCENT = 0.33
+  # Budget allocation (70/30 split — adjusted from industry standard 67/33
+  # to account for expanded pitcher categories adding z-score inflation)
+  BATTER_BUDGET_PERCENT = 0.70
+  PITCHER_BUDGET_PERCENT = 0.30
 
   # Public API - orchestrates full value calculation
   #
@@ -441,7 +442,11 @@ module ValueCalculator
   #
   # Budget split: 67% batters, 33% pitchers (industry standard)
   # Dollar per point = available_budget / total_positive_var
-  # Floor each player at $1 minimum
+  # Floor each above-replacement player at $1 minimum
+  #
+  # Only above-replacement players (positive VAR) receive meaningful values.
+  # Below-replacement players get $1 as a nominal floor.
+  # Budget is conserved: sum of above-replacement values = type_budget.
   #
   # @param var_values [Hash] { player_id => var }
   # @param league [League] League with budget info
@@ -452,22 +457,26 @@ module ValueCalculator
     total_budget = league.auction_budget * league.team_count
     type_budget = total_budget * (is_batter ? BATTER_BUDGET_PERCENT : PITCHER_BUDGET_PERCENT)
 
-    # Reserve $1 per roster slot
-    roster_slots = calculate_roster_slots(league, is_batter)
-    available_budget = type_budget - roster_slots
-
-    # Sum all positive VAR values
-    total_var = var_values.values.sum
+    # Separate above-replacement from below-replacement players
+    above_replacement = var_values.select { |_, var| var > 0 }
 
     # Handle edge case: no positive VAR (all at/below replacement)
-    return var_values.transform_values { 1.0 } if total_var.zero?
+    return var_values.transform_values { 1.0 } if above_replacement.empty?
+
+    # Reserve $1 per above-replacement player (they each get +$1 floor)
+    available_budget = type_budget - above_replacement.size
+    total_var = above_replacement.values.sum
 
     # Calculate dollar per VAR point
     dollar_per_var = available_budget / total_var
 
-    # Convert each player's VAR to dollars, floor at $1
+    # Convert: above-replacement get proportional dollars + $1, rest get $1
     var_values.transform_values do |var|
-      [var * dollar_per_var + 1.0, 1.0].max
+      if var > 0
+        [var * dollar_per_var + 1.0, 1.0].max
+      else
+        1.0
+      end
     end
   end
 
