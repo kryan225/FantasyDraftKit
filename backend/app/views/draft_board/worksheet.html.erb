@@ -8,6 +8,7 @@
 
   teams_per_group = 6
   team_groups = @teams.each_slice(teams_per_group).to_a
+  my_team_id = @my_team&.id
 %>
 
 <% team_groups.each_with_index do |group_teams, group_index| %>
@@ -21,7 +22,7 @@
         <tr>
           <th style="width: 40px;">Pos</th>
           <% group_teams.each do |team| %>
-            <th colspan="3" style="text-align: center; border-left: 2px solid var(--border-color);">
+            <th colspan="3" style="text-align: center; border-left: 2px solid var(--border-color); <%= 'background: rgba(255, 220, 50, 0.3);' if team.id == my_team_id %>">
               <%= link_to team.name, team_path(team) %>
             </th>
           <% end %>

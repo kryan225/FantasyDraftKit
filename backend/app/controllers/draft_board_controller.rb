@@ -27,6 +27,7 @@ class DraftBoardController < ApplicationController
 
     @teams = @league.teams.includes(draft_picks: :player).order(:name)
     @roster_config = @league.roster_config || {}
+    @my_team = @teams.find_by(id: params[:my_team]) if params[:my_team].present?
 
     # Define position display order matching the spreadsheet layout
     @position_slots = []

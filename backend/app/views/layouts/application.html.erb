@@ -31,9 +31,9 @@
         <div class="container">
           <nav class="tabs">
             <%= link_to "Draft Board", league_league_draft_board_path(current_league), class: "tab #{current_page?(league_league_draft_board_path(current_league)) ? 'active' : ''}" %>
-            <%= link_to "Draft Analytics", league_league_draft_analytics_path(current_league), class: "tab #{current_page?(league_league_draft_analytics_path(current_league)) ? 'active' : ''}" %>
+            <%= link_to "Draft Analytics", league_league_draft_analytics_path(current_league, my_team: params[:my_team]), class: "tab #{current_page?(league_league_draft_analytics_path(current_league)) ? 'active' : ''}" %>
             <%= link_to "Draft History", league_league_draft_history_path(current_league), class: "tab #{current_page?(league_league_draft_history_path(current_league)) ? 'active' : ''}" %>
-            <%= link_to "Auction Worksheet", league_auction_worksheet_path(current_league), class: "tab #{current_page?(league_auction_worksheet_path(current_league)) ? 'active' : ''}" %>
+            <%= link_to "Auction Worksheet", league_auction_worksheet_path(current_league, my_team: params[:my_team]), class: "tab #{current_page?(league_auction_worksheet_path(current_league)) ? 'active' : ''}" %>
             <%= link_to "Teams", league_teams_path(current_league), class: "tab #{current_page?(league_teams_path(current_league)) ? 'active' : ''}" %>
             <%= link_to "Standings", league_standings_path(current_league), class: "tab #{current_page?(league_standings_path(current_league)) ? 'active' : ''}" %>
             <%= link_to "Data Control", league_data_control_path(current_league), class: "tab #{current_page?(league_data_control_path(current_league)) ? 'active' : ''}" %>
