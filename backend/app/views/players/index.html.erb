@@ -64,8 +64,10 @@
       <%
         # Helper method to generate sort link
         def sort_link(column, label, current_sort, current_direction, league_id, search, position, drafted)
-          # First click: descending, second click: ascending
-          direction = (current_sort == column && current_direction == 'desc') ? 'asc' : 'desc'
+          asc_default_columns = %w[adp era whip vol]
+          default_dir = asc_default_columns.include?(column) ? 'asc' : 'desc'
+          toggle_dir = default_dir == 'desc' ? 'asc' : 'desc'
+          direction = (current_sort == column && current_direction == default_dir) ? toggle_dir : default_dir
           arrow = if current_sort == column
             current_direction == 'asc' ? ' ↑' : ' ↓'
           else

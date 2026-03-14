@@ -86,9 +86,14 @@
             current_sort = params[:sort]
             current_direction = params[:direction]
 
+            # Columns where lower values are better should default to ascending sort
+            asc_default_columns = %w[adp era whip vol]
+
             # Lambda captures current filter params so sort links preserve all filters
             sort_link = ->(column, label) do
-              direction = (current_sort == column && current_direction == 'desc') ? 'asc' : 'desc'
+              default_dir = asc_default_columns.include?(column) ? 'asc' : 'desc'
+              toggle_dir = default_dir == 'desc' ? 'asc' : 'desc'
+              direction = (current_sort == column && current_direction == default_dir) ? toggle_dir : default_dir
               arrow = if current_sort == column
                 current_direction == 'asc' ? ' ↑' : ' ↓'
               else
