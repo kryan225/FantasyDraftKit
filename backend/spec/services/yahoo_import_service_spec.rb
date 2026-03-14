@@ -121,6 +121,73 @@ RSpec.describe YahooImportService do
     end
   end
 
+  describe 'real-world CSV format (Free Agents export)' do
+    let(:free_agents_csv) do
+      # Matches exact format of Yahoo "Free Agents Projections" export:
+      # - "Free Agents" title row (not "All Players")
+      # - Trailing comma on header row
+      # - "W " (with space) in Avail column
+      # - Quoted multi-position players
+      # - Trailing spaces on team names
+      write_csv('free_agents.csv',
+        "Free Agents   Projections Standard Categories\n" \
+        "Avail,Player,INNs,APP,GS,QS,CG,W,L,S,BS,HD,K,BB,H,ERA,WHIP,Rank,\n" \
+        "W ,\"Shohei Ohtani U,SP | LAD\",105,26,26,5,0,6,2,0,0,0,134,21,75,2.74,0.91,3\n" \
+        "W ,Paul Skenes SP | PIT,181,30,30,21,1,10,8,0,0,0,205,40,136,2.39,0.97,10\n" \
+        "W ,Mason Miller RP | SD,69,66,0,0,0,2,3,38,6,3,112,26,32,2.35,0.84,50\n" \
+        "W ,Jacob deGrom SP | TEX ,157,27,27,13,0,11,6,0,0,0,163,37,120,3.04,1.00,40\n"
+      )
+    end
+
+    it 'imports pitchers from Free Agents export format' do
+      result = described_class.new(free_agents_csv).call
+
+      expect(result[:imported]).to eq(4)
+      expect(result[:merged]).to eq(0)
+    end
+
+    it 'parses multi-position player with quoted field' do
+      described_class.new(free_agents_csv).call
+
+      ohtani = Player.find_by(name: "Shohei Ohtani")
+      expect(ohtani).to be_present
+      expect(ohtani.positions).to eq("UTIL,SP")
+      expect(ohtani.mlb_team).to eq("LAD")
+      expect(ohtani.projections["innings_pitched"]).to eq(105.0)
+      expect(ohtani.projections["strikeouts"]).to eq(134)
+      expect(ohtani.projections["era"]).to eq(2.74)
+    end
+
+    it 'parses single-position pitcher' do
+      described_class.new(free_agents_csv).call
+
+      skenes = Player.find_by(name: "Paul Skenes")
+      expect(skenes).to be_present
+      expect(skenes.positions).to eq("SP")
+      expect(skenes.mlb_team).to eq("PIT")
+      expect(skenes.projections["wins"]).to eq(10)
+      expect(skenes.projections["strikeouts"]).to eq(205)
+    end
+
+    it 'parses reliever correctly' do
+      described_class.new(free_agents_csv).call
+
+      miller = Player.find_by(name: "Mason Miller")
+      expect(miller).to be_present
+      expect(miller.positions).to eq("RP")
+      expect(miller.mlb_team).to eq("SD")
+      expect(miller.projections["saves"]).to eq(38)
+    end
+
+    it 'strips trailing spaces from team names' do
+      described_class.new(free_agents_csv).call
+
+      degrom = Player.find_by(name: "Jacob deGrom")
+      expect(degrom).to be_present
+      expect(degrom.mlb_team).to eq("TEX")
+    end
+  end
+
   describe 'edge cases' do
     it 'skips title rows' do
       csv = write_csv('with_title.csv', <<~CSV)
