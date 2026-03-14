@@ -12,10 +12,8 @@
 # 5. Convert to dollars using 67% batter / 33% pitcher budget split, minimum $1
 #
 # Categories:
-# - Batters (7): HR, R, RBI, SB, AVG (weighted by AB), wOBA (weighted by AB), wRC+ (weighted by AB)
-# - Pitchers (5): W, SV, K, FIP (inverted), WHIP (inverted)
-# FIP used instead of ERA — better predictor of future performance (strips out defense/luck)
-# wOBA/wRC+ help differentiate elite batters; pitcher K%/BB%/K-BB% excluded (correlate with K/WHIP)
+# - Batters (5): HR, R, RBI, SB, AVG (weighted by AB)
+# - Pitchers (5): W, SV, K, ERA (inverted), WHIP (inverted)
 #
 # Position Scarcity:
 # - Replacement = Nth best player where N = total roster slots for position
@@ -36,28 +34,22 @@
 module ValueCalculator
   extend ActiveSupport::Concern
 
-  # Batter stat categories (7 total)
-  # Core 5 (HR, R, RBI, SB, AVG) plus FanGraphs advanced stats (wOBA, wRC+)
-  # which help differentiate elite batters from the pack.
+  # Batter stat categories (5 total)
   BATTER_CATEGORIES = {
     hr: { field: 'home_runs', invert: false, rate: false },
     r: { field: 'runs', invert: false, rate: false },
     rbi: { field: 'rbi', invert: false, rate: false },
     sb: { field: 'stolen_bases', invert: false, rate: false },
-    avg: { field: 'batting_average', invert: false, rate: true, volume_field: 'at_bats' },
-    woba: { field: 'woba', invert: false, rate: true, volume_field: 'at_bats' },
-    wrc_plus: { field: 'wrc_plus', invert: false, rate: true, volume_field: 'at_bats' }
+    avg: { field: 'batting_average', invert: false, rate: true, volume_field: 'at_bats' }
   }.freeze
 
   # Pitcher stat categories (5 total)
-  # FanGraphs pitcher stats (K%, BB%, K-BB%) are imported for display/scouting but
-  # excluded from value calc — they correlate with K/WHIP and inflate top pitcher values.
   # Field names must match keys stored by DataControlController#parse_pitcher_stats
   PITCHER_CATEGORIES = {
     w: { field: 'wins', invert: false, rate: false },
     sv: { field: 'saves', invert: false, rate: false },
     k: { field: 'strikeouts', invert: false, rate: false },
-    fip: { field: 'fip', invert: true, rate: true, volume_field: 'innings_pitched' },
+    era: { field: 'era', invert: true, rate: true, volume_field: 'innings_pitched' },
     whip: { field: 'whip', invert: true, rate: true, volume_field: 'innings_pitched' }
   }.freeze
 
@@ -65,11 +57,9 @@ module ValueCalculator
   BATTER_POSITIONS = %w[C 1B 2B 3B SS MI CI OF UTIL].freeze
   PITCHER_POSITIONS = %w[SP RP].freeze
 
-  # Budget allocation (75/25 split — tuned from industry 67/33 to produce
-  # ~73/27 actual above-replacement distribution, reflecting 7 batter
-  # categories vs 5 pitcher categories)
-  BATTER_BUDGET_PERCENT = 0.75
-  PITCHER_BUDGET_PERCENT = 0.25
+  # Budget allocation (industry standard)
+  BATTER_BUDGET_PERCENT = 0.67
+  PITCHER_BUDGET_PERCENT = 0.33
 
   # Public API - orchestrates full value calculation
   #
@@ -127,29 +117,12 @@ module ValueCalculator
   # @return [Hash] { batters: [Player], pitchers: [Player] }
   def separate_players_by_type(league)
     players = Player.where(is_drafted: false).to_a
-    players.each { |p| normalize_projections(p) }
     players.reject! { |p| skip_player?(p) }
 
     batters = players.select { |p| batter?(p) }
     pitchers = players.select { |p| pitcher?(p) }
 
     { batters: batters, pitchers: pitchers }
-  end
-
-  # Normalize projections before value calculation.
-  # Operates on the in-memory hash only — does NOT persist changes to the database.
-  def normalize_projections(player)
-    return if player.projections.blank?
-
-    # Fallback: use ERA if FIP not available (older projection sources)
-    if player.projections['fip'].nil? && player.projections['era'].present?
-      player.projections['fip'] = player.projections['era']
-    end
-
-    # Derive K-BB% from K% and BB% when not directly available (e.g., Yahoo-only imports)
-    if player.projections['k_bb_pct'].nil? && player.projections['k_pct'].present? && player.projections['bb_pct'].present?
-      player.projections['k_bb_pct'] = player.projections['k_pct'].to_f - player.projections['bb_pct'].to_f
-    end
   end
 
   # Check if player is a batter — uses projections so UTIL-only players like Ohtani are included
@@ -442,11 +415,7 @@ module ValueCalculator
   #
   # Budget split: 67% batters, 33% pitchers (industry standard)
   # Dollar per point = available_budget / total_positive_var
-  # Floor each above-replacement player at $1 minimum
-  #
-  # Only above-replacement players (positive VAR) receive meaningful values.
-  # Below-replacement players get $1 as a nominal floor.
-  # Budget is conserved: sum of above-replacement values = type_budget.
+  # Floor each player at $1 minimum
   #
   # @param var_values [Hash] { player_id => var }
   # @param league [League] League with budget info
@@ -457,26 +426,22 @@ module ValueCalculator
     total_budget = league.auction_budget * league.team_count
     type_budget = total_budget * (is_batter ? BATTER_BUDGET_PERCENT : PITCHER_BUDGET_PERCENT)
 
-    # Separate above-replacement from below-replacement players
-    above_replacement = var_values.select { |_, var| var > 0 }
+    # Reserve $1 per roster slot
+    roster_slots = calculate_roster_slots(league, is_batter)
+    available_budget = type_budget - roster_slots
+
+    # Sum all positive VAR values
+    total_var = var_values.values.sum
 
     # Handle edge case: no positive VAR (all at/below replacement)
-    return var_values.transform_values { 1.0 } if above_replacement.empty?
-
-    # Reserve $1 per above-replacement player (they each get +$1 floor)
-    available_budget = type_budget - above_replacement.size
-    total_var = above_replacement.values.sum
+    return var_values.transform_values { 1.0 } if total_var.zero?
 
     # Calculate dollar per VAR point
     dollar_per_var = available_budget / total_var
 
-    # Convert: above-replacement get proportional dollars + $1, rest get $1
+    # Convert each player's VAR to dollars, floor at $1
     var_values.transform_values do |var|
-      if var > 0
-        [var * dollar_per_var + 1.0, 1.0].max
-      else
-        1.0
-      end
+      [var * dollar_per_var + 1.0, 1.0].max
     end
   end
 

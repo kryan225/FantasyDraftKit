@@ -228,124 +228,6 @@ RSpec.describe ValueCalculator do
   end
 
   # =============================================================================
-  # 2b. Projection Normalization
-  # =============================================================================
-
-  describe '#normalize_projections' do
-    it 'copies ERA to FIP when FIP is missing' do
-      player = build(:player, projections: { 'era' => 3.50, 'innings_pitched' => 180 })
-      subject.send(:normalize_projections, player)
-      expect(player.projections['fip']).to eq(3.50)
-    end
-
-    it 'does not overwrite existing FIP with ERA' do
-      player = build(:player, projections: { 'fip' => 3.20, 'era' => 3.80 })
-      subject.send(:normalize_projections, player)
-      expect(player.projections['fip']).to eq(3.20)
-    end
-
-    it 'does nothing when both FIP and ERA are missing' do
-      player = build(:player, projections: { 'wins' => 10, 'innings_pitched' => 180 })
-      subject.send(:normalize_projections, player)
-      expect(player.projections['fip']).to be_nil
-    end
-
-    it 'derives K-BB% from K% and BB% when missing' do
-      player = build(:player, projections: { 'k_pct' => 0.28, 'bb_pct' => 0.07, 'innings_pitched' => 180 })
-      subject.send(:normalize_projections, player)
-      expect(player.projections['k_bb_pct']).to be_within(0.001).of(0.21)
-    end
-
-    it 'does not overwrite existing K-BB%' do
-      player = build(:player, projections: { 'k_pct' => 0.28, 'bb_pct' => 0.07, 'k_bb_pct' => 0.25 })
-      subject.send(:normalize_projections, player)
-      expect(player.projections['k_bb_pct']).to eq(0.25)
-    end
-
-    it 'handles blank projections gracefully' do
-      player = build(:player, projections: nil)
-      expect { subject.send(:normalize_projections, player) }.not_to raise_error
-    end
-
-    it 'handles empty projections gracefully' do
-      player = build(:player, projections: {})
-      expect { subject.send(:normalize_projections, player) }.not_to raise_error
-    end
-
-    it 'does not persist changes to the database' do
-      player = create(:player, projections: { 'era' => 3.50, 'wins' => 10, 'strikeouts' => 150, 'innings_pitched' => 180 })
-      subject.send(:normalize_projections, player)
-
-      # In-memory: FIP was set
-      expect(player.projections['fip']).to eq(3.50)
-
-      # Database: FIP was NOT persisted
-      player.reload
-      expect(player.projections['fip']).to be_nil
-    end
-  end
-
-  describe 'FIP integration in full calculation' do
-    before(:each) { Player.destroy_all }
-
-    it 'uses FIP when available for pitcher valuation' do
-      # Create pitchers with FIP — should calculate normally
-      Array.new(20) do |i|
-        create(:player, positions: 'SP',
-                        projections: {
-                          'wins' => 10 - (i * 0.3).to_i, 'saves' => 0, 'strikeouts' => 180 - i * 3,
-                          'fip' => 3.50 + i * 0.1, 'whip' => 1.20 + i * 0.02, 'innings_pitched' => 180,
-                          'k_pct' => 0.28 - (i * 0.003), 'bb_pct' => 0.07 + (i * 0.001), 'k_bb_pct' => 0.21 - (i * 0.004)
-                        })
-      end
-
-      result = subject.recalculate_values(league)
-      expect(result[:count]).to eq(20)
-    end
-
-    it 'falls back to ERA when FIP is missing' do
-      # Create pitchers with ERA only (no FIP) — should still work via normalization
-      Array.new(20) do |i|
-        create(:player, positions: 'SP',
-                        projections: {
-                          'wins' => 10 - (i * 0.3).to_i, 'saves' => 0, 'strikeouts' => 180 - i * 3,
-                          'era' => 3.50 + i * 0.1, 'whip' => 1.20 + i * 0.02, 'innings_pitched' => 180,
-                          'k_pct' => 0.28 - (i * 0.003), 'bb_pct' => 0.07 + (i * 0.001), 'k_bb_pct' => 0.21 - (i * 0.004)
-                        })
-      end
-
-      result = subject.recalculate_values(league)
-      expect(result[:count]).to eq(20)
-      expect(Player.where('calculated_value > 1.0').count).to be > 0
-    end
-
-    it 'does not persist ERA-to-FIP fallback to database' do
-      pitcher = create(:player, positions: 'SP',
-                                projections: {
-                                  'wins' => 12, 'saves' => 0, 'strikeouts' => 200,
-                                  'era' => 3.00, 'whip' => 1.10, 'innings_pitched' => 190,
-                                  'k_pct' => 0.30, 'bb_pct' => 0.06, 'k_bb_pct' => 0.24
-                                })
-      # Need enough players for meaningful calculation
-      Array.new(10) do |i|
-        create(:player, positions: 'SP',
-                        projections: {
-                          'wins' => 8, 'saves' => 0, 'strikeouts' => 150,
-                          'era' => 4.00, 'whip' => 1.30, 'innings_pitched' => 170,
-                          'k_pct' => 0.22, 'bb_pct' => 0.08, 'k_bb_pct' => 0.14
-                        })
-      end
-
-      subject.recalculate_values(league)
-      pitcher.reload
-
-      # ERA-to-FIP fallback should NOT have been persisted
-      expect(pitcher.projections['fip']).to be_nil
-      expect(pitcher.projections['era']).to eq(3.00)
-    end
-  end
-
-  # =============================================================================
   # 3. Integration Tests (Full Calculation)
   # =============================================================================
 
@@ -357,26 +239,22 @@ RSpec.describe ValueCalculator do
 
     let!(:elite_hitter) do
       create(:player, positions: 'OF',
-                      projections: { 'home_runs' => 45, 'runs' => 110, 'rbi' => 115, 'stolen_bases' => 25, 'batting_average' => 0.310, 'at_bats' => 620,
-                                     'woba' => 0.430, 'wrc_plus' => 175.0 })
+                      projections: { 'home_runs' => 45, 'runs' => 110, 'rbi' => 115, 'stolen_bases' => 25, 'batting_average' => 0.310, 'at_bats' => 620 })
     end
 
     let!(:average_hitter) do
       create(:player, positions: '2B',
-                      projections: { 'home_runs' => 18, 'runs' => 75, 'rbi' => 70, 'stolen_bases' => 8, 'batting_average' => 0.270, 'at_bats' => 530,
-                                     'woba' => 0.340, 'wrc_plus' => 110.0 })
+                      projections: { 'home_runs' => 18, 'runs' => 75, 'rbi' => 70, 'stolen_bases' => 8, 'batting_average' => 0.270, 'at_bats' => 530 })
     end
 
     let!(:elite_pitcher) do
       create(:player, positions: 'SP',
-                      projections: { 'wins' => 15, 'saves' => 0, 'strikeouts' => 220, 'era' => 2.80, 'whip' => 1.05, 'innings_pitched' => 200,
-                                     'k_pct' => 0.30, 'bb_pct' => 0.05, 'k_bb_pct' => 0.25 })
+                      projections: { 'wins' => 15, 'saves' => 0, 'strikeouts' => 220, 'era' => 2.80, 'whip' => 1.05, 'innings_pitched' => 200 })
     end
 
     let!(:average_pitcher) do
       create(:player, positions: 'RP',
-                      projections: { 'wins' => 4, 'saves' => 35, 'strikeouts' => 75, 'era' => 3.20, 'whip' => 1.15, 'innings_pitched' => 70,
-                                     'k_pct' => 0.26, 'bb_pct' => 0.08, 'k_bb_pct' => 0.18 })
+                      projections: { 'wins' => 4, 'saves' => 35, 'strikeouts' => 75, 'era' => 3.20, 'whip' => 1.15, 'innings_pitched' => 70 })
     end
 
     # Create replacement-level players to establish baseline
@@ -384,8 +262,7 @@ RSpec.describe ValueCalculator do
       Array.new(50) do |i|
         create(:player, positions: 'OF',
                         projections: { 'home_runs' => 15 - (i * 0.2).to_i, 'runs' => 65 - (i * 0.5).to_i, 'rbi' => 60 - (i * 0.5).to_i,
-                                       'stolen_bases' => 5, 'batting_average' => 0.260, 'at_bats' => 500,
-                                       'woba' => 0.310, 'wrc_plus' => 95.0 })
+                                       'stolen_bases' => 5, 'batting_average' => 0.260, 'at_bats' => 500 })
       end
     end
 
@@ -393,8 +270,7 @@ RSpec.describe ValueCalculator do
       Array.new(30) do |i|
         create(:player, positions: 'SP',
                         projections: { 'wins' => 10 - (i * 0.2).to_i, 'saves' => 0, 'strikeouts' => 150 - (i * 2).to_i,
-                                       'era' => 4.00 + (i * 0.05), 'whip' => 1.30 + (i * 0.01), 'innings_pitched' => 170,
-                                       'k_pct' => 0.22 - (i * 0.002), 'bb_pct' => 0.08 + (i * 0.001), 'k_bb_pct' => 0.14 - (i * 0.003) })
+                                       'era' => 4.00 + (i * 0.05), 'whip' => 1.30 + (i * 0.01), 'innings_pitched' => 170 })
       end
     end
 
@@ -528,24 +404,20 @@ RSpec.describe ValueCalculator do
                                 projections: {
                                   'home_runs' => 45, 'runs' => 100, 'rbi' => 110, 'stolen_bases' => 25,
                                   'batting_average' => 0.290, 'at_bats' => 530,
-                                  'woba' => 0.420, 'wrc_plus' => 165.0,
                                   'wins' => 6, 'saves' => 0, 'strikeouts' => 132, 'era' => 2.80,
-                                  'whip' => 0.92, 'innings_pitched' => 103,
-                                  'k_pct' => 0.29, 'bb_pct' => 0.05, 'k_bb_pct' => 0.24
+                                  'whip' => 0.92, 'innings_pitched' => 103
                                 })
 
       # Create a hitter-only clone and pitcher-only clone for comparison
       hitter_only = create(:player, positions: 'OF',
                                     projections: {
                                       'home_runs' => 45, 'runs' => 100, 'rbi' => 110, 'stolen_bases' => 25,
-                                      'batting_average' => 0.290, 'at_bats' => 530,
-                                      'woba' => 0.420, 'wrc_plus' => 165.0
+                                      'batting_average' => 0.290, 'at_bats' => 530
                                     })
       pitcher_only = create(:player, positions: 'SP',
                                      projections: {
                                        'wins' => 6, 'saves' => 0, 'strikeouts' => 132, 'era' => 2.80,
-                                       'whip' => 0.92, 'innings_pitched' => 103,
-                                       'k_pct' => 0.29, 'bb_pct' => 0.05, 'k_bb_pct' => 0.24
+                                       'whip' => 0.92, 'innings_pitched' => 103
                                      })
 
       subject.recalculate_values(league)
@@ -611,8 +483,7 @@ RSpec.describe ValueCalculator do
       Player.destroy_all
       pitchers = Array.new(5) do |i|
         create(:player, positions: 'SP',
-                        projections: { 'wins' => 12 - i, 'saves' => 0, 'strikeouts' => 180 - i * 10, 'era' => 3.50 + i * 0.2, 'whip' => 1.20 + i * 0.05, 'innings_pitched' => 180,
-                                       'k_pct' => 0.28 - (i * 0.02), 'bb_pct' => 0.07 + (i * 0.01), 'k_bb_pct' => 0.21 - (i * 0.03) })
+                        projections: { 'wins' => 12 - i, 'saves' => 0, 'strikeouts' => 180 - i * 10, 'era' => 3.50 + i * 0.2, 'whip' => 1.20 + i * 0.05, 'innings_pitched' => 180 })
       end
 
       result = subject.recalculate_values(league)
@@ -680,12 +551,10 @@ RSpec.describe ValueCalculator do
         position = i < 15 ? 'OF' : 'SP'
         if position == 'OF'
           create(:player, positions: position,
-                          projections: { 'home_runs' => 20 + i, 'runs' => 75 + i, 'rbi' => 75 + i, 'stolen_bases' => 8, 'batting_average' => 0.270, 'at_bats' => 530,
-                                         'woba' => 0.330 + (i * 0.005), 'wrc_plus' => 105.0 + i * 2 })
+                          projections: { 'home_runs' => 20 + i, 'runs' => 75 + i, 'rbi' => 75 + i, 'stolen_bases' => 8, 'batting_average' => 0.270, 'at_bats' => 530 })
         else
           create(:player, positions: position,
-                          projections: { 'wins' => 10 + i - 15, 'saves' => 0, 'strikeouts' => 160 + (i - 15) * 5, 'era' => 3.80, 'whip' => 1.25, 'innings_pitched' => 175,
-                                         'k_pct' => 0.24 + ((i - 15) * 0.005), 'bb_pct' => 0.07, 'k_bb_pct' => 0.17 + ((i - 15) * 0.005) })
+                          projections: { 'wins' => 10 + i - 15, 'saves' => 0, 'strikeouts' => 160 + (i - 15) * 5, 'era' => 3.80, 'whip' => 1.25, 'innings_pitched' => 175 })
         end
       end
 
