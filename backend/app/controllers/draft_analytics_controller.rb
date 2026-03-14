@@ -19,8 +19,19 @@ class DraftAnalyticsController < ApplicationController
     # Calculate spending split between batting and pitching
     @spending_splits = calculate_spending_splits
 
-    # Resolve selected team for nomination suggestions
-    @my_team = @teams.find_by(id: params[:my_team]) if params[:my_team].present?
+    # Save or load selected team
+    if params[:my_team].present?
+      team = @teams.find_by(id: params[:my_team])
+      if team && @league.my_team_id != team.id
+        @league.update(my_team: team)
+      end
+      @my_team = team
+    elsif params[:my_team] == ""
+      @league.update(my_team: nil) if @league.my_team_id.present?
+      @my_team = nil
+    else
+      @my_team = @league.my_team
+    end
     @nomination_suggestions = @my_team ? calculate_nomination_suggestions : []
   end
 

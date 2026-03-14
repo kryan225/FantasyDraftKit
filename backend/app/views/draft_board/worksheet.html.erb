@@ -23,7 +23,6 @@
           <col style="width: 55px;">
           <% group_teams.each do %>
             <col style="width: 40px;">
-            <col style="width: 18px;">
             <col>
           <% end %>
         </colgroup>
@@ -31,7 +30,7 @@
           <tr>
             <th>Pos</th>
             <% group_teams.each do |team| %>
-              <th colspan="3" style="text-align: center; border-left: 2px solid var(--border-color); <%= 'background: rgba(255, 220, 50, 0.3);' if team.id == my_team_id %>">
+              <th colspan="2" style="text-align: center; border-left: 2px solid var(--border-color); <%= 'background: rgba(255, 220, 50, 0.3);' if team.id == my_team_id %>">
                 <%= link_to team.name, team_path(team) %>
               </th>
             <% end %>
@@ -46,26 +45,16 @@
                 <%
                   picks = @team_rosters[team.id][position] || []
                   pick = picks[same_pos_index]
+                  topped_bg = pick&.is_topped ? 'background: rgba(255, 220, 50, 0.15);' : ''
                 %>
-                <td style="border-left: 2px solid var(--border-color); text-align: right;">
+                <td style="border-left: 2px solid var(--border-color); text-align: right; <%= topped_bg %>">
                   <% if pick %>
-                    <strong>$<%= pick.price %></strong>
+                    <% if pick.is_keeper %><strong><% end %>$<%= pick.price %><% if pick.is_keeper %></strong><% end %>
                   <% end %>
                 </td>
-                <td style="text-align: center;">
+                <td style="<%= topped_bg %>">
                   <% if pick %>
-                    <% if pick.is_keeper %>
-                      <span style="color: var(--info-color);">K</span>
-                    <% elsif pick.is_topped %>
-                      <span style="color: var(--warning-color);">T</span>
-                    <% else %>
-                      <span style="color: var(--text-secondary);">A</span>
-                    <% end %>
-                  <% end %>
-                </td>
-                <td>
-                  <% if pick %>
-                    <%= render partial: "players/player_name", locals: { player: pick.player, draft_pick: pick } %>
+                    <% if pick.is_keeper %><strong><% end %><%= render partial: "players/player_name", locals: { player: pick.player, draft_pick: pick } %><% if pick.is_keeper %></strong><% end %>
                   <% end %>
                 </td>
               <% end %>
@@ -83,8 +72,7 @@
               <td style="border-left: 2px solid var(--border-color); text-align: right;">
                 <strong>$<%= team.budget_remaining %></strong>
               </td>
-              <td style="text-align: center;"><%= remaining_spots %></td>
-              <td style="font-size: 0.9em; color: var(--text-secondary);">max $<%= max_bid %></td>
+              <td style="font-size: 0.9em; color: var(--text-secondary);"><%= remaining_spots %> spots, max $<%= max_bid %></td>
             <% end %>
           </tr>
 
@@ -95,8 +83,7 @@
               <td style="border-left: 2px solid var(--border-color); text-align: right;">
                 <strong>$<%= total_spent %></strong>
               </td>
-              <td style="text-align: center;"><%= team.draft_picks.count %></td>
-              <td></td>
+              <td style="font-size: 0.9em; color: var(--text-secondary);"><%= team.draft_picks.count %> picks</td>
             <% end %>
           </tr>
 
@@ -118,8 +105,7 @@
                 end
               %>
               <td style="border-left: 2px solid var(--border-color); text-align: right;">$<%= hitting_spend %></td>
-              <td style="text-align: center;"><%= hitting_count %></td>
-              <td></td>
+              <td style="font-size: 0.9em; color: var(--text-secondary);"><%= hitting_count %> players</td>
             <% end %>
           </tr>
 
@@ -141,8 +127,7 @@
                 end
               %>
               <td style="border-left: 2px solid var(--border-color); text-align: right;">$<%= pitching_spend %></td>
-              <td style="text-align: center;"><%= pitching_count %></td>
-              <td></td>
+              <td style="font-size: 0.9em; color: var(--text-secondary);"><%= pitching_count %> players</td>
             <% end %>
           </tr>
 
@@ -170,7 +155,7 @@
                 batting_pct = total_spent > 0 ? (hitting_spend * 100.0 / total_spent).round(0) : 0
                 pitching_pct = total_spent > 0 ? (pitching_spend * 100.0 / total_spent).round(0) : 0
               %>
-              <td colspan="3" style="border-left: 2px solid var(--border-color); padding: 0; position: relative; height: 1.8em;">
+              <td colspan="2" style="border-left: 2px solid var(--border-color); padding: 0; position: relative; height: 1.8em;">
                 <% if total_spent > 0 %>
                   <div style="display: flex; height: 100%; line-height: 1.8em; font-size: 0.85em;">
                     <div style="width: <%= batting_pct %>%; background: rgba(59, 130, 246, 0.35); text-align: center; color: var(--text-primary);"

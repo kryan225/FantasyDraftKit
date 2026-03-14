@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema[8.1].define(version: 2026_03_13_233703) do
+ActiveRecord::Schema[8.1].define(version: 2026_03_14_011536) do
   # These are extensions that must be enabled in order to support this database
   enable_extension "pg_catalog.plpgsql"
 
@@ -45,10 +45,12 @@ ActiveRecord::Schema[8.1].define(version: 2026_03_13_233703) do
     t.integer "auction_budget"
     t.datetime "created_at", null: false
     t.integer "keeper_limit"
+    t.bigint "my_team_id"
     t.string "name"
     t.jsonb "roster_config"
     t.integer "team_count"
     t.datetime "updated_at", null: false
+    t.index ["my_team_id"], name: "index_leagues_on_my_team_id"
   end
 
   create_table "players", force: :cascade do |t|
@@ -80,6 +82,7 @@ ActiveRecord::Schema[8.1].define(version: 2026_03_13_233703) do
   add_foreign_key "draft_picks", "teams"
   add_foreign_key "keeper_histories", "players"
   add_foreign_key "keeper_histories", "teams"
+  add_foreign_key "leagues", "teams", column: "my_team_id"
   add_foreign_key "players", "teams"
   add_foreign_key "teams", "leagues"
 end

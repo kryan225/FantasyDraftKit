@@ -3,6 +3,7 @@ class League < ApplicationRecord
   has_many :teams, dependent: :destroy
   has_many :draft_picks, dependent: :destroy
   has_many :keeper_histories, through: :teams
+  belongs_to :my_team, class_name: "Team", optional: true
 
   # Validations
   validates :name, presence: true
