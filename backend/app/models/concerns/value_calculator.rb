@@ -13,7 +13,8 @@
 #
 # Categories:
 # - Batters (5): HR, R, RBI, SB, AVG (weighted by AB)
-# - Pitchers (5): W, SV, K, ERA (inverted), WHIP (inverted)
+# - Pitchers (5): W, SV, K, FIP (inverted), WHIP (inverted)
+# FIP used instead of ERA — better predictor of future performance (strips out defense/luck)
 #
 # Position Scarcity:
 # - Replacement = Nth best player where N = total roster slots for position
@@ -49,7 +50,7 @@ module ValueCalculator
     w: { field: 'wins', invert: false, rate: false },
     sv: { field: 'saves', invert: false, rate: false },
     k: { field: 'strikeouts', invert: false, rate: false },
-    era: { field: 'era', invert: true, rate: true, volume_field: 'innings_pitched' },
+    fip: { field: 'fip', invert: true, rate: true, volume_field: 'innings_pitched' },
     whip: { field: 'whip', invert: true, rate: true, volume_field: 'innings_pitched' }
   }.freeze
 
@@ -161,6 +162,11 @@ module ValueCalculator
   def valid_pitcher_stats?(player)
     ip = player.projections['innings_pitched'].to_f
     return false if ip <= 0
+
+    # Fallback: use ERA if FIP not available (older projection sources)
+    if player.projections['fip'].nil? && player.projections['era'].present?
+      player.projections['fip'] = player.projections['era']
+    end
 
     w = player.projections['wins'].to_f
     sv = player.projections['saves'].to_f
