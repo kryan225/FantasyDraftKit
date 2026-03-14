@@ -71,6 +71,29 @@
     <% end %>
   </div>
 
+  <!-- Import FanGraphs Projections Section -->
+  <div class="control-section">
+    <h2>Import FanGraphs Projections</h2>
+    <p class="section-description">
+      FanGraphs ATC projection CSV (batting or pitching). Positions are NOT included &mdash;
+      import Yahoo CSV first for positions, then import FanGraphs to add/update projections.
+    </p>
+
+    <%= form_with url: league_import_fangraphs_path(@league), method: :post, multipart: true, local: true, class: "import-form" do |form| %>
+      <div class="form-group">
+        <%= form.label :file, "Select FanGraphs CSV File", class: "form-label" %>
+        <%= form.file_field :file, accept: ".csv", required: true, class: "file-input" %>
+        <small class="form-hint">
+          Auto-detects batting vs pitching from header row. Existing players are matched by name + team and their projections are merged.
+        </small>
+      </div>
+
+      <div class="form-actions">
+        <%= form.submit "Import FanGraphs Data", class: "btn btn-primary", data: { confirm: "Import FanGraphs projections? Existing players will have their projections merged." } %>
+      </div>
+    <% end %>
+  </div>
+
   <!-- Recalculate Values Section -->
   <div class="control-section">
     <h2>Player Valuation</h2>

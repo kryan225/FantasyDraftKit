@@ -86,6 +86,81 @@ class DataControlController < ApplicationController
     end
   end
 
+  def import_fangraphs
+    @league = current_league
+    return redirect_to data_control_path(league_id: @league&.id), alert: "League not found" unless @league
+
+    unless params[:file].present?
+      return redirect_to league_data_control_path(@league), alert: "Please select a FanGraphs CSV file to import"
+    end
+
+    file = params[:file]
+
+    begin
+      imported_count = 0
+      merged_count = 0
+      merged_names = []
+
+      raw_headers = File.open(file.path, &:readline).chomp.split(",").map { |h| h.delete("\xEF\xBB\xBF").strip }
+      csv_type = if raw_headers.include?("PA")
+                   :hitter
+                 elsif raw_headers.include?("IP")
+                   :pitcher
+                 else
+                   raise "Unable to detect CSV type: header must contain PA (batting) or IP (pitching)"
+                 end
+
+      CSV.foreach(file.path, headers: true, encoding: 'bom|utf-8') do |row|
+        # Clean BOM from header keys
+        clean_row = {}
+        row.each { |k, v| clean_row[k&.delete("\xEF\xBB\xBF")&.strip] = v }
+
+        player_name = clean_row["NameASCII"].presence || clean_row["Name"]
+        next if player_name.blank?
+        player_name = player_name.strip.delete('"')
+
+        mlb_team = clean_row["Team"]&.strip&.delete('"')
+        next if mlb_team.blank?
+
+        projections = if csv_type == :hitter
+                        parse_fangraphs_hitter_stats(clean_row)
+                      else
+                        parse_fangraphs_pitcher_stats(clean_row)
+                      end
+
+        existing_player = Player.find_by(name: player_name, mlb_team: mlb_team)
+        if existing_player
+          merged_projections = (existing_player.projections || {}).merge(projections)
+          existing_player.update!(projections: merged_projections)
+          merged_names << player_name
+          merged_count += 1
+          next
+        end
+
+        default_positions = csv_type == :hitter ? "UTIL" : "SP"
+
+        Player.create!(
+          name: player_name,
+          positions: default_positions,
+          mlb_team: mlb_team,
+          projections: projections,
+          calculated_value: 0,
+          is_drafted: false
+        )
+
+        imported_count += 1
+      end
+
+      message = "Successfully imported #{imported_count} new players from FanGraphs."
+      message += " Merged projections for #{merged_count} existing players: #{merged_names.join(', ')}." if merged_names.any?
+      redirect_to league_data_control_path(@league), notice: message
+    rescue CSV::MalformedCSVError => e
+      redirect_to league_data_control_path(@league), alert: "Error parsing FanGraphs CSV: #{e.message}"
+    rescue StandardError => e
+      redirect_to league_data_control_path(@league), alert: "Error importing FanGraphs data: #{e.message}"
+    end
+  end
+
   def undraft_all_players
     @league = current_league
     return redirect_to data_control_path(league_id: @league&.id), alert: "League not found" unless @league
@@ -264,6 +339,74 @@ class DataControlController < ApplicationController
       "hits_allowed" => row[14].to_i,
       "era" => row[15].to_f,
       "whip" => row[16].to_f
+    }
+  end
+
+  # Parse FanGraphs ATC batting projection stats
+  def parse_fangraphs_hitter_stats(row)
+    {
+      # Core stats mapped to existing projection keys
+      "at_bats" => row["AB"].to_f,
+      "runs" => row["R"].to_f,
+      "hits" => row["H"].to_f,
+      "singles" => row["1B"].to_f,
+      "doubles" => row["2B"].to_f,
+      "triples" => row["3B"].to_f,
+      "home_runs" => row["HR"].to_f,
+      "rbi" => row["RBI"].to_f,
+      "batter_walks" => row["BB"].to_f,
+      "batter_strikeouts" => row["SO"].to_f,
+      "stolen_bases" => row["SB"].to_f,
+      "caught_stealing" => row["CS"].to_f,
+      "batting_average" => row["AVG"].to_f,
+      "obp" => row["OBP"].to_f,
+      "slg" => row["SLG"].to_f,
+      # FanGraphs-specific advanced stats
+      "fpts" => row["FPTS"].to_f,
+      "adp" => row["ADP"].to_f,
+      "woba" => row["wOBA"].to_f,
+      "wrc_plus" => row["wRC+"].to_f,
+      "war" => row["WAR"].to_f,
+      "k_pct" => row["K%"].to_f,
+      "bb_pct" => row["BB%"].to_f,
+      "inter_sd" => row["InterSD"].to_f,
+      "intra_sd" => row["IntraSD"].to_f,
+      "vol" => row["Vol"].to_f,
+      "skew" => row["Skew"].to_f,
+      "fangraphs_id" => row["PlayerId"]&.strip
+    }
+  end
+
+  # Parse FanGraphs ATC pitching projection stats
+  def parse_fangraphs_pitcher_stats(row)
+    {
+      # Core stats mapped to existing projection keys
+      "innings_pitched" => row["IP"].to_f,
+      "appearances" => row["G"].to_f,
+      "games_started" => row["GS"].to_f,
+      "quality_starts" => row["QS"].to_f,
+      "wins" => row["W"].to_f,
+      "losses" => row["L"].to_f,
+      "saves" => row["SV"].to_f,
+      "blown_saves" => row["BS"].to_f,
+      "holds" => row["HLD"].to_f,
+      "strikeouts" => row["SO"].to_f,
+      "walks" => row["BB"].to_f,
+      "hits_allowed" => row["H"].to_f,
+      "era" => row["ERA"].to_f,
+      "whip" => row["WHIP"].to_f,
+      # FanGraphs-specific advanced stats
+      "fpts" => row["FPTS"].to_f,
+      "adp" => row["ADP"].to_f,
+      "fip" => row["FIP"].to_f,
+      "war" => row["WAR"].to_f,
+      "k_pct" => row["K%"].to_f,
+      "bb_pct" => row["BB%"].to_f,
+      "inter_sd" => row["InterSD"].to_f,
+      "intra_sd" => row["IntraSD"].to_f,
+      "vol" => row["Vol"].to_f,
+      "skew" => row["Skew"].to_f,
+      "fangraphs_id" => row["PlayerId"]&.strip
     }
   end
 end
