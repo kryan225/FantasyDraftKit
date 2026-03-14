@@ -15,6 +15,8 @@ export default class extends BaseModalController {
     "playerName",
     "playerPosition",
     "playerValue",
+    "playerAdp",
+    "playerFpts",
     "playerNotes",
     "priceInput",
     "teamSelect",
@@ -46,11 +48,15 @@ export default class extends BaseModalController {
     const playerPositions = button.dataset.playerPositions
     const playerValue = button.dataset.playerValue
     const playerNotes = button.dataset.playerNotes
+    const playerAdp = button.dataset.playerAdp
+    const playerFpts = button.dataset.playerFpts
 
     // Populate modal with player data
     this.playerNameTarget.textContent = playerName
     this.playerPositionTarget.textContent = playerPositions
     this.playerValueTarget.textContent = `$${playerValue}`
+    this.playerAdpTarget.textContent = playerAdp || '-'
+    this.playerFptsTarget.textContent = playerFpts ? `${playerFpts} pts` : '-'
     this.playerIdTarget.value = playerId
     this.playerNotesTarget.value = playerNotes || ""
 

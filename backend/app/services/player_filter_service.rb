@@ -25,6 +25,7 @@ class PlayerFilterService
   JSONB_SORT_COLUMNS = %w[
     home_runs runs rbi stolen_bases batting_average at_bats
     wins saves strikeouts era whip innings_pitched
+    adp fpts vol
   ].freeze
   SORT_COLUMNS = (STANDARD_SORT_COLUMNS + JSONB_SORT_COLUMNS).freeze
 

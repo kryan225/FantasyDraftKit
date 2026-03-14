@@ -115,6 +115,9 @@
                 <th><%= sort_link.('positions', 'Pos') %></th>
                 <th><%= sort_link.('mlb_team', 'Team') %></th>
                 <th><%= sort_link.('calculated_value', 'Value') %></th>
+                <th><%= sort_link.('adp', 'ADP') %></th>
+                <th><%= sort_link.('fpts', 'FPTS') %></th>
+                <th><%= sort_link.('vol', 'Risk') %></th>
                 <% if show_status %><th>Status</th><% end %>
                 <!-- Hitter Stats -->
                 <th><%= sort_link.('at_bats', 'AB') %></th>
@@ -245,6 +248,14 @@
                     <div class="player-details-row">
                       <span class="player-details-label">Value:</span>
                       <span class="player-details-value" data-draft-modal-target="playerValue"></span>
+                    </div>
+                    <div class="player-details-row">
+                      <span class="player-details-label">ADP:</span>
+                      <span class="player-details-value" data-draft-modal-target="playerAdp"></span>
+                    </div>
+                    <div class="player-details-row">
+                      <span class="player-details-label">FPTS:</span>
+                      <span class="player-details-value" data-draft-modal-target="playerFpts"></span>
                     </div>
                     <div class="player-details-row" style="display: block;">
                       <span class="player-details-label">Notes:</span>

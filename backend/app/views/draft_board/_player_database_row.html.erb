@@ -24,6 +24,8 @@
          data-player-positions="<%= player.positions %>"
          data-player-mlb-team="<%= player.mlb_team %>"
          data-player-value="<%= player.calculated_value&.round || '?' %>"
+         data-player-adp="<%= player.projections&.dig('adp')&.round || '' %>"
+         data-player-fpts="<%= player.projections&.dig('fpts')&.round || '' %>"
          data-player-notes="<%= player.notes %>"
          class="player-link">
         <strong><%= player.name %></strong>
@@ -33,6 +35,24 @@
   <td><%= player.positions %></td>
   <td><%= player.mlb_team %></td>
   <td><strong>$<%= player.calculated_value&.round || "?" %></strong></td>
+  <% adp = player.projections&.dig("adp") %>
+  <% fpts = player.projections&.dig("fpts") %>
+  <% vol = player.projections&.dig("vol") %>
+  <td><%= adp.present? ? adp.round(1) : "-" %></td>
+  <td><%= fpts.present? ? fpts.round(1) : "-" %></td>
+  <td>
+    <% if vol.present? %>
+      <% if vol < 3.0 %>
+        <span style="color: #27ae60; font-size: 0.8em; font-weight: 600;">LOW</span>
+      <% elsif vol <= 4.5 %>
+        <span style="color: #f39c12; font-size: 0.8em; font-weight: 600;">MED</span>
+      <% else %>
+        <span style="color: #e74c3c; font-size: 0.8em; font-weight: 600;">HIGH</span>
+      <% end %>
+    <% else %>
+      -
+    <% end %>
+  </td>
   <% if defined?(show_status) && show_status %>
     <td>
       <% if player.is_drafted %>
