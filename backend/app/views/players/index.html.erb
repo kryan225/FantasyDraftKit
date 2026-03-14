@@ -41,7 +41,7 @@
 
       <div class="form-group">
         <%= f.label :min_value, "Min Value ($)" %>
-        <%= f.number_field :min_value, value: params[:min_value], placeholder: "e.g. 10", step: "any", min: 0,
+        <%= f.number_field :min_value, value: params.key?(:min_value) ? params[:min_value] : "1", placeholder: "e.g. 10", step: "any", min: 0,
             class: "form-control",
             data: { controller: "debounced-search", action: "input->debounced-search#search" } %>
       </div>

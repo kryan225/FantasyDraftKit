@@ -114,9 +114,12 @@ class PlayerFilterService
   end
 
   def filter_by_min_value(players)
-    return players unless params[:min_value].present?
-
-    min = params[:min_value].to_f
+    min = if params.key?(:min_value)
+            return players if params[:min_value].blank?
+            params[:min_value].to_f
+          else
+            1.0
+          end
     players.where("calculated_value >= ?", min)
   end
 
