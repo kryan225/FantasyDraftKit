@@ -95,51 +95,55 @@ RSpec.describe ValueCalculator do
   # 2. Helper Methods
   # =============================================================================
 
-  describe '#hitter?' do
+  describe '#batter?' do
+    let(:batter_projections) { { 'home_runs' => 20, 'runs' => 80, 'rbi' => 75, 'at_bats' => 500 } }
+
     it 'identifies hitters by position' do
-      player = create(:player, positions: 'OF')
-      expect(subject.send(:hitter?, player)).to be true
+      player = create(:player, positions: 'OF', projections: batter_projections)
+      expect(subject.send(:batter?, player)).to be true
     end
 
     it 'identifies multi-position hitters with slash delimiter' do
-      player = create(:player, positions: '2B/SS')
-      expect(subject.send(:hitter?, player)).to be true
+      player = create(:player, positions: '2B/SS', projections: batter_projections)
+      expect(subject.send(:batter?, player)).to be true
     end
 
     it 'identifies multi-position hitters with comma delimiter' do
-      player = create(:player, positions: '2B,SS')
-      expect(subject.send(:hitter?, player)).to be true
+      player = create(:player, positions: '2B,SS', projections: batter_projections)
+      expect(subject.send(:batter?, player)).to be true
     end
 
     it 'rejects pitchers' do
-      player = create(:player, positions: 'SP')
-      expect(subject.send(:hitter?, player)).to be false
+      player = create(:player, positions: 'SP', projections: { 'wins' => 10, 'innings_pitched' => 180 })
+      expect(subject.send(:batter?, player)).to be false
     end
 
     it 'returns true for two-way player' do
-      player = create(:player, positions: 'OF,SP')
-      expect(subject.send(:hitter?, player)).to be true
+      player = create(:player, positions: 'OF,SP', projections: batter_projections)
+      expect(subject.send(:batter?, player)).to be true
     end
   end
 
   describe '#pitcher?' do
+    let(:pitcher_projections) { { 'wins' => 10, 'strikeouts' => 150, 'innings_pitched' => 180 } }
+
     it 'identifies starting pitchers' do
-      player = create(:player, positions: 'SP')
+      player = create(:player, positions: 'SP', projections: pitcher_projections)
       expect(subject.send(:pitcher?, player)).to be true
     end
 
     it 'identifies relief pitchers' do
-      player = create(:player, positions: 'RP')
+      player = create(:player, positions: 'RP', projections: pitcher_projections)
       expect(subject.send(:pitcher?, player)).to be true
     end
 
     it 'rejects hitters' do
-      player = create(:player, positions: 'OF')
+      player = create(:player, positions: 'OF', projections: { 'home_runs' => 20, 'at_bats' => 500 })
       expect(subject.send(:pitcher?, player)).to be false
     end
 
     it 'returns true for two-way player' do
-      player = create(:player, positions: 'OF,SP')
+      player = create(:player, positions: 'OF,SP', projections: pitcher_projections)
       expect(subject.send(:pitcher?, player)).to be true
     end
   end
@@ -220,6 +224,108 @@ RSpec.describe ValueCalculator do
                                  projections: { 'at_bats' => 0, 'innings_pitched' => 0 })
         expect(subject.send(:skip_player?, player)).to be true
       end
+    end
+  end
+
+  # =============================================================================
+  # 2b. Projection Normalization
+  # =============================================================================
+
+  describe '#normalize_projections' do
+    it 'copies ERA to FIP when FIP is missing' do
+      player = build(:player, projections: { 'era' => 3.50, 'innings_pitched' => 180 })
+      subject.send(:normalize_projections, player)
+      expect(player.projections['fip']).to eq(3.50)
+    end
+
+    it 'does not overwrite existing FIP with ERA' do
+      player = build(:player, projections: { 'fip' => 3.20, 'era' => 3.80 })
+      subject.send(:normalize_projections, player)
+      expect(player.projections['fip']).to eq(3.20)
+    end
+
+    it 'does nothing when both FIP and ERA are missing' do
+      player = build(:player, projections: { 'wins' => 10, 'innings_pitched' => 180 })
+      subject.send(:normalize_projections, player)
+      expect(player.projections['fip']).to be_nil
+    end
+
+    it 'handles blank projections gracefully' do
+      player = build(:player, projections: nil)
+      expect { subject.send(:normalize_projections, player) }.not_to raise_error
+    end
+
+    it 'handles empty projections gracefully' do
+      player = build(:player, projections: {})
+      expect { subject.send(:normalize_projections, player) }.not_to raise_error
+    end
+
+    it 'does not persist changes to the database' do
+      player = create(:player, projections: { 'era' => 3.50, 'wins' => 10, 'strikeouts' => 150, 'innings_pitched' => 180 })
+      subject.send(:normalize_projections, player)
+
+      # In-memory: FIP was set
+      expect(player.projections['fip']).to eq(3.50)
+
+      # Database: FIP was NOT persisted
+      player.reload
+      expect(player.projections['fip']).to be_nil
+    end
+  end
+
+  describe 'FIP integration in full calculation' do
+    before(:each) { Player.destroy_all }
+
+    it 'uses FIP when available for pitcher valuation' do
+      # Create pitchers with FIP — should calculate normally
+      Array.new(20) do |i|
+        create(:player, positions: 'SP',
+                        projections: {
+                          'wins' => 10 - (i * 0.3).to_i, 'saves' => 0, 'strikeouts' => 180 - i * 3,
+                          'fip' => 3.50 + i * 0.1, 'whip' => 1.20 + i * 0.02, 'innings_pitched' => 180
+                        })
+      end
+
+      result = subject.recalculate_values(league)
+      expect(result[:count]).to eq(20)
+    end
+
+    it 'falls back to ERA when FIP is missing' do
+      # Create pitchers with ERA only (no FIP) — should still work via normalization
+      Array.new(20) do |i|
+        create(:player, positions: 'SP',
+                        projections: {
+                          'wins' => 10 - (i * 0.3).to_i, 'saves' => 0, 'strikeouts' => 180 - i * 3,
+                          'era' => 3.50 + i * 0.1, 'whip' => 1.20 + i * 0.02, 'innings_pitched' => 180
+                        })
+      end
+
+      result = subject.recalculate_values(league)
+      expect(result[:count]).to eq(20)
+      expect(Player.where('calculated_value > 1.0').count).to be > 0
+    end
+
+    it 'does not persist ERA-to-FIP fallback to database' do
+      pitcher = create(:player, positions: 'SP',
+                                projections: {
+                                  'wins' => 12, 'saves' => 0, 'strikeouts' => 200,
+                                  'era' => 3.00, 'whip' => 1.10, 'innings_pitched' => 190
+                                })
+      # Need enough players for meaningful calculation
+      Array.new(10) do |i|
+        create(:player, positions: 'SP',
+                        projections: {
+                          'wins' => 8, 'saves' => 0, 'strikeouts' => 150,
+                          'era' => 4.00, 'whip' => 1.30, 'innings_pitched' => 170
+                        })
+      end
+
+      subject.recalculate_values(league)
+      pitcher.reload
+
+      # ERA-to-FIP fallback should NOT have been persisted
+      expect(pitcher.projections['fip']).to be_nil
+      expect(pitcher.projections['era']).to eq(3.00)
     end
   end
 

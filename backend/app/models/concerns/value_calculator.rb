@@ -118,12 +118,24 @@ module ValueCalculator
   # @return [Hash] { batters: [Player], pitchers: [Player] }
   def separate_players_by_type(league)
     players = Player.where(is_drafted: false).to_a
+    players.each { |p| normalize_projections(p) }
     players.reject! { |p| skip_player?(p) }
 
     batters = players.select { |p| batter?(p) }
     pitchers = players.select { |p| pitcher?(p) }
 
     { batters: batters, pitchers: pitchers }
+  end
+
+  # Normalize projections before value calculation.
+  # Operates on the in-memory hash only — does NOT persist changes to the database.
+  def normalize_projections(player)
+    return if player.projections.blank?
+
+    # Fallback: use ERA if FIP not available (older projection sources)
+    if player.projections['fip'].nil? && player.projections['era'].present?
+      player.projections['fip'] = player.projections['era']
+    end
   end
 
   # Check if player is a batter — uses projections so UTIL-only players like Ohtani are included
@@ -162,11 +174,6 @@ module ValueCalculator
   def valid_pitcher_stats?(player)
     ip = player.projections['innings_pitched'].to_f
     return false if ip <= 0
-
-    # Fallback: use ERA if FIP not available (older projection sources)
-    if player.projections['fip'].nil? && player.projections['era'].present?
-      player.projections['fip'] = player.projections['era']
-    end
 
     w = player.projections['wins'].to_f
     sv = player.projections['saves'].to_f
