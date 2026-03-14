@@ -16,6 +16,7 @@
 #                     "" = all players, absent = default to available
 #   - interested:     "true" = interested players only
 #   - multi_position: "true" = players with multiple positions only
+#   - min_value:      Minimum calculated_value threshold (numeric)
 #   - sort:           Column to sort by (whitelisted, see SORT_COLUMNS)
 #   - direction:      "asc" or "desc" (default: "desc")
 #
@@ -48,6 +49,7 @@ class PlayerFilterService
     players = filter_by_drafted_status(players)
     players = filter_by_interested(players)
     players = filter_by_multi_position(players)
+    players = filter_by_min_value(players)
     players
   end
 
@@ -109,6 +111,13 @@ class PlayerFilterService
     return players unless params[:multi_position] == "true"
 
     players.multi_position
+  end
+
+  def filter_by_min_value(players)
+    return players unless params[:min_value].present?
+
+    min = params[:min_value].to_f
+    players.where("calculated_value >= ?", min)
   end
 
   def apply_sorting(players)
