@@ -12,9 +12,12 @@
 # 5. Convert to dollars using 67% batter / 33% pitcher budget split, minimum $1
 #
 # Categories:
-# - Batters (5): HR, R, RBI, SB, AVG (weighted by AB)
-# - Pitchers (5): W, SV, K, FIP (inverted), WHIP (inverted)
+# - Batters (7): HR, R, RBI, SB, AVG (weighted by AB), wOBA (weighted by AB), wRC+ (weighted by AB)
+# - Pitchers (8): W, SV, K, FIP (inverted), WHIP (inverted), K% (weighted by IP), BB% (inverted, weighted by IP), K-BB% (weighted by IP)
 # FIP used instead of ERA — better predictor of future performance (strips out defense/luck)
+# wOBA: weighted on-base average — single best measure of overall offensive production
+# wRC+: park/league-adjusted runs created — 100 is average, higher is better
+# K%/BB%/K-BB%: pitcher command metrics weighted by IP to reflect workload impact
 #
 # Position Scarcity:
 # - Replacement = Nth best player where N = total roster slots for position
@@ -35,23 +38,28 @@
 module ValueCalculator
   extend ActiveSupport::Concern
 
-  # Batter stat categories (5 total)
+  # Batter stat categories (7 total)
   BATTER_CATEGORIES = {
     hr: { field: 'home_runs', invert: false, rate: false },
     r: { field: 'runs', invert: false, rate: false },
     rbi: { field: 'rbi', invert: false, rate: false },
     sb: { field: 'stolen_bases', invert: false, rate: false },
-    avg: { field: 'batting_average', invert: false, rate: true, volume_field: 'at_bats' }
+    avg: { field: 'batting_average', invert: false, rate: true, volume_field: 'at_bats' },
+    woba: { field: 'woba', invert: false, rate: true, volume_field: 'at_bats' },
+    wrc_plus: { field: 'wrc_plus', invert: false, rate: true, volume_field: 'at_bats' }
   }.freeze
 
-  # Pitcher stat categories (5 total)
+  # Pitcher stat categories (8 total)
   # Field names must match keys stored by DataControlController#parse_pitcher_stats
   PITCHER_CATEGORIES = {
     w: { field: 'wins', invert: false, rate: false },
     sv: { field: 'saves', invert: false, rate: false },
     k: { field: 'strikeouts', invert: false, rate: false },
     fip: { field: 'fip', invert: true, rate: true, volume_field: 'innings_pitched' },
-    whip: { field: 'whip', invert: true, rate: true, volume_field: 'innings_pitched' }
+    whip: { field: 'whip', invert: true, rate: true, volume_field: 'innings_pitched' },
+    k_pct: { field: 'k_pct', invert: false, rate: true, volume_field: 'innings_pitched' },
+    bb_pct: { field: 'bb_pct', invert: true, rate: true, volume_field: 'innings_pitched' },
+    k_bb_pct: { field: 'k_bb_pct', invert: false, rate: true, volume_field: 'innings_pitched' }
   }.freeze
 
   # Roster position groups
@@ -135,6 +143,11 @@ module ValueCalculator
     # Fallback: use ERA if FIP not available (older projection sources)
     if player.projections['fip'].nil? && player.projections['era'].present?
       player.projections['fip'] = player.projections['era']
+    end
+
+    # Derive K-BB% from K% and BB% when not directly available (e.g., Yahoo-only imports)
+    if player.projections['k_bb_pct'].nil? && player.projections['k_pct'].present? && player.projections['bb_pct'].present?
+      player.projections['k_bb_pct'] = player.projections['k_pct'].to_f - player.projections['bb_pct'].to_f
     end
   end
 

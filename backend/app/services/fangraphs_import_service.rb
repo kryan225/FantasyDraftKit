@@ -181,6 +181,7 @@ class FangraphsImportService
       "war" => row["WAR"].to_f,
       "k_pct" => row["K%"].to_f,
       "bb_pct" => row["BB%"].to_f,
+      "k_bb_pct" => row["K-BB%"].to_f,
       "inter_sd" => row["InterSD"].to_f,
       "intra_sd" => row["IntraSD"].to_f,
       "vol" => row["Vol"].to_f,
