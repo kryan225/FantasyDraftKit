@@ -7,7 +7,7 @@
       data-controller="player-interest"
       data-action="click->player-interest#toggle"
     <% end %>>
-  <td>
+  <td class="sticky-col sticky-col-1">
     <% unless player.is_drafted %>
       <%= form_with url: toggle_interested_player_path(player, league_id: league_id), method: :post,
                     data: { turbo: true, player_interest_target: "form" },
@@ -32,14 +32,12 @@
       </a>
     <% end %>
   </td>
-  <td><%= player.positions %></td>
+  <td class="sticky-col sticky-col-2"><%= player.positions %></td>
+  <td class="sticky-col sticky-col-3"><strong>$<%= player.calculated_value&.round || "?" %></strong></td>
   <td><%= player.mlb_team %></td>
-  <td><strong>$<%= player.calculated_value&.round || "?" %></strong></td>
   <% adp = player.projections&.dig("adp") %>
-  <% fpts = player.projections&.dig("fpts") %>
   <% vol = player.projections&.dig("vol") %>
-  <td><%= adp.present? ? adp.round(1) : "-" %></td>
-  <td><%= fpts.present? ? fpts.round(1) : "-" %></td>
+  <td><%= adp.present? ? adp.round : "-" %></td>
   <td>
     <% if vol.present? %>
       <% if vol < 3.0 %>

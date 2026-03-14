@@ -1,15 +1,16 @@
+<%# Integer stats: round to nearest integer. Rate stats: round to 3 decimal places. %>
 <!-- Hitter Stats -->
-<td><%= player.projections&.dig("at_bats") %></td>
-<td><%= player.projections&.dig("runs") %></td>
-<td><%= player.projections&.dig("home_runs") %></td>
-<td><%= player.projections&.dig("rbi") %></td>
-<td><%= player.projections&.dig("stolen_bases") %></td>
-<td><%= player.projections&.dig("batting_average") %></td>
+<td><%= player.projections&.dig("at_bats")&.round %></td>
+<td><%= player.projections&.dig("runs")&.round %></td>
+<td><%= player.projections&.dig("home_runs")&.round %></td>
+<td><%= player.projections&.dig("rbi")&.round %></td>
+<td><%= player.projections&.dig("stolen_bases")&.round %></td>
+<td><%= player.projections&.dig("batting_average")&.round(3) %></td>
 
 <!-- Pitcher Stats -->
-<td><%= player.projections&.dig("innings_pitched") %></td>
-<td><%= player.projections&.dig("wins") %></td>
-<td><%= player.projections&.dig("saves") %></td>
-<td><%= player.projections&.dig("strikeouts") %></td>
-<td><%= player.projections&.dig("era") %></td>
-<td><%= player.projections&.dig("whip") %></td>
+<td><%= player.projections&.dig("innings_pitched")&.round %></td>
+<td><%= player.projections&.dig("wins")&.round %></td>
+<td><%= player.projections&.dig("saves")&.round %></td>
+<td><%= player.projections&.dig("strikeouts")&.round %></td>
+<td><%= player.projections&.dig("era")&.round(3) %></td>
+<td><%= player.projections&.dig("whip")&.round(3) %></td>

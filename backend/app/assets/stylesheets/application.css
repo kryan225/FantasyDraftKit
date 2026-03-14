@@ -625,19 +625,26 @@ thead th {
   border-bottom: 2px solid var(--border-color);
 }
 
-/* Sticky first column (Player name) */
-table thead th:first-child,
-table tbody td:first-child {
+/* Sticky columns (Player, Pos, Team, Value) */
+.sticky-col {
   position: sticky;
-  left: 0;
   z-index: 5;
   background-color: var(--card-bg);
-  box-shadow: 2px 0 4px rgba(0, 0, 0, 0.1);
 }
 
-table thead th:first-child {
-  z-index: 15; /* Higher than body cells to stay on top when scrolling both directions */
+.sticky-col-1 { left: 0; min-width: 140px; }
+.sticky-col-2 { left: 140px; min-width: 70px; }
+.sticky-col-3 { left: 210px; min-width: 55px; box-shadow: 2px 0 4px rgba(0, 0, 0, 0.1); }
+
+thead .sticky-col {
+  z-index: 15; /* Above body sticky cells when scrolling both directions */
 }
+
+/* Sticky cells must be fully opaque so scrolling content doesn't bleed through */
+tr.player-row-interested .sticky-col { background: #fffbe6; }
+tr.player-row-interested:hover .sticky-col { background: #fff3c4; }
+tr.player-row-priority .sticky-col { background: #e6fafe; }
+tr.player-row-priority:hover .sticky-col { background: #ccf3fa; }
 
 
 /* Collapsible Sections */
@@ -1347,3 +1354,11 @@ html.dark table tbody tr.player-row-priority:nth-child(even) {
 html.dark table tbody tr.player-row-priority:hover {
   background: rgba(236, 72, 153, 0.28);
 }
+
+/* Dark mode sticky cell backgrounds — must be fully opaque */
+html.dark .sticky-col { background-color: var(--card-bg); }
+html.dark table tbody tr:nth-child(even) .sticky-col { background: #1a2332; }
+html.dark tr.player-row-interested .sticky-col { background: #3d3520; }
+html.dark tr.player-row-interested:hover .sticky-col { background: #4a4025; }
+html.dark tr.player-row-priority .sticky-col { background: #3a1f33; }
+html.dark tr.player-row-priority:hover .sticky-col { background: #4a2840; }
