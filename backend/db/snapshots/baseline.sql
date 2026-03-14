@@ -2,9 +2,9 @@
 -- PostgreSQL database dump
 --
 
-\restrict ZoMzbfbJdhKpt9zC3GOMf2bxv5ccHfJFUMNIJrixLAt4yUZzKmeuKdDLhbu4SNi
+\restrict mN3M9wZMDXohIRpNZ2bmHScgKpZGRtdMQKLxM63EpAKHHNBudVZWhwev3d0ywH7
 
--- Dumped from database version 16.11 (Debian 16.11-1.pgdg13+1)
+-- Dumped from database version 16.13 (Debian 16.13-1.pgdg13+1)
 -- Dumped by pg_dump version 18.1
 
 SET statement_timeout = 0;
@@ -25,9 +25,11 @@ ALTER TABLE IF EXISTS ONLY public.draft_picks DROP CONSTRAINT IF EXISTS fk_rails
 ALTER TABLE IF EXISTS ONLY public.teams DROP CONSTRAINT IF EXISTS fk_rails_99e3bbb19c;
 ALTER TABLE IF EXISTS ONLY public.players DROP CONSTRAINT IF EXISTS fk_rails_8880a915a5;
 ALTER TABLE IF EXISTS ONLY public.draft_picks DROP CONSTRAINT IF EXISTS fk_rails_31aa6e8bdb;
+ALTER TABLE IF EXISTS ONLY public.leagues DROP CONSTRAINT IF EXISTS fk_rails_14c3a1213a;
 ALTER TABLE IF EXISTS ONLY public.keeper_histories DROP CONSTRAINT IF EXISTS fk_rails_11e880f0d1;
 DROP INDEX IF EXISTS public.index_teams_on_league_id;
 DROP INDEX IF EXISTS public.index_players_on_team_id;
+DROP INDEX IF EXISTS public.index_leagues_on_my_team_id;
 DROP INDEX IF EXISTS public.index_keeper_histories_on_team_id;
 DROP INDEX IF EXISTS public.index_keeper_histories_on_player_id;
 DROP INDEX IF EXISTS public.index_draft_picks_on_team_id;
@@ -89,7 +91,8 @@ CREATE TABLE public.draft_picks (
     pick_number integer,
     created_at timestamp(6) without time zone NOT NULL,
     updated_at timestamp(6) without time zone NOT NULL,
-    drafted_position character varying
+    drafted_position character varying,
+    is_topped boolean DEFAULT false NOT NULL
 );
 
 
@@ -166,7 +169,8 @@ CREATE TABLE public.leagues (
     keeper_limit integer,
     roster_config jsonb,
     created_at timestamp(6) without time zone NOT NULL,
-    updated_at timestamp(6) without time zone NOT NULL
+    updated_at timestamp(6) without time zone NOT NULL,
+    my_team_id bigint
 );
 
 
@@ -332,72 +336,72 @@ environment	development	2026-02-04 03:00:17.57204	2026-02-04 03:00:17.572042
 -- Data for Name: draft_picks; Type: TABLE DATA; Schema: public; Owner: fantasy_draft_kit
 --
 
-COPY public.draft_picks (id, league_id, team_id, player_id, price, is_keeper, pick_number, created_at, updated_at, drafted_position) FROM stdin;
-474	10	97	22335	2	t	1	2026-03-13 00:53:01.428279	2026-03-13 00:53:01.428279	C
-475	10	97	22325	2	t	2	2026-03-13 00:53:01.43877	2026-03-13 00:53:01.43877	C
-476	10	97	19458	9	t	3	2026-03-13 00:53:01.444203	2026-03-13 00:53:01.444203	SP
-477	10	97	19490	4	t	4	2026-03-13 00:53:01.449416	2026-03-13 00:53:01.449416	SP
-478	10	97	19453	19	t	5	2026-03-13 00:53:01.454596	2026-03-13 00:53:01.454596	SP
-479	10	97	19478	7	t	6	2026-03-13 00:53:01.45943	2026-03-13 00:53:01.45943	RP
-480	10	98	22311	1	t	7	2026-03-13 00:53:01.468587	2026-03-13 00:53:01.468587	C
-481	10	98	22340	3	t	8	2026-03-13 00:53:01.473449	2026-03-13 00:53:01.473449	OF
-482	10	98	22308	2	t	9	2026-03-13 00:53:01.478385	2026-03-13 00:53:01.478385	OF
-483	10	98	22329	2	t	10	2026-03-13 00:53:01.483221	2026-03-13 00:53:01.483221	OF
-484	10	98	19514	1	t	11	2026-03-13 00:53:01.488062	2026-03-13 00:53:01.488062	SP
-485	10	98	19467	2	t	12	2026-03-13 00:53:01.500097	2026-03-13 00:53:01.500097	SP
-486	10	99	22404	7	t	13	2026-03-13 00:53:01.507155	2026-03-13 00:53:01.507155	C
-487	10	99	22293	23	t	14	2026-03-13 00:53:01.512952	2026-03-13 00:53:01.512952	1B
-488	10	99	22387	1	t	15	2026-03-13 00:53:01.519047	2026-03-13 00:53:01.519047	UTIL
-489	10	99	19508	15	t	16	2026-03-13 00:53:01.525249	2026-03-13 00:53:01.525249	SP
-490	10	99	19507	6	t	17	2026-03-13 00:53:01.53258	2026-03-13 00:53:01.53258	SP
-491	10	99	19474	19	t	18	2026-03-13 00:53:01.539109	2026-03-13 00:53:01.539109	SP
-492	10	100	22307	20	t	19	2026-03-13 00:53:01.547905	2026-03-13 00:53:01.547905	1B
-493	10	100	19583	1	t	20	2026-03-13 00:53:01.554404	2026-03-13 00:53:01.554404	SP
-494	10	100	19491	1	t	21	2026-03-13 00:53:01.561049	2026-03-13 00:53:01.561049	SP
-495	10	100	19492	3	t	22	2026-03-13 00:53:01.567545	2026-03-13 00:53:01.567545	SP
-496	10	100	19465	12	t	23	2026-03-13 00:53:01.575825	2026-03-13 00:53:01.575825	RP
-497	10	100	19515	3	t	24	2026-03-13 00:53:01.592342	2026-03-13 00:53:01.592342	RP
-498	10	101	22350	1	t	25	2026-03-13 00:53:01.605159	2026-03-13 00:53:01.605159	C
-499	10	101	22322	3	t	26	2026-03-13 00:53:01.614695	2026-03-13 00:53:01.614695	SS
-500	10	101	22279	43	t	27	2026-03-13 00:53:01.625861	2026-03-13 00:53:01.625861	OF
-501	10	101	19494	1	t	28	2026-03-13 00:53:01.632005	2026-03-13 00:53:01.632005	SP
-502	10	101	19485	1	t	29	2026-03-13 00:53:01.63829	2026-03-13 00:53:01.63829	SP
-503	10	101	19496	2	t	30	2026-03-13 00:53:01.646095	2026-03-13 00:53:01.646095	RP
-504	10	102	22365	1	t	31	2026-03-13 00:53:01.656796	2026-03-13 00:53:01.656796	C
-505	10	102	22333	2	t	32	2026-03-13 00:53:01.666713	2026-03-13 00:53:01.666713	1B
-506	10	102	22309	1	t	33	2026-03-13 00:53:01.674587	2026-03-13 00:53:01.674587	CI
-507	10	102	22278	31	t	34	2026-03-13 00:53:01.682978	2026-03-13 00:53:01.682978	OF
-508	10	102	22343	1	t	35	2026-03-13 00:53:01.692222	2026-03-13 00:53:01.692222	OF
-509	10	102	25539	37	t	36	2026-03-13 00:53:01.717752	2026-03-13 00:53:01.717752	UTIL
-510	10	103	22323	11	t	37	2026-03-13 00:53:01.730832	2026-03-13 00:53:01.730832	SS
-511	10	103	22338	2	t	38	2026-03-13 00:53:01.740665	2026-03-13 00:53:01.740665	OF
-512	10	103	22353	1	t	39	2026-03-13 00:53:01.74977	2026-03-13 00:53:01.74977	UTIL
-513	10	103	19460	15	t	40	2026-03-13 00:53:01.761935	2026-03-13 00:53:01.761935	SP
-514	10	103	19517	2	t	41	2026-03-13 00:53:01.773018	2026-03-13 00:53:01.773018	RP
-515	10	103	19519	7	t	42	2026-03-13 00:53:01.780951	2026-03-13 00:53:01.780951	SP
-516	10	104	22366	5	t	43	2026-03-13 00:53:01.791243	2026-03-13 00:53:01.791243	C
-517	10	104	22314	8	t	44	2026-03-13 00:53:01.803597	2026-03-13 00:53:01.803597	OF
-518	10	104	19455	30	t	45	2026-03-13 00:53:01.813911	2026-03-13 00:53:01.813911	SP
-519	10	104	19476	3	t	46	2026-03-13 00:53:01.822647	2026-03-13 00:53:01.822647	RP
-520	10	104	19464	23	t	47	2026-03-13 00:53:01.82957	2026-03-13 00:53:01.82957	RP
-521	10	105	22349	3	t	48	2026-03-13 00:53:01.842893	2026-03-13 00:53:01.842893	2B
-522	10	105	22401	1	t	49	2026-03-13 00:53:01.861178	2026-03-13 00:53:01.861178	3B
-523	10	105	22372	1	t	50	2026-03-13 00:53:01.869702	2026-03-13 00:53:01.869702	OF
-524	10	105	22371	2	t	51	2026-03-13 00:53:01.879796	2026-03-13 00:53:01.879796	OF
-525	10	105	19452	26	t	52	2026-03-13 00:53:01.891552	2026-03-13 00:53:01.891552	SP
-526	10	105	19499	2	t	53	2026-03-13 00:53:01.902329	2026-03-13 00:53:01.902329	SP
-527	10	106	22358	1	t	54	2026-03-13 00:53:01.915258	2026-03-13 00:53:01.915258	C
-528	10	106	22289	29	t	55	2026-03-13 00:53:01.9266	2026-03-13 00:53:01.9266	2B
-529	10	106	22304	3	t	56	2026-03-13 00:53:01.936694	2026-03-13 00:53:01.936694	SS
-530	10	106	22328	11	t	57	2026-03-13 00:53:01.949019	2026-03-13 00:53:01.949019	MI
-531	10	106	22327	5	t	58	2026-03-13 00:53:01.959986	2026-03-13 00:53:01.959986	CI
-532	10	106	19469	8	t	59	2026-03-13 00:53:01.973757	2026-03-13 00:53:01.973757	SP
-533	10	107	22285	1	t	60	2026-03-13 00:53:01.988935	2026-03-13 00:53:01.988935	CI
-534	10	107	22339	9	t	61	2026-03-13 00:53:02.00101	2026-03-13 00:53:02.00101	OF
-535	10	107	19527	1	t	62	2026-03-13 00:53:02.01346	2026-03-13 00:53:02.01346	SP
-536	10	107	19456	5	t	63	2026-03-13 00:53:02.032702	2026-03-13 00:53:02.032702	SP
-537	10	107	19489	1	t	64	2026-03-13 00:53:02.04433	2026-03-13 00:53:02.04433	SP
-538	10	107	19480	6	t	65	2026-03-13 00:53:02.055137	2026-03-13 00:53:02.055137	SP
+COPY public.draft_picks (id, league_id, team_id, player_id, price, is_keeper, pick_number, created_at, updated_at, drafted_position, is_topped) FROM stdin;
+474	10	97	22335	2	t	1	2026-03-13 00:53:01.428279	2026-03-13 00:53:01.428279	C	f
+475	10	97	22325	2	t	2	2026-03-13 00:53:01.43877	2026-03-13 00:53:01.43877	C	f
+476	10	97	19458	9	t	3	2026-03-13 00:53:01.444203	2026-03-13 00:53:01.444203	SP	f
+477	10	97	19490	4	t	4	2026-03-13 00:53:01.449416	2026-03-13 00:53:01.449416	SP	f
+478	10	97	19453	19	t	5	2026-03-13 00:53:01.454596	2026-03-13 00:53:01.454596	SP	f
+479	10	97	19478	7	t	6	2026-03-13 00:53:01.45943	2026-03-13 00:53:01.45943	RP	f
+480	10	98	22311	1	t	7	2026-03-13 00:53:01.468587	2026-03-13 00:53:01.468587	C	f
+481	10	98	22340	3	t	8	2026-03-13 00:53:01.473449	2026-03-13 00:53:01.473449	OF	f
+482	10	98	22308	2	t	9	2026-03-13 00:53:01.478385	2026-03-13 00:53:01.478385	OF	f
+483	10	98	22329	2	t	10	2026-03-13 00:53:01.483221	2026-03-13 00:53:01.483221	OF	f
+484	10	98	19514	1	t	11	2026-03-13 00:53:01.488062	2026-03-13 00:53:01.488062	SP	f
+485	10	98	19467	2	t	12	2026-03-13 00:53:01.500097	2026-03-13 00:53:01.500097	SP	f
+486	10	99	22404	7	t	13	2026-03-13 00:53:01.507155	2026-03-13 00:53:01.507155	C	f
+487	10	99	22293	23	t	14	2026-03-13 00:53:01.512952	2026-03-13 00:53:01.512952	1B	f
+488	10	99	22387	1	t	15	2026-03-13 00:53:01.519047	2026-03-13 00:53:01.519047	UTIL	f
+489	10	99	19508	15	t	16	2026-03-13 00:53:01.525249	2026-03-13 00:53:01.525249	SP	f
+490	10	99	19507	6	t	17	2026-03-13 00:53:01.53258	2026-03-13 00:53:01.53258	SP	f
+491	10	99	19474	19	t	18	2026-03-13 00:53:01.539109	2026-03-13 00:53:01.539109	SP	f
+492	10	100	22307	20	t	19	2026-03-13 00:53:01.547905	2026-03-13 00:53:01.547905	1B	f
+493	10	100	19583	1	t	20	2026-03-13 00:53:01.554404	2026-03-13 00:53:01.554404	SP	f
+494	10	100	19491	1	t	21	2026-03-13 00:53:01.561049	2026-03-13 00:53:01.561049	SP	f
+495	10	100	19492	3	t	22	2026-03-13 00:53:01.567545	2026-03-13 00:53:01.567545	SP	f
+496	10	100	19465	12	t	23	2026-03-13 00:53:01.575825	2026-03-13 00:53:01.575825	RP	f
+497	10	100	19515	3	t	24	2026-03-13 00:53:01.592342	2026-03-13 00:53:01.592342	RP	f
+498	10	101	22350	1	t	25	2026-03-13 00:53:01.605159	2026-03-13 00:53:01.605159	C	f
+499	10	101	22322	3	t	26	2026-03-13 00:53:01.614695	2026-03-13 00:53:01.614695	SS	f
+500	10	101	22279	43	t	27	2026-03-13 00:53:01.625861	2026-03-13 00:53:01.625861	OF	f
+501	10	101	19494	1	t	28	2026-03-13 00:53:01.632005	2026-03-13 00:53:01.632005	SP	f
+502	10	101	19485	1	t	29	2026-03-13 00:53:01.63829	2026-03-13 00:53:01.63829	SP	f
+503	10	101	19496	2	t	30	2026-03-13 00:53:01.646095	2026-03-13 00:53:01.646095	RP	f
+504	10	102	22365	1	t	31	2026-03-13 00:53:01.656796	2026-03-13 00:53:01.656796	C	f
+505	10	102	22333	2	t	32	2026-03-13 00:53:01.666713	2026-03-13 00:53:01.666713	1B	f
+506	10	102	22309	1	t	33	2026-03-13 00:53:01.674587	2026-03-13 00:53:01.674587	CI	f
+507	10	102	22278	31	t	34	2026-03-13 00:53:01.682978	2026-03-13 00:53:01.682978	OF	f
+508	10	102	22343	1	t	35	2026-03-13 00:53:01.692222	2026-03-13 00:53:01.692222	OF	f
+509	10	102	25539	37	t	36	2026-03-13 00:53:01.717752	2026-03-13 00:53:01.717752	UTIL	f
+510	10	103	22323	11	t	37	2026-03-13 00:53:01.730832	2026-03-13 00:53:01.730832	SS	f
+511	10	103	22338	2	t	38	2026-03-13 00:53:01.740665	2026-03-13 00:53:01.740665	OF	f
+512	10	103	22353	1	t	39	2026-03-13 00:53:01.74977	2026-03-13 00:53:01.74977	UTIL	f
+513	10	103	19460	15	t	40	2026-03-13 00:53:01.761935	2026-03-13 00:53:01.761935	SP	f
+514	10	103	19517	2	t	41	2026-03-13 00:53:01.773018	2026-03-13 00:53:01.773018	RP	f
+515	10	103	19519	7	t	42	2026-03-13 00:53:01.780951	2026-03-13 00:53:01.780951	SP	f
+516	10	104	22366	5	t	43	2026-03-13 00:53:01.791243	2026-03-13 00:53:01.791243	C	f
+517	10	104	22314	8	t	44	2026-03-13 00:53:01.803597	2026-03-13 00:53:01.803597	OF	f
+518	10	104	19455	30	t	45	2026-03-13 00:53:01.813911	2026-03-13 00:53:01.813911	SP	f
+519	10	104	19476	3	t	46	2026-03-13 00:53:01.822647	2026-03-13 00:53:01.822647	RP	f
+520	10	104	19464	23	t	47	2026-03-13 00:53:01.82957	2026-03-13 00:53:01.82957	RP	f
+521	10	105	22349	3	t	48	2026-03-13 00:53:01.842893	2026-03-13 00:53:01.842893	2B	f
+522	10	105	22401	1	t	49	2026-03-13 00:53:01.861178	2026-03-13 00:53:01.861178	3B	f
+523	10	105	22372	1	t	50	2026-03-13 00:53:01.869702	2026-03-13 00:53:01.869702	OF	f
+524	10	105	22371	2	t	51	2026-03-13 00:53:01.879796	2026-03-13 00:53:01.879796	OF	f
+525	10	105	19452	26	t	52	2026-03-13 00:53:01.891552	2026-03-13 00:53:01.891552	SP	f
+526	10	105	19499	2	t	53	2026-03-13 00:53:01.902329	2026-03-13 00:53:01.902329	SP	f
+527	10	106	22358	1	t	54	2026-03-13 00:53:01.915258	2026-03-13 00:53:01.915258	C	f
+528	10	106	22289	29	t	55	2026-03-13 00:53:01.9266	2026-03-13 00:53:01.9266	2B	f
+529	10	106	22304	3	t	56	2026-03-13 00:53:01.936694	2026-03-13 00:53:01.936694	SS	f
+530	10	106	22328	11	t	57	2026-03-13 00:53:01.949019	2026-03-13 00:53:01.949019	MI	f
+531	10	106	22327	5	t	58	2026-03-13 00:53:01.959986	2026-03-13 00:53:01.959986	CI	f
+532	10	106	19469	8	t	59	2026-03-13 00:53:01.973757	2026-03-13 00:53:01.973757	SP	f
+533	10	107	22285	1	t	60	2026-03-13 00:53:01.988935	2026-03-13 00:53:01.988935	CI	f
+534	10	107	22339	9	t	61	2026-03-13 00:53:02.00101	2026-03-13 00:53:02.00101	OF	f
+535	10	107	19527	1	t	62	2026-03-13 00:53:02.01346	2026-03-13 00:53:02.01346	SP	f
+536	10	107	19456	5	t	63	2026-03-13 00:53:02.032702	2026-03-13 00:53:02.032702	SP	f
+537	10	107	19489	1	t	64	2026-03-13 00:53:02.04433	2026-03-13 00:53:02.04433	SP	f
+538	10	107	19480	6	t	65	2026-03-13 00:53:02.055137	2026-03-13 00:53:02.055137	SP	f
 \.
 
 
@@ -478,8 +482,8 @@ COPY public.keeper_histories (id, player_id, team_id, year, price, created_at, u
 -- Data for Name: leagues; Type: TABLE DATA; Schema: public; Owner: fantasy_draft_kit
 --
 
-COPY public.leagues (id, name, team_count, auction_budget, keeper_limit, roster_config, created_at, updated_at) FROM stdin;
-10	Southbay Humbabies	11	260	10	{"C": 2, "1B": 1, "2B": 1, "3B": 1, "CI": 1, "MI": 1, "OF": 5, "RP": 3, "SP": 5, "SS": 1, "UTIL": 1, "BENCH": 0}	2026-03-13 00:53:01.402474	2026-03-13 00:54:08.584417
+COPY public.leagues (id, name, team_count, auction_budget, keeper_limit, roster_config, created_at, updated_at, my_team_id) FROM stdin;
+10	Southbay Humbabies	11	260	6	{"C": 2, "1B": 1, "2B": 1, "3B": 1, "CI": 1, "MI": 1, "OF": 5, "RP": 3, "SP": 5, "SS": 1, "UTIL": 1, "BENCH": 0}	2026-03-13 00:53:01.402474	2026-03-14 01:24:10.556576	105
 \.
 
 
@@ -498,7 +502,6 @@ COPY public.players (id, name, positions, mlb_team, projections, calculated_valu
 34941	Andy Beltre	RP	MIA	{"era": 0.0, "whip": 0.0, "wins": 0, "holds": 0, "saves": 0, "walks": 0, "losses": 0, "strikeouts": 0, "appearances": 0, "blown_saves": 0, "hits_allowed": 0, "games_started": 0, "complete_games": 0, "quality_starts": 0, "innings_pitched": 0.0}	0.0	f	2026-03-13 02:13:10.296024	2026-03-13 02:13:10.296024	\N	0	\N
 34942	Zack Weiss	RP	STL	{"era": 0.0, "whip": 0.0, "wins": 0, "holds": 0, "saves": 0, "walks": 0, "losses": 0, "strikeouts": 0, "appearances": 0, "blown_saves": 0, "hits_allowed": 0, "games_started": 0, "complete_games": 0, "quality_starts": 0, "innings_pitched": 0.0}	0.0	f	2026-03-13 02:13:10.303331	2026-03-13 02:13:10.303331	\N	0	\N
 34943	William Ouellette	RP	TOR	{"era": 0.0, "whip": 0.0, "wins": 0, "holds": 0, "saves": 0, "walks": 0, "losses": 0, "strikeouts": 0, "appearances": 0, "blown_saves": 0, "hits_allowed": 0, "games_started": 0, "complete_games": 0, "quality_starts": 0, "innings_pitched": 0.0}	0.0	f	2026-03-13 02:13:10.311515	2026-03-13 02:13:10.311515	\N	0	\N
-28870	Shohei Ohtani	UTIL,SP	LAD	{"era": 2.74, "obp": 0.398, "rbi": 98, "slg": 0.613, "hits": 163, "runs": 123, "whip": 0.91, "wins": 6, "holds": 0, "saves": 0, "walks": 21, "losses": 2, "at_bats": 548, "doubles": 29, "singles": 83, "triples": 9, "home_runs": 42, "strikeouts": 134, "appearances": 26, "blown_saves": 0, "batter_walks": 87, "hits_allowed": 75, "stolen_bases": 27, "games_started": 26, "complete_games": 0, "quality_starts": 5, "batting_average": 0.297, "caught_stealing": 5, "innings_pitched": 105.0, "batter_strikeouts": 152}	70.05	f	2026-03-13 02:05:44.7845	2026-03-13 02:25:44.329407	\N	0	\N
 32593	Tristan Beck	RP	SF	{"era": 3.86, "whip": 1.07, "wins": 0, "holds": 1, "saves": 0, "walks": 4, "losses": 0, "strikeouts": 10, "appearances": 8, "blown_saves": 0, "hits_allowed": 11, "games_started": 0, "complete_games": 0, "quality_starts": 0, "innings_pitched": 14.0}	1.0	f	2026-03-13 02:12:39.954471	2026-03-13 02:12:39.954471	\N	0	\N
 28876	Jackson Chourio	OF	MIL	{"obp": 0.317, "rbi": 89, "slg": 0.499, "hits": 163, "runs": 94, "at_bats": 589, "doubles": 39, "singles": 91, "triples": 7, "home_runs": 26, "batter_walks": 34, "stolen_bases": 21, "batting_average": 0.277, "caught_stealing": 6, "batter_strikeouts": 141}	30.64	f	2026-03-13 02:05:44.805131	2026-03-13 02:05:44.805131	\N	0	\N
 34944	Jared Lakind	RP	PIT	{"era": 0.0, "whip": 0.0, "wins": 0, "holds": 0, "saves": 0, "walks": 0, "losses": 0, "strikeouts": 0, "appearances": 0, "blown_saves": 0, "hits_allowed": 0, "games_started": 0, "complete_games": 0, "quality_starts": 0, "innings_pitched": 0.0}	0.0	f	2026-03-13 02:13:10.320731	2026-03-13 02:13:10.320731	\N	0	\N
@@ -689,7 +692,6 @@ COPY public.players (id, name, positions, mlb_team, projections, calculated_valu
 28878	Corbin Carroll	OF	ARI	{"obp": 0.348, "rbi": 81, "slg": 0.525, "hits": 146, "runs": 101, "at_bats": 547, "doubles": 29, "singles": 76, "triples": 11, "home_runs": 30, "batter_walks": 64, "stolen_bases": 28, "batting_average": 0.267, "caught_stealing": 7, "batter_strikeouts": 149}	32.55	f	2026-03-13 02:05:44.813097	2026-03-13 02:05:44.813097	\N	0	\N
 28879	Trea Turner	SS	PHI	{"obp": 0.352, "rbi": 77, "slg": 0.472, "hits": 184, "runs": 101, "at_bats": 604, "doubles": 32, "singles": 127, "triples": 6, "home_runs": 19, "batter_walks": 39, "stolen_bases": 33, "batting_average": 0.305, "caught_stealing": 7, "batter_strikeouts": 123}	39.71	f	2026-03-13 02:05:44.81873	2026-03-13 02:05:44.81873	\N	0	\N
 28880	Vladimir Guerrero Jr.	1B	TOR	{"obp": 0.392, "rbi": 93, "slg": 0.531, "hits": 171, "runs": 98, "at_bats": 556, "doubles": 34, "singles": 107, "triples": 0, "home_runs": 30, "batter_walks": 74, "stolen_bases": 4, "batting_average": 0.308, "caught_stealing": 2, "batter_strikeouts": 95}	34.0	f	2026-03-13 02:05:44.823982	2026-03-13 02:05:44.823982	\N	0	\N
-28881	Francisco Lindor	SS	NYM	{"obp": 0.349, "rbi": 83, "slg": 0.489, "hits": 161, "runs": 107, "at_bats": 583, "doubles": 35, "singles": 96, "triples": 1, "home_runs": 29, "batter_walks": 58, "stolen_bases": 26, "batting_average": 0.276, "caught_stealing": 5, "batter_strikeouts": 126}	35.13	f	2026-03-13 02:05:44.829954	2026-03-13 02:05:44.829954	\N	0	\N
 28882	Pete Crow-Armstrong	OF	CHC	{"obp": 0.3, "rbi": 83, "slg": 0.473, "hits": 136, "runs": 79, "at_bats": 535, "doubles": 34, "singles": 73, "triples": 4, "home_runs": 25, "batter_walks": 29, "stolen_bases": 32, "batting_average": 0.254, "caught_stealing": 8, "batter_strikeouts": 147}	25.3	f	2026-03-13 02:05:44.833654	2026-03-13 02:05:44.833654	\N	0	\N
 28883	Yordan Alvarez	OF	HOU	{"obp": 0.4, "rbi": 88, "slg": 0.555, "hits": 161, "runs": 73, "at_bats": 521, "doubles": 31, "singles": 97, "triples": 2, "home_runs": 31, "batter_walks": 77, "stolen_bases": 6, "batting_average": 0.309, "caught_stealing": 1, "batter_strikeouts": 103}	29.62	f	2026-03-13 02:05:44.83687	2026-03-13 02:05:44.83687	\N	0	\N
 28884	James Wood	OF	WAS	{"obp": 0.344, "rbi": 86, "slg": 0.475, "hits": 144, "runs": 81, "at_bats": 551, "doubles": 35, "singles": 81, "triples": 1, "home_runs": 27, "batter_walks": 67, "stolen_bases": 14, "batting_average": 0.261, "caught_stealing": 6, "batter_strikeouts": 189}	20.85	f	2026-03-13 02:05:44.840089	2026-03-13 02:05:44.840089	\N	0	\N
@@ -700,20 +702,18 @@ COPY public.players (id, name, positions, mlb_team, projections, calculated_valu
 28890	Freddie Freeman	1B	LAD	{"obp": 0.372, "rbi": 83, "slg": 0.491, "hits": 159, "runs": 76, "at_bats": 538, "doubles": 38, "singles": 98, "triples": 2, "home_runs": 21, "batter_walks": 60, "stolen_bases": 6, "batting_average": 0.295, "caught_stealing": 2, "batter_strikeouts": 116}	21.5	f	2026-03-13 02:05:44.862251	2026-03-13 02:05:44.862251	\N	0	\N
 28891	Mookie Betts	SS	LAD	{"obp": 0.342, "rbi": 78, "slg": 0.416, "hits": 157, "runs": 88, "at_bats": 572, "doubles": 27, "singles": 111, "triples": 3, "home_runs": 16, "batter_walks": 58, "stolen_bases": 9, "batting_average": 0.275, "caught_stealing": 2, "batter_strikeouts": 78}	16.99	f	2026-03-13 02:05:44.866081	2026-03-13 02:05:44.866081	\N	0	\N
 28892	Wyatt Langford	OF	TEX	{"obp": 0.358, "rbi": 72, "slg": 0.466, "hits": 131, "runs": 79, "at_bats": 502, "doubles": 28, "singles": 77, "triples": 3, "home_runs": 23, "batter_walks": 72, "stolen_bases": 23, "batting_average": 0.261, "caught_stealing": 6, "batter_strikeouts": 150}	20.12	f	2026-03-13 02:05:44.870464	2026-03-13 02:05:44.870464	\N	0	\N
-28893	William Contreras	C	MIL	{"obp": 0.343, "rbi": 68, "slg": 0.429, "hits": 126, "runs": 74, "at_bats": 478, "doubles": 26, "singles": 82, "triples": 1, "home_runs": 17, "batter_walks": 57, "stolen_bases": 5, "batting_average": 0.264, "caught_stealing": 2, "batter_strikeouts": 110}	8.37	f	2026-03-13 02:05:44.874794	2026-03-13 02:05:44.874794	\N	0	\N
 28894	C.J. Abrams	SS	WAS	{"obp": 0.325, "rbi": 60, "slg": 0.458, "hits": 136, "runs": 82, "at_bats": 513, "doubles": 30, "singles": 81, "triples": 6, "home_runs": 19, "batter_walks": 33, "stolen_bases": 28, "batting_average": 0.265, "caught_stealing": 6, "batter_strikeouts": 116}	19.83	f	2026-03-13 02:05:44.87883	2026-03-13 02:05:44.87883	\N	0	\N
 28895	Brent Rooker	OF	ATH	{"obp": 0.358, "rbi": 98, "slg": 0.537, "hits": 160, "runs": 89, "at_bats": 559, "doubles": 35, "singles": 89, "triples": 3, "home_runs": 33, "batter_walks": 58, "stolen_bases": 7, "batting_average": 0.286, "caught_stealing": 2, "batter_strikeouts": 153}	30.48	f	2026-03-13 02:05:44.889198	2026-03-13 02:05:44.889198	\N	0	\N
-28896	Cody Bellinger	OF	NYY	{"obp": 0.338, "rbi": 92, "slg": 0.487, "hits": 156, "runs": 83, "at_bats": 556, "doubles": 27, "singles": 98, "triples": 5, "home_runs": 26, "batter_walks": 50, "stolen_bases": 11, "batting_average": 0.281, "caught_stealing": 2, "batter_strikeouts": 95}	25.57	f	2026-03-13 02:05:44.892913	2026-03-13 02:05:44.892913	\N	0	\N
 28897	Jackson Merrill	OF	SD	{"obp": 0.341, "rbi": 97, "slg": 0.535, "hits": 167, "runs": 83, "at_bats": 563, "doubles": 39, "singles": 93, "triples": 10, "home_runs": 25, "batter_walks": 36, "stolen_bases": 8, "batting_average": 0.297, "caught_stealing": 3, "batter_strikeouts": 138}	28.87	f	2026-03-13 02:05:44.896078	2026-03-13 02:05:44.896078	\N	0	\N
-28898	Christian Yelich	OF	MIL	{"obp": 0.334, "rbi": 96, "slg": 0.469, "hits": 143, "runs": 82, "at_bats": 548, "doubles": 22, "singles": 90, "triples": 1, "home_runs": 30, "batter_walks": 56, "stolen_bases": 14, "batting_average": 0.261, "caught_stealing": 4, "batter_strikeouts": 167}	24.18	f	2026-03-13 02:05:44.900338	2026-03-13 02:05:44.900338	\N	0	\N
 28899	Austin Riley	3B	ATL	{"obp": 0.325, "rbi": 81, "slg": 0.468, "hits": 157, "runs": 82, "at_bats": 577, "doubles": 35, "singles": 95, "triples": 3, "home_runs": 24, "batter_walks": 39, "stolen_bases": 2, "batting_average": 0.272, "caught_stealing": 1, "batter_strikeouts": 162}	16.36	f	2026-03-13 02:05:44.909696	2026-03-13 02:05:44.909696	\N	0	\N
 28900	Eugenio Suarez	3B	CIN	{"obp": 0.299, "rbi": 89, "slg": 0.483, "hits": 120, "runs": 69, "at_bats": 503, "doubles": 25, "singles": 62, "triples": 1, "home_runs": 32, "batter_walks": 37, "stolen_bases": 3, "batting_average": 0.239, "caught_stealing": 1, "batter_strikeouts": 180}	11.62	f	2026-03-13 02:05:44.914873	2026-03-13 02:05:44.914873	\N	0	\N
+28898	Christian Yelich	OF	MIL	{"obp": 0.334, "rbi": 96, "slg": 0.469, "hits": 143, "runs": 82, "at_bats": 548, "doubles": 22, "singles": 90, "triples": 1, "home_runs": 30, "batter_walks": 56, "stolen_bases": 14, "batting_average": 0.261, "caught_stealing": 4, "batter_strikeouts": 167}	24.18	f	2026-03-13 02:05:44.900338	2026-03-14 00:51:57.371643	\N	1	\N
+28896	Cody Bellinger	OF	NYY	{"obp": 0.338, "rbi": 92, "slg": 0.487, "hits": 156, "runs": 83, "at_bats": 556, "doubles": 27, "singles": 98, "triples": 5, "home_runs": 26, "batter_walks": 50, "stolen_bases": 11, "batting_average": 0.281, "caught_stealing": 2, "batter_strikeouts": 95}	25.57	f	2026-03-13 02:05:44.892913	2026-03-14 00:52:15.295235	\N	1	\N
 28901	Shea Langeliers	C	ATH	{"obp": 0.32, "rbi": 69, "slg": 0.499, "hits": 123, "runs": 69, "at_bats": 465, "doubles": 28, "singles": 68, "triples": 0, "home_runs": 27, "batter_walks": 37, "stolen_bases": 6, "batting_average": 0.265, "caught_stealing": 2, "batter_strikeouts": 112}	13.0	f	2026-03-13 02:05:44.919478	2026-03-13 02:05:44.919478	\N	0	\N
 28902	Corey Seager	SS	TEX	{"obp": 0.374, "rbi": 78, "slg": 0.512, "hits": 151, "runs": 84, "at_bats": 541, "doubles": 27, "singles": 91, "triples": 0, "home_runs": 33, "batter_walks": 77, "stolen_bases": 3, "batting_average": 0.279, "caught_stealing": 1, "batter_strikeouts": 125}	22.36	f	2026-03-13 02:05:44.922934	2026-03-13 02:05:44.922934	\N	0	\N
 28903	Jeremy Pena	SS	HOU	{"obp": 0.374, "rbi": 75, "slg": 0.504, "hits": 175, "runs": 84, "at_bats": 559, "doubles": 36, "singles": 114, "triples": 4, "home_runs": 21, "batter_walks": 43, "stolen_bases": 23, "batting_average": 0.313, "caught_stealing": 3, "batter_strikeouts": 112}	34.02	f	2026-03-13 02:05:44.926115	2026-03-13 02:05:44.926115	\N	0	\N
 28909	Will Smith	C	LAD	{"obp": 0.373, "rbi": 73, "slg": 0.461, "hits": 133, "runs": 73, "at_bats": 460, "doubles": 24, "singles": 90, "triples": 2, "home_runs": 17, "batter_walks": 58, "stolen_bases": 2, "batting_average": 0.289, "caught_stealing": 2, "batter_strikeouts": 106}	12.99	f	2026-03-13 02:05:44.950706	2026-03-13 02:05:44.950706	\N	0	\N
 28910	Oneil Cruz	OF	PIT	{"obp": 0.34, "rbi": 79, "slg": 0.51, "hits": 134, "runs": 78, "at_bats": 520, "doubles": 28, "singles": 70, "triples": 5, "home_runs": 31, "batter_walks": 63, "stolen_bases": 36, "batting_average": 0.258, "caught_stealing": 5, "batter_strikeouts": 172}	30.01	f	2026-03-13 02:05:44.957237	2026-03-13 02:05:44.957237	\N	0	\N
-28911	Teoscar Hernandez	OF	LAD	{"obp": 0.321, "rbi": 86, "slg": 0.47, "hits": 133, "runs": 64, "at_bats": 487, "doubles": 26, "singles": 83, "triples": 2, "home_runs": 22, "batter_walks": 32, "stolen_bases": 7, "batting_average": 0.273, "caught_stealing": 2, "batter_strikeouts": 130}	15.09	f	2026-03-13 02:05:44.962637	2026-03-13 02:05:44.962637	\N	0	\N
 28912	Lawrence Butler	OF	ATH	{"obp": 0.319, "rbi": 74, "slg": 0.457, "hits": 144, "runs": 89, "at_bats": 564, "doubles": 31, "singles": 84, "triples": 4, "home_runs": 25, "batter_walks": 53, "stolen_bases": 23, "batting_average": 0.255, "caught_stealing": 6, "batter_strikeouts": 170}	21.64	f	2026-03-13 02:05:44.968518	2026-03-13 02:05:44.968518	\N	0	\N
 28913	Alex Bregman	3B	CHC	{"obp": 0.357, "rbi": 80, "slg": 0.505, "hits": 147, "runs": 81, "at_bats": 533, "doubles": 36, "singles": 82, "triples": 1, "home_runs": 28, "batter_walks": 60, "stolen_bases": 2, "batting_average": 0.276, "caught_stealing": 1, "batter_strikeouts": 91}	18.59	f	2026-03-13 02:05:44.976014	2026-03-13 02:05:44.976014	\N	0	\N
 28914	Luis Robert	OF	NYM	{"obp": 0.327, "rbi": 84, "slg": 0.447, "hits": 134, "runs": 87, "at_bats": 524, "doubles": 25, "singles": 84, "triples": 0, "home_runs": 25, "batter_walks": 53, "stolen_bases": 43, "batting_average": 0.256, "caught_stealing": 12, "batter_strikeouts": 161}	32.25	f	2026-03-13 02:05:44.981831	2026-03-13 02:05:44.981831	\N	0	\N
@@ -734,7 +734,6 @@ COPY public.players (id, name, positions, mlb_team, projections, calculated_valu
 28929	Brenton Doyle	OF	COL	{"obp": 0.306, "rbi": 63, "slg": 0.415, "hits": 115, "runs": 66, "at_bats": 455, "doubles": 22, "singles": 75, "triples": 2, "home_runs": 16, "batter_walks": 35, "stolen_bases": 21, "batting_average": 0.253, "caught_stealing": 3, "batter_strikeouts": 122}	10.4	f	2026-03-13 02:05:45.181469	2026-03-13 02:05:45.181469	\N	0	\N
 28930	Isaac Paredes	3B	HOU	{"obp": 0.369, "rbi": 62, "slg": 0.475, "hits": 109, "runs": 55, "at_bats": 404, "doubles": 19, "singles": 68, "triples": 2, "home_runs": 20, "batter_walks": 55, "stolen_bases": 1, "batting_average": 0.27, "caught_stealing": 0, "batter_strikeouts": 78}	4.61	f	2026-03-13 02:05:45.196234	2026-03-13 02:05:45.196234	\N	0	\N
 28931	Konnor Griffin	SS	PIT	{"obp": 0.331, "rbi": 30, "slg": 0.429, "hits": 68, "runs": 33, "at_bats": 254, "doubles": 13, "singles": 45, "triples": 2, "home_runs": 8, "batter_walks": 22, "stolen_bases": 9, "batting_average": 0.268, "caught_stealing": 2, "batter_strikeouts": 63}	1.0	f	2026-03-13 02:05:45.210092	2026-03-13 02:05:45.210092	\N	0	\N
-28932	Jorge Polanco	2B	NYM	{"obp": 0.325, "rbi": 80, "slg": 0.471, "hits": 129, "runs": 66, "at_bats": 490, "doubles": 30, "singles": 75, "triples": 0, "home_runs": 24, "batter_walks": 45, "stolen_bases": 6, "batting_average": 0.263, "caught_stealing": 3, "batter_strikeouts": 103}	12.63	f	2026-03-13 02:05:45.225193	2026-03-13 02:05:45.225193	\N	0	\N
 28933	Willson Contreras	1B	BOS	{"obp": 0.368, "rbi": 74, "slg": 0.502, "hits": 122, "runs": 70, "at_bats": 442, "doubles": 30, "singles": 68, "triples": 2, "home_runs": 22, "batter_walks": 45, "stolen_bases": 5, "batting_average": 0.276, "caught_stealing": 1, "batter_strikeouts": 140}	13.43	f	2026-03-13 02:05:45.236707	2026-03-13 02:05:45.236707	\N	0	\N
 28934	Alec Burleson	1B,OF	STL	{"obp": 0.337, "rbi": 73, "slg": 0.477, "hits": 142, "runs": 60, "at_bats": 493, "doubles": 24, "singles": 94, "triples": 3, "home_runs": 21, "batter_walks": 36, "stolen_bases": 7, "batting_average": 0.288, "caught_stealing": 2, "batter_strikeouts": 85}	15.1	f	2026-03-13 02:05:45.2463	2026-03-13 02:05:45.2463	\N	0	\N
 28935	Dylan Crews	OF	WAS	{"obp": 0.304, "rbi": 51, "slg": 0.388, "hits": 106, "runs": 66, "at_bats": 454, "doubles": 17, "singles": 70, "triples": 4, "home_runs": 15, "batter_walks": 39, "stolen_bases": 26, "batting_average": 0.234, "caught_stealing": 7, "batter_strikeouts": 112}	6.08	f	2026-03-13 02:05:45.255166	2026-03-13 02:05:45.255166	\N	0	\N
@@ -760,7 +759,6 @@ COPY public.players (id, name, positions, mlb_team, projections, calculated_valu
 28955	Jordan Beck	OF	COL	{"obp": 0.344, "rbi": 56, "slg": 0.455, "hits": 124, "runs": 64, "at_bats": 451, "doubles": 23, "singles": 80, "triples": 5, "home_runs": 16, "batter_walks": 42, "stolen_bases": 17, "batting_average": 0.275, "caught_stealing": 7, "batter_strikeouts": 136}	11.63	f	2026-03-13 02:05:45.513791	2026-03-13 02:05:45.513791	\N	0	\N
 28956	Otto Lopez	2B,SS	MIA	{"obp": 0.322, "rbi": 72, "slg": 0.411, "hits": 126, "runs": 63, "at_bats": 486, "doubles": 21, "singles": 87, "triples": 1, "home_runs": 17, "batter_walks": 42, "stolen_bases": 14, "batting_average": 0.259, "caught_stealing": 6, "batter_strikeouts": 93}	10.09	f	2026-03-13 02:05:45.526228	2026-03-13 02:05:45.526228	\N	0	\N
 28960	Jasson Dominguez	OF	NYY	{"obp": 0.34, "rbi": 53, "slg": 0.443, "hits": 102, "runs": 57, "at_bats": 379, "doubles": 20, "singles": 66, "triples": 2, "home_runs": 14, "batter_walks": 39, "stolen_bases": 20, "batting_average": 0.269, "caught_stealing": 4, "batter_strikeouts": 114}	8.69	f	2026-03-13 02:05:45.577937	2026-03-13 02:05:45.577937	\N	0	\N
-28961	Alec Bohm	1B,3B	PHI	{"obp": 0.342, "rbi": 75, "slg": 0.443, "hits": 144, "runs": 60, "at_bats": 494, "doubles": 28, "singles": 99, "triples": 4, "home_runs": 13, "batter_walks": 34, "stolen_bases": 3, "batting_average": 0.291, "caught_stealing": 1, "batter_strikeouts": 88}	10.61	f	2026-03-13 02:05:45.590555	2026-03-13 02:05:45.590555	\N	0	\N
 28962	Tyler Stephenson	C	CIN	{"obp": 0.33, "rbi": 73, "slg": 0.478, "hits": 110, "runs": 62, "at_bats": 433, "doubles": 26, "singles": 60, "triples": 1, "home_runs": 23, "batter_walks": 46, "stolen_bases": 1, "batting_average": 0.254, "caught_stealing": 0, "batter_strikeouts": 144}	6.11	f	2026-03-13 02:05:45.602758	2026-03-13 02:05:45.602758	\N	0	\N
 28963	Luis Arraez	1B,2B	SF	{"obp": 0.341, "rbi": 54, "slg": 0.427, "hits": 163, "runs": 67, "at_bats": 539, "doubles": 29, "singles": 119, "triples": 7, "home_runs": 8, "batter_walks": 29, "stolen_bases": 9, "batting_average": 0.302, "caught_stealing": 3, "batter_strikeouts": 30}	11.86	f	2026-03-13 02:05:45.630075	2026-03-13 02:05:45.630075	\N	0	\N
 28964	Joshua Lowe	OF	LAA	{"obp": 0.288, "rbi": 51, "slg": 0.387, "hits": 103, "runs": 66, "at_bats": 478, "doubles": 25, "singles": 58, "triples": 3, "home_runs": 17, "batter_walks": 43, "stolen_bases": 18, "batting_average": 0.215, "caught_stealing": 5, "batter_strikeouts": 149}	1.0	f	2026-03-13 02:05:45.641766	2026-03-13 02:05:45.641766	\N	0	\N
@@ -791,7 +789,6 @@ COPY public.players (id, name, positions, mlb_team, projections, calculated_valu
 28991	Ryan O'Hearn	1B,OF	PIT	{"obp": 0.363, "rbi": 61, "slg": 0.443, "hits": 130, "runs": 60, "at_bats": 467, "doubles": 23, "singles": 88, "triples": 3, "home_runs": 16, "batter_walks": 58, "stolen_bases": 4, "batting_average": 0.278, "caught_stealing": 1, "batter_strikeouts": 104}	6.81	f	2026-03-13 02:05:45.945893	2026-03-13 02:05:45.945893	\N	0	\N
 28992	Nathan Lukes	OF	TOR	{"obp": 0.318, "rbi": 71, "slg": 0.422, "hits": 118, "runs": 65, "at_bats": 455, "doubles": 24, "singles": 76, "triples": 4, "home_runs": 14, "batter_walks": 43, "stolen_bases": 5, "batting_average": 0.259, "caught_stealing": 3, "batter_strikeouts": 89}	4.84	f	2026-03-13 02:05:45.960684	2026-03-13 02:05:45.960684	\N	0	\N
 28993	Mike Tauchman	OF	NYM	{"obp": 0.368, "rbi": 55, "slg": 0.448, "hits": 118, "runs": 70, "at_bats": 424, "doubles": 24, "singles": 77, "triples": 3, "home_runs": 14, "batter_walks": 55, "stolen_bases": 4, "batting_average": 0.278, "caught_stealing": 1, "batter_strikeouts": 108}	6.15	f	2026-03-13 02:05:45.975028	2026-03-13 02:05:45.975028	\N	0	\N
-28994	Josh H. Smith	1B,3B,SS,OF	TEX	{"obp": 0.348, "rbi": 46, "slg": 0.412, "hits": 128, "runs": 69, "at_bats": 476, "doubles": 26, "singles": 87, "triples": 3, "home_runs": 12, "batter_walks": 48, "stolen_bases": 12, "batting_average": 0.269, "caught_stealing": 3, "batter_strikeouts": 108}	5.51	f	2026-03-13 02:05:45.986917	2026-03-13 02:05:45.986917	\N	0	\N
 28995	Dylan Moore	1B,2B,3B,OF	PHI	{"obp": 0.328, "rbi": 45, "slg": 0.456, "hits": 82, "runs": 52, "at_bats": 318, "doubles": 19, "singles": 47, "triples": 4, "home_runs": 12, "batter_walks": 30, "stolen_bases": 22, "batting_average": 0.258, "caught_stealing": 6, "batter_strikeouts": 86}	4.47	f	2026-03-13 02:05:45.996743	2026-03-13 02:05:45.996743	\N	0	\N
 28996	Luis Matos	OF	SF	{"obp": 0.322, "rbi": 53, "slg": 0.452, "hits": 105, "runs": 58, "at_bats": 403, "doubles": 21, "singles": 64, "triples": 4, "home_runs": 16, "batter_walks": 35, "stolen_bases": 11, "batting_average": 0.261, "caught_stealing": 2, "batter_strikeouts": 94}	4.44	f	2026-03-13 02:05:46.006916	2026-03-13 02:05:46.006916	\N	0	\N
 28997	Masyn Winn	SS	STL	{"obp": 0.318, "rbi": 51, "slg": 0.413, "hits": 131, "runs": 71, "at_bats": 491, "doubles": 28, "singles": 87, "triples": 4, "home_runs": 12, "batter_walks": 33, "stolen_bases": 9, "batting_average": 0.267, "caught_stealing": 5, "batter_strikeouts": 106}	5.02	f	2026-03-13 02:05:46.018001	2026-03-13 02:05:46.018001	\N	0	\N
@@ -804,7 +801,6 @@ COPY public.players (id, name, positions, mlb_team, projections, calculated_valu
 29004	Josh Jung	3B	TEX	{"obp": 0.309, "rbi": 63, "slg": 0.424, "hits": 129, "runs": 56, "at_bats": 493, "doubles": 25, "singles": 85, "triples": 2, "home_runs": 17, "batter_walks": 31, "stolen_bases": 6, "batting_average": 0.262, "caught_stealing": 1, "batter_strikeouts": 138}	4.43	f	2026-03-13 02:05:46.090036	2026-03-13 02:05:46.090036	\N	0	\N
 29005	Nolan Schanuel	1B	LAA	{"obp": 0.343, "rbi": 60, "slg": 0.415, "hits": 128, "runs": 65, "at_bats": 487, "doubles": 27, "singles": 85, "triples": 1, "home_runs": 15, "batter_walks": 54, "stolen_bases": 5, "batting_average": 0.263, "caught_stealing": 1, "batter_strikeouts": 95}	4.29	f	2026-03-13 02:05:46.123731	2026-03-13 02:05:46.123731	\N	0	\N
 29006	Carson Benge	OF	NYM	{"obp": 0.33, "rbi": 54, "slg": 0.445, "hits": 98, "runs": 57, "at_bats": 384, "doubles": 19, "singles": 60, "triples": 3, "home_runs": 16, "batter_walks": 39, "stolen_bases": 11, "batting_average": 0.255, "caught_stealing": 3, "batter_strikeouts": 101}	3.36	f	2026-03-13 02:05:46.144546	2026-03-13 02:05:46.144546	\N	0	\N
-29007	Ernie Clement	1B,2B,3B,SS	TOR	{"obp": 0.314, "rbi": 51, "slg": 0.413, "hits": 132, "runs": 73, "at_bats": 484, "doubles": 27, "singles": 90, "triples": 4, "home_runs": 11, "batter_walks": 27, "stolen_bases": 6, "batting_average": 0.273, "caught_stealing": 4, "batter_strikeouts": 73}	4.87	f	2026-03-13 02:05:46.154215	2026-03-13 02:05:46.154215	\N	0	\N
 29008	Gavin Sheets	1B,OF	SD	{"obp": 0.34, "rbi": 60, "slg": 0.482, "hits": 106, "runs": 52, "at_bats": 382, "doubles": 25, "singles": 63, "triples": 1, "home_runs": 17, "batter_walks": 33, "stolen_bases": 4, "batting_average": 0.278, "caught_stealing": 1, "batter_strikeouts": 88}	4.95	f	2026-03-13 02:05:46.161976	2026-03-13 02:05:46.161976	\N	0	\N
 29009	Harrison Bader	OF	SF	{"obp": 0.334, "rbi": 48, "slg": 0.424, "hits": 111, "runs": 60, "at_bats": 408, "doubles": 21, "singles": 76, "triples": 1, "home_runs": 13, "batter_walks": 32, "stolen_bases": 11, "batting_average": 0.272, "caught_stealing": 8, "batter_strikeouts": 117}	4.57	f	2026-03-13 02:05:46.169983	2026-03-13 02:05:46.169983	\N	0	\N
 29010	TJ Friedl	OF	CIN	{"obp": 0.356, "rbi": 51, "slg": 0.418, "hits": 107, "runs": 60, "at_bats": 411, "doubles": 16, "singles": 74, "triples": 2, "home_runs": 15, "batter_walks": 52, "stolen_bases": 10, "batting_average": 0.26, "caught_stealing": 2, "batter_strikeouts": 88}	3.34	f	2026-03-13 02:05:46.184156	2026-03-13 02:05:46.184156	\N	0	\N
@@ -3848,7 +3844,6 @@ COPY public.players (id, name, positions, mlb_team, projections, calculated_valu
 29112	Myles Straw	OF	TOR	{"obp": 0.319, "rbi": 36, "slg": 0.432, "hits": 67, "runs": 39, "at_bats": 259, "doubles": 14, "singles": 42, "triples": 2, "home_runs": 9, "batter_walks": 21, "stolen_bases": 11, "batting_average": 0.259, "caught_stealing": 2, "batter_strikeouts": 57}	1.0	f	2026-03-13 02:05:47.504713	2026-03-13 02:05:47.504713	\N	0	\N
 29113	Cavan Biggio	2B	HOU	{"obp": 0.341, "rbi": 37, "slg": 0.394, "hits": 88, "runs": 49, "at_bats": 358, "doubles": 15, "singles": 60, "triples": 1, "home_runs": 12, "batter_walks": 43, "stolen_bases": 6, "batting_average": 0.246, "caught_stealing": 1, "batter_strikeouts": 103}	1.0	f	2026-03-13 02:05:47.520124	2026-03-13 02:05:47.520124	\N	0	\N
 29114	Andruw Monasterio	1B,2B,SS	BOS	{"obp": 0.318, "rbi": 37, "slg": 0.415, "hits": 85, "runs": 42, "at_bats": 325, "doubles": 19, "singles": 55, "triples": 2, "home_runs": 9, "batter_walks": 24, "stolen_bases": 9, "batting_average": 0.262, "caught_stealing": 4, "batter_strikeouts": 84}	1.0	f	2026-03-13 02:05:47.535373	2026-03-13 02:05:47.535373	\N	0	\N
-28869	Aaron Judge	OF	NYY	{"obp": 0.449, "rbi": 117, "slg": 0.681, "hits": 174, "runs": 121, "at_bats": 523, "doubles": 32, "singles": 91, "triples": 3, "home_runs": 48, "batter_walks": 104, "stolen_bases": 11, "batting_average": 0.333, "caught_stealing": 3, "batter_strikeouts": 166}	58.98	f	2026-03-13 02:05:44.776141	2026-03-13 02:05:44.776141	\N	0	\N
 29115	Kyren Paris	2B,OF	LAA	{"obp": 0.295, "rbi": 37, "slg": 0.406, "hits": 69, "runs": 45, "at_bats": 315, "doubles": 14, "singles": 39, "triples": 3, "home_runs": 13, "batter_walks": 29, "stolen_bases": 11, "batting_average": 0.219, "caught_stealing": 3, "batter_strikeouts": 114}	1.0	f	2026-03-13 02:05:47.553949	2026-03-13 02:05:47.553949	\N	0	\N
 29116	Lars Nootbaar	OF	STL	{"obp": 0.33, "rbi": 42, "slg": 0.399, "hits": 94, "runs": 49, "at_bats": 389, "doubles": 19, "singles": 60, "triples": 3, "home_runs": 12, "batter_walks": 48, "stolen_bases": 5, "batting_average": 0.242, "caught_stealing": 4, "batter_strikeouts": 96}	1.0	f	2026-03-13 02:05:47.566639	2026-03-13 02:05:47.566639	\N	0	\N
 29117	Ronny Mauricio	3B	NYM	{"obp": 0.316, "rbi": 37, "slg": 0.414, "hits": 78, "runs": 43, "at_bats": 319, "doubles": 13, "singles": 51, "triples": 1, "home_runs": 13, "batter_walks": 31, "stolen_bases": 7, "batting_average": 0.244, "caught_stealing": 1, "batter_strikeouts": 87}	1.0	f	2026-03-13 02:05:47.580327	2026-03-13 02:05:47.580327	\N	0	\N
@@ -3996,21 +3991,17 @@ COPY public.players (id, name, positions, mlb_team, projections, calculated_valu
 29260	Jose Herrera	C	TEX	{"obp": 0.297, "rbi": 22, "slg": 0.337, "hits": 40, "runs": 22, "at_bats": 184, "doubles": 7, "singles": 28, "triples": 0, "home_runs": 5, "batter_walks": 20, "stolen_bases": 1, "batting_average": 0.217, "caught_stealing": 0, "batter_strikeouts": 51}	1.0	f	2026-03-13 02:05:49.576784	2026-03-13 02:05:49.576784	\N	0	\N
 29261	Hayden Senger	C	NYM	{"obp": 0.287, "rbi": 20, "slg": 0.36, "hits": 36, "runs": 20, "at_bats": 161, "doubles": 7, "singles": 24, "triples": 0, "home_runs": 5, "batter_walks": 14, "stolen_bases": 1, "batting_average": 0.224, "caught_stealing": 0, "batter_strikeouts": 43}	1.0	f	2026-03-13 02:05:49.588771	2026-03-13 02:05:49.588771	\N	0	\N
 29262	Willie MacIver	C	TEX	{"obp": 0.299, "rbi": 19, "slg": 0.365, "hits": 35, "runs": 17, "at_bats": 156, "doubles": 7, "singles": 23, "triples": 0, "home_runs": 5, "batter_walks": 14, "stolen_bases": 2, "batting_average": 0.224, "caught_stealing": 1, "batter_strikeouts": 40}	1.0	f	2026-03-13 02:05:49.605518	2026-03-13 02:05:49.605518	\N	0	\N
-32198	Paul Skenes	SP	PIT	{"era": 2.39, "whip": 0.97, "wins": 10, "holds": 0, "saves": 0, "walks": 40, "losses": 8, "strikeouts": 205, "appearances": 30, "blown_saves": 0, "hits_allowed": 136, "games_started": 30, "complete_games": 1, "quality_starts": 21, "innings_pitched": 181.0}	41.68	f	2026-03-13 02:12:34.948317	2026-03-13 02:12:34.948317	\N	0	\N
 32199	Chris Sale	SP	ATL	{"era": 3.2, "whip": 1.18, "wins": 11, "holds": 0, "saves": 0, "walks": 44, "losses": 6, "strikeouts": 201, "appearances": 27, "blown_saves": 0, "hits_allowed": 148, "games_started": 27, "complete_games": 0, "quality_starts": 17, "innings_pitched": 163.0}	20.75	f	2026-03-13 02:12:34.965189	2026-03-13 02:12:34.965189	\N	0	\N
-32200	Bryan Woo	SP	SEA	{"era": 3.03, "whip": 0.97, "wins": 15, "holds": 0, "saves": 0, "walks": 34, "losses": 6, "strikeouts": 173, "appearances": 29, "blown_saves": 0, "hits_allowed": 139, "games_started": 29, "complete_games": 0, "quality_starts": 20, "innings_pitched": 178.0}	37.19	f	2026-03-13 02:12:34.979943	2026-03-13 02:12:34.979943	\N	0	\N
 32201	Jacob deGrom	SP	TEX	{"era": 3.04, "whip": 1.0, "wins": 11, "holds": 0, "saves": 0, "walks": 37, "losses": 6, "strikeouts": 163, "appearances": 27, "blown_saves": 0, "hits_allowed": 120, "games_started": 27, "complete_games": 0, "quality_starts": 13, "innings_pitched": 157.0}	27.68	f	2026-03-13 02:12:35.000765	2026-03-13 02:12:35.000765	\N	0	\N
 32202	Mason Miller	RP	SD	{"era": 2.35, "whip": 0.84, "wins": 2, "holds": 3, "saves": 38, "walks": 26, "losses": 3, "strikeouts": 112, "appearances": 66, "blown_saves": 6, "hits_allowed": 32, "games_started": 0, "complete_games": 0, "quality_starts": 0, "innings_pitched": 69.0}	30.78	f	2026-03-13 02:12:35.012352	2026-03-13 02:12:35.012352	\N	0	\N
 32203	George Kirby	SP	SEA	{"era": 3.66, "whip": 1.09, "wins": 14, "holds": 0, "saves": 0, "walks": 32, "losses": 8, "strikeouts": 162, "appearances": 29, "blown_saves": 0, "hits_allowed": 142, "games_started": 29, "complete_games": 0, "quality_starts": 16, "innings_pitched": 160.0}	20.82	f	2026-03-13 02:12:35.023956	2026-03-13 02:12:35.023956	\N	0	\N
 32204	Logan Webb	SP	SF	{"era": 3.37, "whip": 1.28, "wins": 14, "holds": 0, "saves": 0, "walks": 54, "losses": 8, "strikeouts": 184, "appearances": 30, "blown_saves": 0, "hits_allowed": 185, "games_started": 30, "complete_games": 0, "quality_starts": 21, "innings_pitched": 187.0}	16.77	f	2026-03-13 02:12:35.033563	2026-03-13 02:12:35.033563	\N	0	\N
-32205	Jhoan Duran	RP	PHI	{"era": 2.29, "whip": 1.08, "wins": 2, "holds": 3, "saves": 38, "walks": 18, "losses": 2, "strikeouts": 72, "appearances": 66, "blown_saves": 6, "hits_allowed": 50, "games_started": 0, "complete_games": 0, "quality_starts": 0, "innings_pitched": 63.0}	22.09	f	2026-03-13 02:12:35.044624	2026-03-13 02:12:35.044624	\N	0	\N
-32206	Dylan Cease	SP	TOR	{"era": 4.26, "whip": 1.29, "wins": 8, "holds": 0, "saves": 0, "walks": 58, "losses": 9, "strikeouts": 179, "appearances": 27, "blown_saves": 0, "hits_allowed": 135, "games_started": 27, "complete_games": 0, "quality_starts": 9, "innings_pitched": 150.0}	1.0	f	2026-03-13 02:12:35.054288	2026-03-13 02:12:35.054288	\N	0	\N
-32207	Eury Perez	SP	MIA	{"era": 3.35, "whip": 1.02, "wins": 9, "holds": 0, "saves": 0, "walks": 40, "losses": 8, "strikeouts": 137, "appearances": 26, "blown_saves": 0, "hits_allowed": 92, "games_started": 26, "complete_games": 0, "quality_starts": 6, "innings_pitched": 129.0}	16.68	f	2026-03-13 02:12:35.064732	2026-03-13 02:12:35.064732	\N	0	\N
+32200	Bryan Woo	SP	SEA	{"era": 3.03, "whip": 0.97, "wins": 15, "holds": 0, "saves": 0, "walks": 34, "losses": 6, "strikeouts": 173, "appearances": 29, "blown_saves": 0, "hits_allowed": 139, "games_started": 29, "complete_games": 0, "quality_starts": 20, "innings_pitched": 178.0}	37.19	f	2026-03-13 02:12:34.979943	2026-03-13 05:01:19.295077	\N	0	\N
+32205	Jhoan Duran	RP	PHI	{"era": 2.29, "whip": 1.08, "wins": 2, "holds": 3, "saves": 38, "walks": 18, "losses": 2, "strikeouts": 72, "appearances": 66, "blown_saves": 6, "hits_allowed": 50, "games_started": 0, "complete_games": 0, "quality_starts": 0, "innings_pitched": 63.0}	22.09	f	2026-03-13 02:12:35.044624	2026-03-13 16:22:39.649773	\N	1	\N
+32206	Dylan Cease	SP	TOR	{"era": 4.26, "whip": 1.29, "wins": 8, "holds": 0, "saves": 0, "walks": 58, "losses": 9, "strikeouts": 179, "appearances": 27, "blown_saves": 0, "hits_allowed": 135, "games_started": 27, "complete_games": 0, "quality_starts": 9, "innings_pitched": 150.0}	1.0	f	2026-03-13 02:12:35.054288	2026-03-14 00:50:16.852156	\N	1	\N
 32208	Kevin Gausman	SP	TOR	{"era": 3.54, "whip": 1.14, "wins": 12, "holds": 0, "saves": 0, "walks": 50, "losses": 9, "strikeouts": 169, "appearances": 30, "blown_saves": 0, "hits_allowed": 158, "games_started": 30, "complete_games": 1, "quality_starts": 16, "innings_pitched": 183.0}	19.45	f	2026-03-13 02:12:35.07456	2026-03-13 02:12:35.07456	\N	0	\N
 32209	Nick Pivetta	SP	SD	{"era": 3.37, "whip": 1.1, "wins": 10, "holds": 0, "saves": 0, "walks": 44, "losses": 6, "strikeouts": 167, "appearances": 27, "blown_saves": 0, "hits_allowed": 127, "games_started": 27, "complete_games": 0, "quality_starts": 16, "innings_pitched": 155.0}	18.87	f	2026-03-13 02:12:35.089592	2026-03-13 02:12:35.089592	\N	0	\N
-32210	Devin Williams	RP	NYM	{"era": 4.22, "whip": 1.09, "wins": 2, "holds": 3, "saves": 32, "walks": 26, "losses": 3, "strikeouts": 91, "appearances": 70, "blown_saves": 6, "hits_allowed": 44, "games_started": 0, "complete_games": 0, "quality_starts": 0, "innings_pitched": 64.0}	12.6	f	2026-03-13 02:12:35.099861	2026-03-13 02:12:35.099861	\N	0	\N
 32211	Chase Burns	SP	CIN	{"era": 4.05, "whip": 1.24, "wins": 5, "holds": 0, "saves": 0, "walks": 41, "losses": 6, "strikeouts": 171, "appearances": 26, "blown_saves": 0, "hits_allowed": 119, "games_started": 26, "complete_games": 0, "quality_starts": 9, "innings_pitched": 129.0}	1.0	f	2026-03-13 02:12:35.111115	2026-03-13 02:12:35.111115	\N	0	\N
-32212	Josh Hader	RP	HOU	{"era": 2.53, "whip": 0.84, "wins": 2, "holds": 3, "saves": 32, "walks": 17, "losses": 2, "strikeouts": 76, "appearances": 61, "blown_saves": 2, "hits_allowed": 31, "games_started": 0, "complete_games": 0, "quality_starts": 0, "innings_pitched": 57.0}	21.32	f	2026-03-13 02:12:35.123501	2026-03-13 02:12:35.123501	\N	0	\N
 32213	Raisel Iglesias	RP	ATL	{"era": 2.57, "whip": 0.83, "wins": 2, "holds": 3, "saves": 32, "walks": 13, "losses": 2, "strikeouts": 60, "appearances": 67, "blown_saves": 5, "hits_allowed": 39, "games_started": 0, "complete_games": 0, "quality_starts": 0, "innings_pitched": 63.0}	21.5	f	2026-03-13 02:12:35.137133	2026-03-13 02:12:35.137133	\N	0	\N
 32214	Tyler Glasnow	SP	LAD	{"era": 3.66, "whip": 1.16, "wins": 7, "holds": 0, "saves": 0, "walks": 55, "losses": 5, "strikeouts": 162, "appearances": 26, "blown_saves": 0, "hits_allowed": 107, "games_started": 26, "complete_games": 0, "quality_starts": 13, "innings_pitched": 140.0}	9.09	f	2026-03-13 02:12:35.150272	2026-03-13 02:12:35.150272	\N	0	\N
 32215	Jeff Hoffman	RP	TOR	{"era": 3.6, "whip": 1.1, "wins": 2, "holds": 3, "saves": 36, "walks": 21, "losses": 2, "strikeouts": 78, "appearances": 68, "blown_saves": 9, "hits_allowed": 45, "games_started": 0, "complete_games": 0, "quality_starts": 0, "innings_pitched": 60.0}	15.85	f	2026-03-13 02:12:35.163243	2026-03-13 02:12:35.163243	\N	0	\N
@@ -4020,7 +4011,9 @@ COPY public.players (id, name, positions, mlb_team, projections, calculated_valu
 32219	Daniel Palencia	RP	CHC	{"era": 3.09, "whip": 1.11, "wins": 2, "holds": 3, "saves": 34, "walks": 21, "losses": 3, "strikeouts": 64, "appearances": 65, "blown_saves": 5, "hits_allowed": 50, "games_started": 0, "complete_games": 0, "quality_starts": 0, "innings_pitched": 64.0}	15.71	f	2026-03-13 02:12:35.218039	2026-03-13 02:12:35.218039	\N	0	\N
 32220	Robbie Ray	SP	SF	{"era": 3.7, "whip": 1.28, "wins": 8, "holds": 0, "saves": 0, "walks": 57, "losses": 8, "strikeouts": 156, "appearances": 26, "blown_saves": 0, "hits_allowed": 130, "games_started": 26, "complete_games": 1, "quality_starts": 14, "innings_pitched": 146.0}	4.29	f	2026-03-13 02:12:35.231613	2026-03-13 02:12:35.231613	\N	0	\N
 32221	Tatsuya Imai	SP	HOU	{"era": 3.9, "whip": 1.31, "wins": 8, "holds": 0, "saves": 0, "walks": 51, "losses": 9, "strikeouts": 138, "appearances": 27, "blown_saves": 0, "hits_allowed": 137, "games_started": 27, "complete_games": 0, "quality_starts": 10, "innings_pitched": 143.0}	1.0	f	2026-03-13 02:12:35.246133	2026-03-13 02:12:35.246133	\N	0	\N
-32222	Zack Wheeler	SP	PHI	{"era": 3.08, "whip": 1.07, "wins": 10, "holds": 0, "saves": 0, "walks": 35, "losses": 5, "strikeouts": 172, "appearances": 23, "blown_saves": 0, "hits_allowed": 121, "games_started": 23, "complete_games": 1, "quality_starts": 19, "innings_pitched": 146.0}	22.31	f	2026-03-13 02:12:35.261054	2026-03-13 02:12:35.261054	\N	0	\N
+32222	Zack Wheeler	SP	PHI	{"era": 3.08, "whip": 1.07, "wins": 10, "holds": 0, "saves": 0, "walks": 35, "losses": 5, "strikeouts": 172, "appearances": 23, "blown_saves": 0, "hits_allowed": 121, "games_started": 23, "complete_games": 1, "quality_starts": 19, "innings_pitched": 146.0}	22.31	f	2026-03-13 02:12:35.261054	2026-03-14 00:51:12.39689	\N	1	\N
+32207	Eury Perez	SP	MIA	{"era": 3.35, "whip": 1.02, "wins": 9, "holds": 0, "saves": 0, "walks": 40, "losses": 8, "strikeouts": 137, "appearances": 26, "blown_saves": 0, "hits_allowed": 92, "games_started": 26, "complete_games": 0, "quality_starts": 6, "innings_pitched": 129.0}	16.68	f	2026-03-13 02:12:35.064732	2026-03-14 00:49:23.417392	\N	1	\N
+32212	Josh Hader	RP	HOU	{"era": 2.53, "whip": 0.84, "wins": 2, "holds": 3, "saves": 32, "walks": 17, "losses": 2, "strikeouts": 76, "appearances": 61, "blown_saves": 2, "hits_allowed": 31, "games_started": 0, "complete_games": 0, "quality_starts": 0, "innings_pitched": 57.0}	21.32	f	2026-03-13 02:12:35.123501	2026-03-14 00:50:31.720811	\N	1	\N
 32223	Shota Imanaga	SP	CHC	{"era": 3.57, "whip": 1.1, "wins": 12, "holds": 0, "saves": 0, "walks": 36, "losses": 8, "strikeouts": 154, "appearances": 30, "blown_saves": 0, "hits_allowed": 155, "games_started": 30, "complete_games": 0, "quality_starts": 18, "innings_pitched": 174.0}	19.58	f	2026-03-13 02:12:35.272651	2026-03-13 02:12:35.272651	\N	0	\N
 32224	Michael King	SP	SD	{"era": 3.25, "whip": 1.19, "wins": 10, "holds": 0, "saves": 0, "walks": 44, "losses": 7, "strikeouts": 160, "appearances": 27, "blown_saves": 0, "hits_allowed": 131, "games_started": 27, "complete_games": 1, "quality_starts": 9, "innings_pitched": 147.0}	14.66	f	2026-03-13 02:12:35.286702	2026-03-13 02:12:35.286702	\N	0	\N
 32225	Sonny Gray	SP	BOS	{"era": 3.88, "whip": 1.17, "wins": 10, "holds": 0, "saves": 0, "walks": 38, "losses": 8, "strikeouts": 167, "appearances": 26, "blown_saves": 0, "hits_allowed": 141, "games_started": 26, "complete_games": 1, "quality_starts": 13, "innings_pitched": 153.0}	10.77	f	2026-03-13 02:12:35.306073	2026-03-13 02:12:35.306073	\N	0	\N
@@ -4044,7 +4037,6 @@ COPY public.players (id, name, positions, mlb_team, projections, calculated_valu
 32243	Grayson Rodriguez	SP	LAA	{"era": 4.04, "whip": 1.35, "wins": 11, "holds": 0, "saves": 0, "walks": 61, "losses": 9, "strikeouts": 164, "appearances": 26, "blown_saves": 0, "hits_allowed": 149, "games_started": 26, "complete_games": 0, "quality_starts": 16, "innings_pitched": 156.0}	1.62	f	2026-03-13 02:12:35.521355	2026-03-13 02:12:35.521355	\N	0	\N
 32244	Quinn Priester	SP	MIL	{"era": 3.61, "whip": 1.27, "wins": 10, "holds": 0, "saves": 0, "walks": 46, "losses": 6, "strikeouts": 123, "appearances": 27, "blown_saves": 0, "hits_allowed": 141, "games_started": 27, "complete_games": 0, "quality_starts": 10, "innings_pitched": 147.0}	5.21	f	2026-03-13 02:12:35.538068	2026-03-13 02:12:35.538068	\N	0	\N
 32245	Cody Ponce	RP	TOR	{"era": 4.14, "whip": 1.3, "wins": 9, "holds": 0, "saves": 0, "walks": 46, "losses": 7, "strikeouts": 133, "appearances": 26, "blown_saves": 0, "hits_allowed": 135, "games_started": 26, "complete_games": 0, "quality_starts": 10, "innings_pitched": 139.0}	1.0	f	2026-03-13 02:12:35.553848	2026-03-13 02:12:35.553848	\N	0	\N
-32246	Bryan Abreu	RP	HOU	{"era": 2.49, "whip": 1.11, "wins": 2, "holds": 41, "saves": 1, "walks": 34, "losses": 2, "strikeouts": 113, "appearances": 86, "blown_saves": 0, "hits_allowed": 58, "games_started": 0, "complete_games": 0, "quality_starts": 0, "innings_pitched": 83.0}	5.0	f	2026-03-13 02:12:35.57217	2026-03-13 02:12:35.57217	\N	0	\N
 32247	Riley O'Brien	RP	STL	{"era": 3.0, "whip": 1.36, "wins": 1, "holds": 3, "saves": 24, "walks": 36, "losses": 3, "strikeouts": 69, "appearances": 75, "blown_saves": 7, "hits_allowed": 54, "games_started": 0, "complete_games": 0, "quality_starts": 0, "innings_pitched": 66.0}	4.74	f	2026-03-13 02:12:35.585982	2026-03-13 02:12:35.585982	\N	0	\N
 32248	Michael Burrows	SP	HOU	{"era": 3.45, "whip": 1.17, "wins": 2, "holds": 0, "saves": 0, "walks": 41, "losses": 4, "strikeouts": 124, "appearances": 26, "blown_saves": 0, "hits_allowed": 99, "games_started": 26, "complete_games": 0, "quality_starts": 3, "innings_pitched": 120.0}	1.22	f	2026-03-13 02:12:35.59628	2026-03-13 02:12:35.59628	\N	0	\N
 32249	Kodai Senga	SP	NYM	{"era": 4.27, "whip": 1.36, "wins": 7, "holds": 0, "saves": 0, "walks": 60, "losses": 8, "strikeouts": 135, "appearances": 26, "blown_saves": 0, "hits_allowed": 123, "games_started": 26, "complete_games": 0, "quality_starts": 7, "innings_pitched": 135.0}	1.0	f	2026-03-13 02:12:35.604175	2026-03-13 02:12:35.604175	\N	0	\N
@@ -4079,12 +4071,11 @@ COPY public.players (id, name, positions, mlb_team, projections, calculated_valu
 32278	Aaron Ashby	RP	MIL	{"era": 2.61, "whip": 1.25, "wins": 6, "holds": 13, "saves": 1, "walks": 38, "losses": 2, "strikeouts": 105, "appearances": 74, "blown_saves": 0, "hits_allowed": 78, "games_started": 0, "complete_games": 0, "quality_starts": 0, "innings_pitched": 93.0}	5.3	f	2026-03-13 02:12:35.95528	2026-03-13 02:12:35.95528	\N	0	\N
 32279	Jose Soriano	SP	LAA	{"era": 3.72, "whip": 1.3, "wins": 9, "holds": 0, "saves": 0, "walks": 56, "losses": 9, "strikeouts": 125, "appearances": 27, "blown_saves": 0, "hits_allowed": 132, "games_started": 27, "complete_games": 0, "quality_starts": 14, "innings_pitched": 145.0}	2.0	f	2026-03-13 02:12:35.964798	2026-03-13 02:12:35.964798	\N	0	\N
 32280	Joel Peguero	RP	SF	{"era": 2.42, "whip": 1.04, "wins": 7, "holds": 16, "saves": 1, "walks": 28, "losses": 3, "strikeouts": 60, "appearances": 68, "blown_saves": 0, "hits_allowed": 53, "games_started": 0, "complete_games": 0, "quality_starts": 0, "innings_pitched": 78.0}	7.64	f	2026-03-13 02:12:35.974591	2026-03-13 02:12:35.974591	\N	0	\N
-32281	Robert Suarez	RP	ATL	{"era": 2.69, "whip": 0.9, "wins": 5, "holds": 7, "saves": 4, "walks": 14, "losses": 6, "strikeouts": 64, "appearances": 71, "blown_saves": 1, "hits_allowed": 46, "games_started": 0, "complete_games": 0, "quality_starts": 0, "innings_pitched": 67.0}	7.61	f	2026-03-13 02:12:35.983168	2026-03-13 02:12:35.983168	\N	0	\N
-32282	Jason Adam	RP	SD	{"era": 1.88, "whip": 0.99, "wins": 4, "holds": 36, "saves": 0, "walks": 24, "losses": 2, "strikeouts": 74, "appearances": 76, "blown_saves": 0, "hits_allowed": 47, "games_started": 0, "complete_games": 0, "quality_starts": 0, "innings_pitched": 72.0}	7.41	f	2026-03-13 02:12:35.992511	2026-03-13 02:12:35.992511	\N	0	\N
-32283	Luke Weaver	RP	NYM	{"era": 3.84, "whip": 1.07, "wins": 5, "holds": 32, "saves": 4, "walks": 27, "losses": 3, "strikeouts": 100, "appearances": 79, "blown_saves": 1, "hits_allowed": 61, "games_started": 0, "complete_games": 0, "quality_starts": 0, "innings_pitched": 82.0}	3.19	f	2026-03-13 02:12:36.002876	2026-03-13 02:12:36.002876	\N	0	\N
 32284	Kirby Yates	RP	LAA	{"era": 3.97, "whip": 1.24, "wins": 1, "holds": 3, "saves": 22, "walks": 28, "losses": 2, "strikeouts": 86, "appearances": 66, "blown_saves": 3, "hits_allowed": 45, "games_started": 0, "complete_games": 0, "quality_starts": 0, "innings_pitched": 59.0}	3.36	f	2026-03-13 02:12:36.011612	2026-03-13 02:12:36.011612	\N	0	\N
 32285	Jose Urquidy	RP	PIT	{"era": 3.88, "whip": 1.28, "wins": 7, "holds": 0, "saves": 0, "walks": 44, "losses": 9, "strikeouts": 137, "appearances": 26, "blown_saves": 0, "hits_allowed": 134, "games_started": 26, "complete_games": 0, "quality_starts": 10, "innings_pitched": 139.0}	1.0	f	2026-03-13 02:12:36.021784	2026-03-13 02:12:36.021784	\N	0	\N
 32286	Brooks Raley	RP	NYM	{"era": 2.17, "whip": 0.78, "wins": 5, "holds": 24, "saves": 1, "walks": 14, "losses": 1, "strikeouts": 55, "appearances": 69, "blown_saves": 0, "hits_allowed": 28, "games_started": 0, "complete_games": 0, "quality_starts": 0, "innings_pitched": 54.0}	6.41	f	2026-03-13 02:12:36.032034	2026-03-13 02:12:36.032034	\N	0	\N
+32281	Robert Suarez	RP	ATL	{"era": 2.69, "whip": 0.9, "wins": 5, "holds": 7, "saves": 4, "walks": 14, "losses": 6, "strikeouts": 64, "appearances": 71, "blown_saves": 1, "hits_allowed": 46, "games_started": 0, "complete_games": 0, "quality_starts": 0, "innings_pitched": 67.0}	7.61	f	2026-03-13 02:12:35.983168	2026-03-13 16:22:29.25535	\N	1	\N
+32282	Jason Adam	RP	SD	{"era": 1.88, "whip": 0.99, "wins": 4, "holds": 36, "saves": 0, "walks": 24, "losses": 2, "strikeouts": 74, "appearances": 76, "blown_saves": 0, "hits_allowed": 47, "games_started": 0, "complete_games": 0, "quality_starts": 0, "innings_pitched": 72.0}	7.41	f	2026-03-13 02:12:35.992511	2026-03-13 16:22:28.304346	\N	2	\N
 32287	Eduardo Rodriguez	SP	ARI	{"era": 4.04, "whip": 1.35, "wins": 9, "holds": 0, "saves": 0, "walks": 48, "losses": 9, "strikeouts": 143, "appearances": 29, "blown_saves": 0, "hits_allowed": 165, "games_started": 29, "complete_games": 0, "quality_starts": 9, "innings_pitched": 158.0}	1.0	f	2026-03-13 02:12:36.042171	2026-03-13 02:12:36.042171	\N	0	\N
 32288	Justin Sterner	RP	ATH	{"era": 3.5, "whip": 1.17, "wins": 1, "holds": 3, "saves": 22, "walks": 19, "losses": 2, "strikeouts": 65, "appearances": 54, "blown_saves": 4, "hits_allowed": 44, "games_started": 0, "complete_games": 0, "quality_starts": 0, "innings_pitched": 54.0}	4.45	f	2026-03-13 02:12:36.058573	2026-03-13 02:12:36.058573	\N	0	\N
 32289	Aaron Civale	SP	ATH	{"era": 4.07, "whip": 1.25, "wins": 8, "holds": 0, "saves": 0, "walks": 42, "losses": 7, "strikeouts": 118, "appearances": 26, "blown_saves": 0, "hits_allowed": 127, "games_started": 26, "complete_games": 0, "quality_starts": 6, "innings_pitched": 135.0}	1.0	f	2026-03-13 02:12:36.067898	2026-03-13 02:12:36.067898	\N	0	\N
@@ -4096,7 +4087,6 @@ COPY public.players (id, name, positions, mlb_team, projections, calculated_valu
 32295	Dustin May	SP	STL	{"era": 4.25, "whip": 1.31, "wins": 8, "holds": 0, "saves": 0, "walks": 48, "losses": 11, "strikeouts": 129, "appearances": 26, "blown_saves": 0, "hits_allowed": 141, "games_started": 26, "complete_games": 0, "quality_starts": 12, "innings_pitched": 144.0}	1.0	f	2026-03-13 02:12:36.14978	2026-03-13 02:12:36.14978	\N	0	\N
 32296	Hunter Greene	SP	CIN	{"era": 2.96, "whip": 1.11, "wins": 5, "holds": 0, "saves": 0, "walks": 20, "losses": 2, "strikeouts": 80, "appearances": 12, "blown_saves": 0, "hits_allowed": 58, "games_started": 12, "complete_games": 0, "quality_starts": 7, "innings_pitched": 70.0}	1.4	f	2026-03-13 02:12:36.164796	2026-03-13 02:12:36.164796	\N	0	\N
 32297	Alek Manoah	SP	LAA	{"era": 4.2, "whip": 1.31, "wins": 7, "holds": 0, "saves": 0, "walks": 52, "losses": 9, "strikeouts": 134, "appearances": 26, "blown_saves": 0, "hits_allowed": 127, "games_started": 26, "complete_games": 0, "quality_starts": 10, "innings_pitched": 137.0}	1.0	f	2026-03-13 02:12:36.177014	2026-03-13 02:12:36.177014	\N	0	\N
-32298	Adrian Morejon	RP	SD	{"era": 2.4, "whip": 1.08, "wins": 5, "holds": 18, "saves": 1, "walks": 16, "losses": 3, "strikeouts": 62, "appearances": 70, "blown_saves": 0, "hits_allowed": 49, "games_started": 0, "complete_games": 0, "quality_starts": 0, "innings_pitched": 60.0}	2.13	f	2026-03-13 02:12:36.186057	2026-03-13 02:12:36.186057	\N	0	\N
 32299	Clayton Beeter	RP	WAS	{"era": 5.02, "whip": 1.43, "wins": 1, "holds": 3, "saves": 24, "walks": 48, "losses": 2, "strikeouts": 93, "appearances": 61, "blown_saves": 7, "hits_allowed": 39, "games_started": 0, "complete_games": 0, "quality_starts": 0, "innings_pitched": 61.0}	1.0	f	2026-03-13 02:12:36.196443	2026-03-13 02:12:36.196443	\N	0	\N
 32300	Bryce Elder	SP	ATL	{"era": 4.5, "whip": 1.33, "wins": 9, "holds": 0, "saves": 0, "walks": 50, "losses": 9, "strikeouts": 130, "appearances": 26, "blown_saves": 0, "hits_allowed": 147, "games_started": 26, "complete_games": 0, "quality_starts": 14, "innings_pitched": 148.0}	1.0	f	2026-03-13 02:12:36.210155	2026-03-13 02:12:36.210155	\N	0	\N
 32301	Bryan King	RP	HOU	{"era": 2.74, "whip": 1.1, "wins": 4, "holds": 28, "saves": 1, "walks": 14, "losses": 2, "strikeouts": 75, "appearances": 82, "blown_saves": 0, "hits_allowed": 62, "games_started": 0, "complete_games": 0, "quality_starts": 0, "innings_pitched": 69.0}	1.58	f	2026-03-13 02:12:36.220109	2026-03-13 02:12:36.220109	\N	0	\N
@@ -4145,7 +4135,6 @@ COPY public.players (id, name, positions, mlb_team, projections, calculated_valu
 32344	Kyle Freeland	SP	COL	{"era": 4.23, "whip": 1.3, "wins": 5, "holds": 0, "saves": 0, "walks": 39, "losses": 12, "strikeouts": 112, "appearances": 27, "blown_saves": 0, "hits_allowed": 158, "games_started": 27, "complete_games": 0, "quality_starts": 14, "innings_pitched": 151.0}	1.0	f	2026-03-13 02:12:36.800838	2026-03-13 02:12:36.800838	\N	0	\N
 32345	Eric Lauer	SP,RP	TOR	{"era": 3.17, "whip": 1.13, "wins": 4, "holds": 0, "saves": 0, "walks": 15, "losses": 4, "strikeouts": 53, "appearances": 25, "blown_saves": 0, "hits_allowed": 46, "games_started": 13, "complete_games": 0, "quality_starts": 3, "innings_pitched": 54.0}	1.0	f	2026-03-13 02:12:36.817853	2026-03-13 02:12:36.817853	\N	0	\N
 32346	Pierce Johnson	RP	CIN	{"era": 3.39, "whip": 1.33, "wins": 3, "holds": 19, "saves": 4, "walks": 24, "losses": 2, "strikeouts": 70, "appearances": 75, "blown_saves": 1, "hits_allowed": 57, "games_started": 0, "complete_games": 0, "quality_starts": 0, "innings_pitched": 61.0}	1.0	f	2026-03-13 02:12:36.828906	2026-03-13 02:12:36.828906	\N	0	\N
-32347	Matt Brash	RP	SEA	{"era": 2.33, "whip": 1.16, "wins": 1, "holds": 29, "saves": 0, "walks": 23, "losses": 2, "strikeouts": 69, "appearances": 72, "blown_saves": 0, "hits_allowed": 44, "games_started": 0, "complete_games": 0, "quality_starts": 0, "innings_pitched": 58.0}	1.0	f	2026-03-13 02:12:36.84334	2026-03-13 02:12:36.84334	\N	0	\N
 32348	Justin Slaten	RP	BOS	{"era": 3.66, "whip": 1.06, "wins": 3, "holds": 17, "saves": 1, "walks": 16, "losses": 2, "strikeouts": 56, "appearances": 63, "blown_saves": 0, "hits_allowed": 52, "games_started": 0, "complete_games": 0, "quality_starts": 0, "innings_pitched": 64.0}	1.0	f	2026-03-13 02:12:36.85164	2026-03-13 02:12:36.85164	\N	0	\N
 32349	Tanner Banks	RP	PHI	{"era": 3.63, "whip": 1.16, "wins": 4, "holds": 9, "saves": 1, "walks": 14, "losses": 1, "strikeouts": 56, "appearances": 59, "blown_saves": 0, "hits_allowed": 52, "games_started": 0, "complete_games": 0, "quality_starts": 0, "innings_pitched": 57.0}	1.0	f	2026-03-13 02:12:36.861194	2026-03-13 02:12:36.861194	\N	0	\N
 32350	Fernando Cruz	RP	NYY	{"era": 4.28, "whip": 1.33, "wins": 3, "holds": 26, "saves": 1, "walks": 33, "losses": 3, "strikeouts": 100, "appearances": 77, "blown_saves": 0, "hits_allowed": 48, "games_started": 0, "complete_games": 0, "quality_starts": 0, "innings_pitched": 61.0}	1.0	f	2026-03-13 02:12:36.872957	2026-03-13 02:12:36.872957	\N	0	\N
@@ -4157,7 +4146,6 @@ COPY public.players (id, name, positions, mlb_team, projections, calculated_valu
 32356	Gabe Speier	RP	SEA	{"era": 3.67, "whip": 1.04, "wins": 2, "holds": 23, "saves": 1, "walks": 13, "losses": 2, "strikeouts": 68, "appearances": 71, "blown_saves": 0, "hits_allowed": 38, "games_started": 0, "complete_games": 0, "quality_starts": 0, "innings_pitched": 49.0}	1.0	f	2026-03-13 02:12:36.932931	2026-03-13 02:12:36.932931	\N	0	\N
 32357	Clay Holmes	SP	NYM	{"era": 3.31, "whip": 1.27, "wins": 6, "holds": 1, "saves": 0, "walks": 19, "losses": 4, "strikeouts": 39, "appearances": 25, "blown_saves": 0, "hits_allowed": 43, "games_started": 13, "complete_games": 0, "quality_starts": 3, "innings_pitched": 49.0}	1.0	f	2026-03-13 02:12:36.940904	2026-03-13 02:12:36.940904	\N	0	\N
 32358	Gavin Stone	SP	LAD	{"era": 3.07, "whip": 1.11, "wins": 5, "holds": 1, "saves": 0, "walks": 11, "losses": 3, "strikeouts": 34, "appearances": 21, "blown_saves": 0, "hits_allowed": 38, "games_started": 11, "complete_games": 0, "quality_starts": 5, "innings_pitched": 44.0}	1.0	f	2026-03-13 02:12:36.947043	2026-03-13 02:12:36.947043	\N	0	\N
-32359	Tobias Myers	SP,RP	NYM	{"era": 3.05, "whip": 1.2, "wins": 4, "holds": 0, "saves": 0, "walks": 16, "losses": 3, "strikeouts": 48, "appearances": 25, "blown_saves": 0, "hits_allowed": 55, "games_started": 13, "complete_games": 0, "quality_starts": 2, "innings_pitched": 59.0}	1.0	f	2026-03-13 02:12:36.952903	2026-03-13 02:12:36.952903	\N	0	\N
 32360	Justin Steele	SP	CHC	{"era": 3.15, "whip": 0.97, "wins": 4, "holds": 1, "saves": 0, "walks": 9, "losses": 2, "strikeouts": 35, "appearances": 20, "blown_saves": 0, "hits_allowed": 30, "games_started": 10, "complete_games": 0, "quality_starts": 4, "innings_pitched": 40.0}	1.0	f	2026-03-13 02:12:36.963379	2026-03-13 02:12:36.963379	\N	0	\N
 32361	Aaron Bummer	RP	ATL	{"era": 3.94, "whip": 1.39, "wins": 5, "holds": 6, "saves": 1, "walks": 22, "losses": 2, "strikeouts": 71, "appearances": 69, "blown_saves": 0, "hits_allowed": 67, "games_started": 0, "complete_games": 0, "quality_starts": 0, "innings_pitched": 64.0}	1.0	f	2026-03-13 02:12:36.970203	2026-03-13 02:12:36.970203	\N	0	\N
 32362	David Morgan	RP	SD	{"era": 2.68, "whip": 1.25, "wins": 2, "holds": 6, "saves": 1, "walks": 28, "losses": 2, "strikeouts": 62, "appearances": 58, "blown_saves": 0, "hits_allowed": 43, "games_started": 0, "complete_games": 0, "quality_starts": 0, "innings_pitched": 57.0}	1.0	f	2026-03-13 02:12:36.978656	2026-03-13 02:12:36.978656	\N	0	\N
@@ -4264,7 +4252,6 @@ COPY public.players (id, name, positions, mlb_team, projections, calculated_valu
 32459	Brock Burke	RP	CIN	{"era": 4.25, "whip": 1.42, "wins": 3, "holds": 13, "saves": 1, "walks": 19, "losses": 1, "strikeouts": 52, "appearances": 65, "blown_saves": 0, "hits_allowed": 56, "games_started": 0, "complete_games": 0, "quality_starts": 0, "innings_pitched": 53.0}	1.0	f	2026-03-13 02:12:38.175017	2026-03-13 02:12:38.175017	\N	0	\N
 32460	J.T. Ginn	SP	ATH	{"era": 4.82, "whip": 1.32, "wins": 3, "holds": 1, "saves": 0, "walks": 18, "losses": 5, "strikeouts": 59, "appearances": 25, "blown_saves": 0, "hits_allowed": 56, "games_started": 13, "complete_games": 0, "quality_starts": 2, "innings_pitched": 56.0}	1.0	f	2026-03-13 02:12:38.192826	2026-03-13 02:12:38.192826	\N	0	\N
 32461	Ryan Zeferjahn	RP	LAA	{"era": 5.0, "whip": 1.56, "wins": 3, "holds": 20, "saves": 1, "walks": 41, "losses": 4, "strikeouts": 90, "appearances": 67, "blown_saves": 0, "hits_allowed": 57, "games_started": 0, "complete_games": 0, "quality_starts": 0, "innings_pitched": 63.0}	1.0	f	2026-03-13 02:12:38.20812	2026-03-13 02:12:38.20812	\N	0	\N
-32462	Jonah Tong	SP	NYM	{"era": 4.83, "whip": 1.34, "wins": 4, "holds": 1, "saves": 0, "walks": 15, "losses": 4, "strikeouts": 40, "appearances": 22, "blown_saves": 0, "hits_allowed": 40, "games_started": 9, "complete_games": 0, "quality_starts": 2, "innings_pitched": 41.0}	1.0	f	2026-03-13 02:12:38.224245	2026-03-13 02:12:38.224245	\N	0	\N
 32463	Thomas Hatch	RP	ARI	{"era": 5.04, "whip": 1.48, "wins": 6, "holds": 7, "saves": 1, "walks": 32, "losses": 5, "strikeouts": 58, "appearances": 42, "blown_saves": 0, "hits_allowed": 79, "games_started": 0, "complete_games": 0, "quality_starts": 0, "innings_pitched": 75.0}	1.0	f	2026-03-13 02:12:38.240278	2026-03-13 02:12:38.240278	\N	0	\N
 32464	Mark Leiter	RP	ATH	{"era": 5.37, "whip": 1.65, "wins": 4, "holds": 19, "saves": 2, "walks": 22, "losses": 2, "strikeouts": 78, "appearances": 70, "blown_saves": 0, "hits_allowed": 64, "games_started": 0, "complete_games": 0, "quality_starts": 0, "innings_pitched": 52.0}	1.0	f	2026-03-13 02:12:38.255023	2026-03-13 02:12:38.255023	\N	0	\N
 32465	Jovani Moran	RP	BOS	{"era": 4.26, "whip": 1.32, "wins": 2, "holds": 10, "saves": 1, "walks": 22, "losses": 2, "strikeouts": 54, "appearances": 32, "blown_saves": 0, "hits_allowed": 53, "games_started": 0, "complete_games": 0, "quality_starts": 0, "innings_pitched": 57.0}	1.0	f	2026-03-13 02:12:38.269197	2026-03-13 02:12:38.269197	\N	0	\N
@@ -6041,7 +6028,6 @@ COPY public.players (id, name, positions, mlb_team, projections, calculated_valu
 34241	Brett Wichrowski	SP	MIL	{"era": 0.0, "whip": 0.0, "wins": 0, "holds": 0, "saves": 0, "walks": 0, "losses": 0, "strikeouts": 0, "appearances": 0, "blown_saves": 0, "hits_allowed": 0, "games_started": 0, "complete_games": 0, "quality_starts": 0, "innings_pitched": 0.0}	0.0	f	2026-03-13 02:13:01.27775	2026-03-13 02:13:01.27775	\N	0	\N
 34242	Danny Gutierrez	SP	TEX	{"era": 0.0, "whip": 0.0, "wins": 0, "holds": 0, "saves": 0, "walks": 0, "losses": 0, "strikeouts": 0, "appearances": 0, "blown_saves": 0, "hits_allowed": 0, "games_started": 0, "complete_games": 0, "quality_starts": 0, "innings_pitched": 0.0}	0.0	f	2026-03-13 02:13:01.286648	2026-03-13 02:13:01.286648	\N	0	\N
 34243	Eric Reyzelman	RP	NYY	{"era": 0.0, "whip": 0.0, "wins": 0, "holds": 0, "saves": 0, "walks": 0, "losses": 0, "strikeouts": 0, "appearances": 0, "blown_saves": 0, "hits_allowed": 0, "games_started": 0, "complete_games": 0, "quality_starts": 0, "innings_pitched": 0.0}	0.0	f	2026-03-13 02:13:01.297523	2026-03-13 02:13:01.297523	\N	0	\N
-34244	Johan Belisario	RP	MIL	{"era": 0.0, "whip": 0.0, "wins": 0, "holds": 0, "saves": 0, "walks": 0, "losses": 0, "strikeouts": 0, "appearances": 0, "blown_saves": 0, "hits_allowed": 0, "games_started": 0, "complete_games": 0, "quality_starts": 0, "innings_pitched": 0.0}	0.0	f	2026-03-13 02:13:01.305473	2026-03-13 02:13:01.305473	\N	0	\N
 34245	Brendan White	RP	SEA	{"era": 0.0, "whip": 0.0, "wins": 0, "holds": 0, "saves": 0, "walks": 0, "losses": 0, "strikeouts": 0, "appearances": 0, "blown_saves": 0, "hits_allowed": 0, "games_started": 0, "complete_games": 0, "quality_starts": 0, "innings_pitched": 0.0}	0.0	f	2026-03-13 02:13:01.316833	2026-03-13 02:13:01.316833	\N	0	\N
 34246	Tyler Mizenko	RP	SF	{"era": 0.0, "whip": 0.0, "wins": 0, "holds": 0, "saves": 0, "walks": 0, "losses": 0, "strikeouts": 0, "appearances": 0, "blown_saves": 0, "hits_allowed": 0, "games_started": 0, "complete_games": 0, "quality_starts": 0, "innings_pitched": 0.0}	0.0	f	2026-03-13 02:13:01.329723	2026-03-13 02:13:01.329723	\N	0	\N
 34247	Pedro Vasquez	RP	PIT	{"era": 0.0, "whip": 0.0, "wins": 0, "holds": 0, "saves": 0, "walks": 0, "losses": 0, "strikeouts": 0, "appearances": 0, "blown_saves": 0, "hits_allowed": 0, "games_started": 0, "complete_games": 0, "quality_starts": 0, "innings_pitched": 0.0}	0.0	f	2026-03-13 02:13:01.336442	2026-03-13 02:13:01.336442	\N	0	\N
@@ -6783,7 +6769,6 @@ COPY public.players (id, name, positions, mlb_team, projections, calculated_valu
 19453	Yoshinobu Yamamoto	SP	LAD	{"era": 3.02, "whip": 1.08, "wins": 13, "holds": 0, "saves": 0, "walks": 45, "losses": 5, "strikeouts": 168, "appearances": 26, "blown_saves": 0, "hits_allowed": 121, "games_started": 26, "complete_games": 1, "quality_starts": 17, "innings_pitched": 153.0}	26.09	t	2026-02-14 00:09:44.152968	2026-02-14 00:09:44.152968	97	0	\N
 32682	Andry Lara	RP	WAS	{"era": 5.9, "whip": 1.7, "wins": 1, "holds": 6, "saves": 0, "walks": 26, "losses": 1, "strikeouts": 56, "appearances": 41, "blown_saves": 0, "hits_allowed": 78, "games_started": 0, "complete_games": 0, "quality_starts": 0, "innings_pitched": 61.0}	1.0	f	2026-03-13 02:12:41.145132	2026-03-13 02:12:41.145132	\N	0	\N
 29043	Zac Veen	OF	COL	{"obp": 0.314, "rbi": 49, "slg": 0.425, "hits": 93, "runs": 49, "at_bats": 374, "doubles": 18, "singles": 58, "triples": 3, "home_runs": 14, "batter_walks": 31, "stolen_bases": 11, "batting_average": 0.249, "caught_stealing": 4, "batter_strikeouts": 107}	1.0	f	2026-03-13 02:05:46.64769	2026-03-13 02:05:46.64769	\N	0	\N
-28874	Fernando Tatis Jr.	OF	SD	{"obp": 0.371, "rbi": 77, "slg": 0.513, "hits": 164, "runs": 111, "at_bats": 567, "doubles": 31, "singles": 100, "triples": 3, "home_runs": 30, "batter_walks": 67, "stolen_bases": 27, "batting_average": 0.289, "caught_stealing": 6, "batter_strikeouts": 136}	38.95	f	2026-03-13 02:05:44.798774	2026-03-13 02:05:44.798774	\N	0	\N
 28904	Randy Arozarena	OF	SEA	{"obp": 0.345, "rbi": 65, "slg": 0.429, "hits": 130, "runs": 84, "at_bats": 529, "doubles": 32, "singles": 76, "triples": 1, "home_runs": 21, "batter_walks": 58, "stolen_bases": 27, "batting_average": 0.246, "caught_stealing": 6, "batter_strikeouts": 157}	16.97	f	2026-03-13 02:05:44.928555	2026-03-13 02:05:44.928555	\N	0	\N
 28905	Jarren Duran	OF	BOS	{"obp": 0.343, "rbi": 68, "slg": 0.468, "hits": 151, "runs": 80, "at_bats": 551, "doubles": 36, "singles": 87, "triples": 13, "home_runs": 15, "batter_walks": 48, "stolen_bases": 24, "batting_average": 0.274, "caught_stealing": 6, "batter_strikeouts": 140}	19.64	f	2026-03-13 02:05:44.930941	2026-03-13 02:05:44.930941	\N	0	\N
 28906	Jose Altuve	2B,OF	HOU	{"obp": 0.356, "rbi": 72, "slg": 0.469, "hits": 159, "runs": 81, "at_bats": 548, "doubles": 27, "singles": 108, "triples": 1, "home_runs": 23, "batter_walks": 53, "stolen_bases": 14, "batting_average": 0.29, "caught_stealing": 6, "batter_strikeouts": 106}	23.84	f	2026-03-13 02:05:44.933941	2026-03-13 02:05:44.933941	\N	0	\N
@@ -6794,7 +6779,6 @@ COPY public.players (id, name, positions, mlb_team, projections, calculated_valu
 19455	Logan Gilbert	SP	SEA	{"era": 3.38, "whip": 1.04, "wins": 9, "holds": 0, "saves": 0, "walks": 36, "losses": 8, "strikeouts": 194, "appearances": 30, "blown_saves": 0, "hits_allowed": 135, "games_started": 30, "complete_games": 0, "quality_starts": 15, "innings_pitched": 165.0}	21.31	t	2026-02-14 00:09:44.158663	2026-02-14 00:09:44.158663	104	0	\N
 19456	Cristopher Sanchez	SP	PHI	{"era": 2.91, "whip": 1.18, "wins": 10, "holds": 0, "saves": 0, "walks": 38, "losses": 5, "strikeouts": 163, "appearances": 26, "blown_saves": 0, "hits_allowed": 155, "games_started": 26, "complete_games": 1, "quality_starts": 19, "innings_pitched": 164.0}	15.61	t	2026-02-14 00:09:44.161433	2026-02-14 00:09:44.161433	107	0	\N
 32676	Jonathan Loaisiga	RP	ARI	{"era": 4.67, "whip": 1.74, "wins": 0, "holds": 8, "saves": 0, "walks": 10, "losses": 1, "strikeouts": 26, "appearances": 29, "blown_saves": 0, "hits_allowed": 37, "games_started": 0, "complete_games": 0, "quality_starts": 0, "innings_pitched": 27.0}	1.0	f	2026-03-13 02:12:41.028464	2026-03-13 02:12:41.028464	\N	0	\N
-28871	Juan Soto	OF	NYM	{"obp": 0.4, "rbi": 97, "slg": 0.548, "hits": 150, "runs": 113, "at_bats": 533, "doubles": 25, "singles": 85, "triples": 3, "home_runs": 37, "batter_walks": 106, "stolen_bases": 23, "batting_average": 0.281, "caught_stealing": 4, "batter_strikeouts": 126}	41.86	f	2026-03-13 02:05:44.788355	2026-03-13 02:05:44.788355	\N	0	\N
 28872	Elly De La Cruz	SS	CIN	{"obp": 0.345, "rbi": 79, "slg": 0.49, "hits": 149, "runs": 94, "at_bats": 545, "doubles": 30, "singles": 87, "triples": 8, "home_runs": 24, "batter_walks": 58, "stolen_bases": 41, "batting_average": 0.273, "caught_stealing": 9, "batter_strikeouts": 173}	35.46	f	2026-03-13 02:05:44.792164	2026-03-13 02:05:44.792164	\N	0	\N
 32680	Cionel Perez	RP	WAS	{"era": 6.26, "whip": 1.75, "wins": 2, "holds": 19, "saves": 0, "walks": 46, "losses": 1, "strikeouts": 76, "appearances": 87, "blown_saves": 0, "hits_allowed": 75, "games_started": 0, "complete_games": 0, "quality_starts": 0, "innings_pitched": 69.0}	1.0	f	2026-03-13 02:12:41.103777	2026-03-13 02:12:41.103777	\N	0	\N
 32681	Orlando Ribalta	RP	WAS	{"era": 7.43, "whip": 1.91, "wins": 0, "holds": 2, "saves": 0, "walks": 16, "losses": 0, "strikeouts": 28, "appearances": 26, "blown_saves": 0, "hits_allowed": 28, "games_started": 0, "complete_games": 0, "quality_starts": 0, "innings_pitched": 23.0}	1.0	f	2026-03-13 02:12:41.128988	2026-03-13 02:12:41.128988	\N	0	\N
@@ -6809,6 +6793,26 @@ COPY public.players (id, name, positions, mlb_team, projections, calculated_valu
 28968	Jose Caballero	2B,3B,SS,OF	NYY	{"obp": 0.323, "rbi": 47, "slg": 0.379, "hits": 91, "runs": 57, "at_bats": 377, "doubles": 23, "singles": 58, "triples": 1, "home_runs": 9, "batter_walks": 41, "stolen_bases": 44, "batting_average": 0.241, "caught_stealing": 11, "batter_strikeouts": 115}	11.1	f	2026-03-13 02:05:45.708369	2026-03-13 02:05:45.708369	\N	0	\N
 19460	Max Fried	SP	NYY	{"era": 3.33, "whip": 1.25, "wins": 15, "holds": 0, "saves": 0, "walks": 61, "losses": 7, "strikeouts": 176, "appearances": 30, "blown_saves": 0, "hits_allowed": 165, "games_started": 30, "complete_games": 1, "quality_starts": 20, "innings_pitched": 181.0}	16.23	t	2026-02-14 00:09:44.171581	2026-02-14 00:09:44.171581	103	0	\N
 28875	Cal Raleigh	C	SEA	{"obp": 0.361, "rbi": 106, "slg": 0.555, "hits": 127, "runs": 93, "at_bats": 510, "doubles": 24, "singles": 59, "triples": 0, "home_runs": 44, "batter_walks": 83, "stolen_bases": 10, "batting_average": 0.249, "caught_stealing": 2, "batter_strikeouts": 153}	29.74	f	2026-03-13 02:05:44.801989	2026-03-13 04:32:44.149747	\N	0	\N
+32359	Tobias Myers	SP,RP	NYM	{"era": 3.05, "whip": 1.2, "wins": 4, "holds": 0, "saves": 0, "walks": 16, "losses": 3, "strikeouts": 48, "appearances": 25, "blown_saves": 0, "hits_allowed": 55, "games_started": 13, "complete_games": 0, "quality_starts": 2, "innings_pitched": 59.0}	1.0	f	2026-03-13 02:12:36.952903	2026-03-13 16:21:52.044689	\N	1	\N
+32347	Matt Brash	RP	SEA	{"era": 2.33, "whip": 1.16, "wins": 1, "holds": 29, "saves": 0, "walks": 23, "losses": 2, "strikeouts": 69, "appearances": 72, "blown_saves": 0, "hits_allowed": 44, "games_started": 0, "complete_games": 0, "quality_starts": 0, "innings_pitched": 58.0}	1.0	f	2026-03-13 02:12:36.84334	2026-03-13 16:22:00.664155	\N	1	\N
+28874	Fernando Tatis Jr.	OF	SD	{"obp": 0.371, "rbi": 77, "slg": 0.513, "hits": 164, "runs": 111, "at_bats": 567, "doubles": 31, "singles": 100, "triples": 3, "home_runs": 30, "batter_walks": 67, "stolen_bases": 27, "batting_average": 0.289, "caught_stealing": 6, "batter_strikeouts": 136}	38.95	f	2026-03-13 02:05:44.798774	2026-03-13 05:01:22.173842	\N	0	\N
+28869	Aaron Judge	OF	NYY	{"obp": 0.449, "rbi": 117, "slg": 0.681, "hits": 174, "runs": 121, "at_bats": 523, "doubles": 32, "singles": 91, "triples": 3, "home_runs": 48, "batter_walks": 104, "stolen_bases": 11, "batting_average": 0.333, "caught_stealing": 3, "batter_strikeouts": 166}	58.98	f	2026-03-13 02:05:44.776141	2026-03-13 05:32:49.930234	\N	1	\N
+32298	Adrian Morejon	RP	SD	{"era": 2.4, "whip": 1.08, "wins": 5, "holds": 18, "saves": 1, "walks": 16, "losses": 3, "strikeouts": 62, "appearances": 70, "blown_saves": 0, "hits_allowed": 49, "games_started": 0, "complete_games": 0, "quality_starts": 0, "innings_pitched": 60.0}	2.13	f	2026-03-13 02:12:36.186057	2026-03-13 16:22:04.983414	\N	2	\N
+32283	Luke Weaver	RP	NYM	{"era": 3.84, "whip": 1.07, "wins": 5, "holds": 32, "saves": 4, "walks": 27, "losses": 3, "strikeouts": 100, "appearances": 79, "blown_saves": 1, "hits_allowed": 61, "games_started": 0, "complete_games": 0, "quality_starts": 0, "innings_pitched": 82.0}	3.19	f	2026-03-13 02:12:36.002876	2026-03-13 16:22:19.818251	\N	1	\N
+32246	Bryan Abreu	RP	HOU	{"era": 2.49, "whip": 1.11, "wins": 2, "holds": 41, "saves": 1, "walks": 34, "losses": 2, "strikeouts": 113, "appearances": 86, "blown_saves": 0, "hits_allowed": 58, "games_started": 0, "complete_games": 0, "quality_starts": 0, "innings_pitched": 83.0}	5.0	f	2026-03-13 02:12:35.57217	2026-03-13 16:22:23.545133	\N	1	\N
+32210	Devin Williams	RP	NYM	{"era": 4.22, "whip": 1.09, "wins": 2, "holds": 3, "saves": 32, "walks": 26, "losses": 3, "strikeouts": 91, "appearances": 70, "blown_saves": 6, "hits_allowed": 44, "games_started": 0, "complete_games": 0, "quality_starts": 0, "innings_pitched": 64.0}	12.6	f	2026-03-13 02:12:35.099861	2026-03-13 16:22:31.88341	\N	2	\N
+32198	Paul Skenes	SP	PIT	{"era": 2.39, "whip": 0.97, "wins": 10, "holds": 0, "saves": 0, "walks": 40, "losses": 8, "strikeouts": 205, "appearances": 30, "blown_saves": 0, "hits_allowed": 136, "games_started": 30, "complete_games": 1, "quality_starts": 21, "innings_pitched": 181.0}	41.68	f	2026-03-13 02:12:34.948317	2026-03-14 00:00:35.078844	\N	1	\N
+28871	Juan Soto	OF	NYM	{"obp": 0.4, "rbi": 97, "slg": 0.548, "hits": 150, "runs": 113, "at_bats": 533, "doubles": 25, "singles": 85, "triples": 3, "home_runs": 37, "batter_walks": 106, "stolen_bases": 23, "batting_average": 0.281, "caught_stealing": 4, "batter_strikeouts": 126}	41.86	f	2026-03-13 02:05:44.788355	2026-03-14 01:24:39.23081	\N	2	\N
+28932	Jorge Polanco	2B	NYM	{"obp": 0.325, "rbi": 80, "slg": 0.471, "hits": 129, "runs": 66, "at_bats": 490, "doubles": 30, "singles": 75, "triples": 0, "home_runs": 24, "batter_walks": 45, "stolen_bases": 6, "batting_average": 0.263, "caught_stealing": 3, "batter_strikeouts": 103}	12.63	f	2026-03-13 02:05:45.225193	2026-03-14 00:13:43.309806	\N	1	\N
+28870	Shohei Ohtani	UTIL,SP	LAD	{"era": 2.74, "obp": 0.398, "rbi": 98, "slg": 0.613, "hits": 163, "runs": 123, "whip": 0.91, "wins": 6, "holds": 0, "saves": 0, "walks": 21, "losses": 2, "at_bats": 548, "doubles": 29, "singles": 83, "triples": 9, "home_runs": 42, "strikeouts": 134, "appearances": 26, "blown_saves": 0, "batter_walks": 87, "hits_allowed": 75, "stolen_bases": 27, "games_started": 26, "complete_games": 0, "quality_starts": 5, "batting_average": 0.297, "caught_stealing": 5, "innings_pitched": 105.0, "batter_strikeouts": 152}	70.05	f	2026-03-13 02:05:44.7845	2026-03-14 01:24:34.712234	\N	2	steve bid
+28961	Alec Bohm	1B,3B	PHI	{"obp": 0.342, "rbi": 75, "slg": 0.443, "hits": 144, "runs": 60, "at_bats": 494, "doubles": 28, "singles": 99, "triples": 4, "home_runs": 13, "batter_walks": 34, "stolen_bases": 3, "batting_average": 0.291, "caught_stealing": 1, "batter_strikeouts": 88}	10.61	f	2026-03-13 02:05:45.590555	2026-03-14 00:16:01.374069	\N	0	\N
+28994	Josh H. Smith	1B,3B,SS,OF	TEX	{"obp": 0.348, "rbi": 46, "slg": 0.412, "hits": 128, "runs": 69, "at_bats": 476, "doubles": 26, "singles": 87, "triples": 3, "home_runs": 12, "batter_walks": 48, "stolen_bases": 12, "batting_average": 0.269, "caught_stealing": 3, "batter_strikeouts": 108}	5.51	f	2026-03-13 02:05:45.986917	2026-03-14 00:16:12.15784	\N	0	\N
+29007	Ernie Clement	1B,2B,3B,SS	TOR	{"obp": 0.314, "rbi": 51, "slg": 0.413, "hits": 132, "runs": 73, "at_bats": 484, "doubles": 27, "singles": 90, "triples": 4, "home_runs": 11, "batter_walks": 27, "stolen_bases": 6, "batting_average": 0.273, "caught_stealing": 4, "batter_strikeouts": 73}	4.87	f	2026-03-13 02:05:46.154215	2026-03-14 00:17:22.070407	\N	1	\N
+28893	William Contreras	C	MIL	{"obp": 0.343, "rbi": 68, "slg": 0.429, "hits": 126, "runs": 74, "at_bats": 478, "doubles": 26, "singles": 82, "triples": 1, "home_runs": 17, "batter_walks": 57, "stolen_bases": 5, "batting_average": 0.264, "caught_stealing": 2, "batter_strikeouts": 110}	8.37	f	2026-03-13 02:05:44.874794	2026-03-14 00:50:48.118587	\N	1	\N
+28911	Teoscar Hernandez	OF	LAD	{"obp": 0.321, "rbi": 86, "slg": 0.47, "hits": 133, "runs": 64, "at_bats": 487, "doubles": 26, "singles": 83, "triples": 2, "home_runs": 22, "batter_walks": 32, "stolen_bases": 7, "batting_average": 0.273, "caught_stealing": 2, "batter_strikeouts": 130}	15.09	f	2026-03-13 02:05:44.962637	2026-03-14 00:51:44.947603	\N	1	\N
+34244	Johan Belisario	RP	MIL	{"era": 0.0, "whip": 0.0, "wins": 0, "holds": 0, "saves": 0, "walks": 0, "losses": 0, "strikeouts": 0, "appearances": 0, "blown_saves": 0, "hits_allowed": 0, "games_started": 0, "complete_games": 0, "quality_starts": 0, "innings_pitched": 0.0}	0.0	f	2026-03-13 02:13:01.305473	2026-03-14 00:52:10.13707	\N	1	\N
+28881	Francisco Lindor	SS	NYM	{"obp": 0.349, "rbi": 83, "slg": 0.489, "hits": 161, "runs": 107, "at_bats": 583, "doubles": 35, "singles": 96, "triples": 1, "home_runs": 29, "batter_walks": 58, "stolen_bases": 26, "batting_average": 0.276, "caught_stealing": 5, "batter_strikeouts": 126}	35.13	f	2026-03-13 02:05:44.829954	2026-03-14 01:25:06.954364	\N	2	\N
+32462	Jonah Tong	SP	NYM	{"era": 4.83, "whip": 1.34, "wins": 4, "holds": 1, "saves": 0, "walks": 15, "losses": 4, "strikeouts": 40, "appearances": 22, "blown_saves": 0, "hits_allowed": 40, "games_started": 9, "complete_games": 0, "quality_starts": 2, "innings_pitched": 41.0}	1.0	f	2026-03-13 02:12:38.224245	2026-03-14 01:26:30.261021	\N	2	\N
 \.
 
 
@@ -6827,6 +6831,8 @@ COPY public.schema_migrations (version) FROM stdin;
 20260209012342
 20260303041255
 20260313025613
+20260313233703
+20260314011536
 \.
 
 
@@ -6844,8 +6850,8 @@ COPY public.teams (id, league_id, name, budget_remaining, created_at, updated_at
 103	10	No Hits	222	2026-03-13 00:53:01.726908	2026-03-13 00:53:01.782826
 107	10	West Side Strikeouts	237	2026-03-13 00:53:01.983664	2026-03-13 00:53:02.059148
 104	10	Sandworm Shockers	191	2026-03-13 00:53:01.787571	2026-03-13 00:53:01.835305
-105	10	Sluggers of Shai-Hulud	225	2026-03-13 00:53:01.839085	2026-03-13 00:53:01.9051
 102	10	Glory Days	187	2026-03-13 00:53:01.653414	2026-03-13 04:32:44.147681
+105	10	Sluggers of Shai-Hulud	225	2026-03-13 00:53:01.839085	2026-03-14 01:24:39.221825
 \.
 
 
@@ -6853,7 +6859,7 @@ COPY public.teams (id, league_id, name, budget_remaining, created_at, updated_at
 -- Name: draft_picks_id_seq; Type: SEQUENCE SET; Schema: public; Owner: fantasy_draft_kit
 --
 
-SELECT pg_catalog.setval('public.draft_picks_id_seq', 540, true);
+SELECT pg_catalog.setval('public.draft_picks_id_seq', 543, true);
 
 
 --
@@ -6976,6 +6982,13 @@ CREATE INDEX index_keeper_histories_on_team_id ON public.keeper_histories USING 
 
 
 --
+-- Name: index_leagues_on_my_team_id; Type: INDEX; Schema: public; Owner: fantasy_draft_kit
+--
+
+CREATE INDEX index_leagues_on_my_team_id ON public.leagues USING btree (my_team_id);
+
+
+--
 -- Name: index_players_on_team_id; Type: INDEX; Schema: public; Owner: fantasy_draft_kit
 --
 
@@ -6995,6 +7008,14 @@ CREATE INDEX index_teams_on_league_id ON public.teams USING btree (league_id);
 
 ALTER TABLE ONLY public.keeper_histories
     ADD CONSTRAINT fk_rails_11e880f0d1 FOREIGN KEY (team_id) REFERENCES public.teams(id);
+
+
+--
+-- Name: leagues fk_rails_14c3a1213a; Type: FK CONSTRAINT; Schema: public; Owner: fantasy_draft_kit
+--
+
+ALTER TABLE ONLY public.leagues
+    ADD CONSTRAINT fk_rails_14c3a1213a FOREIGN KEY (my_team_id) REFERENCES public.teams(id);
 
 
 --
@@ -7049,5 +7070,5 @@ ALTER TABLE ONLY public.keeper_histories
 -- PostgreSQL database dump complete
 --
 
-\unrestrict ZoMzbfbJdhKpt9zC3GOMf2bxv5ccHfJFUMNIJrixLAt4yUZzKmeuKdDLhbu4SNi
+\unrestrict mN3M9wZMDXohIRpNZ2bmHScgKpZGRtdMQKLxM63EpAKHHNBudVZWhwev3d0ywH7
 
