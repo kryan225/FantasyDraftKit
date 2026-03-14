@@ -68,9 +68,46 @@ class FangraphsImportService
   NAME_SUFFIXES = /\s+(Jr\.?|Sr\.?|II|III|IV|V)$/i
 
   def find_player(name, mlb_team)
-    Player.find_by(name: name, mlb_team: mlb_team) ||
-      Player.find_by(name: name.sub(NAME_SUFFIXES, ""), mlb_team: mlb_team) ||
-      Player.where(mlb_team: mlb_team).find { |p| p.name.sub(NAME_SUFFIXES, "") == name.sub(NAME_SUFFIXES, "") }
+    team_players = Player.where(mlb_team: mlb_team)
+    normalized = normalize_name(name)
+    nicknamed = nickname_normalize(name)
+
+    # Exact match
+    team_players.find_by(name: name) ||
+      # Suffix-stripped match
+      team_players.find_by(name: name.sub(NAME_SUFFIXES, "")) ||
+      # Normalized match (periods, spaces, middle initials, suffixes)
+      team_players.find { |p| normalize_name(p.name) == normalized } ||
+      # Nickname fallback ("Zachary" <-> "Zach")
+      team_players.find { |p| nickname_normalize(p.name) == nicknamed }
+  end
+
+  NICKNAME_MAP = {
+    "zachary" => "zach", "nicholas" => "nick", "michael" => "mike",
+    "christopher" => "chris", "william" => "will", "robert" => "rob",
+    "alexander" => "alex", "benjamin" => "ben", "jonathan" => "jon",
+    "anthony" => "tony", "matthew" => "matt", "andrew" => "drew",
+    "timothy" => "tim", "daniel" => "dan", "joshua" => "josh",
+    "nathaniel" => "nate", "nathan" => "nate", "jacob" => "jake",
+    "cameron" => "cam", "gregory" => "greg", "kenneth" => "ken",
+    "raymond" => "ray", "edward" => "ed", "samuel" => "sam"
+  }.freeze
+
+  def normalize_name(name)
+    n = name.dup
+    n.sub!(NAME_SUFFIXES, "")
+    n.delete!(".")
+    n.gsub!(/\b[A-Z]\b\s*/, "")   # strip lone middle initials
+    n.strip!
+    n.squeeze!(" ")
+    n.delete!(" ")                  # collapse all spaces for "Hyeseong" vs "Hye Seong"
+    n.downcase
+  end
+
+  def nickname_normalize(name)
+    normalized = normalize_name(name)
+    NICKNAME_MAP.each { |long, short| normalized = normalized.sub(long, short) }
+    normalized
   end
 
   def detect_csv_type

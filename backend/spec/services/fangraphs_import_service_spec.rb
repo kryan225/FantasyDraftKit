@@ -142,6 +142,34 @@ RSpec.describe FangraphsImportService do
       expect { described_class.new(csv).call }.to raise_error(CSV::MalformedCSVError)
     end
 
+    it 'matches when periods differ in initials (C.J. vs CJ)' do
+      create(:player, name: "C.J. Abrams", mlb_team: "WAS", positions: "SS", projections: {})
+      csv = write_csv('periods.csv', "Name,Team,PA,AB,HR\nCJ Abrams,WSN,600,540,20\n")
+      result = described_class.new(csv).call
+      expect(result[:merged]).to eq(1)
+    end
+
+    it 'matches when middle initial differs (Josh H. Smith vs Josh Smith)' do
+      create(:player, name: "Josh H. Smith", mlb_team: "TEX", positions: "3B", projections: {})
+      csv = write_csv('middle.csv', "Name,Team,PA,AB,HR\nJosh Smith,TEX,500,460,15\n")
+      result = described_class.new(csv).call
+      expect(result[:merged]).to eq(1)
+    end
+
+    it 'matches when spacing differs (Hye Seong Kim vs Hyeseong Kim)' do
+      create(:player, name: "Hye Seong Kim", mlb_team: "LAD", positions: "2B", projections: {})
+      csv = write_csv('spacing.csv', "Name,Team,PA,AB,HR\nHyeseong Kim,LAD,600,540,10\n")
+      result = described_class.new(csv).call
+      expect(result[:merged]).to eq(1)
+    end
+
+    it 'matches nicknames (Zachary vs Zach)' do
+      create(:player, name: "Zachary Neto", mlb_team: "LAA", positions: "SS", projections: {})
+      csv = write_csv('nickname.csv', "Name,Team,PA,AB,HR\nZach Neto,LAA,600,540,20\n")
+      result = described_class.new(csv).call
+      expect(result[:merged]).to eq(1)
+    end
+
     it 'matches players when CSV has suffix but DB does not' do
       create(:player, name: "Luis Robert", mlb_team: "NYM", positions: "OF", projections: {})
       csv = write_csv('suffix.csv', "Name,Team,PA,AB,HR\nLuis Robert Jr.,NYM,500,470,20\n")
