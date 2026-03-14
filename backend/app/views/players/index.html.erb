@@ -7,7 +7,8 @@
     <div class="grid grid-3 mb-3">
       <div class="form-group">
         <%= f.label :search, "Search Player" %>
-        <%= f.search_field :search, value: params[:search], placeholder: "Player name...", onchange: "this.form.requestSubmit()" %>
+        <%= f.search_field :search, value: params[:search], placeholder: "Player name...",
+            data: { controller: "debounced-search", action: "input->debounced-search#search" } %>
       </div>
 
       <div class="form-group">
