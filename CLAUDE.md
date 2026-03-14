@@ -323,6 +323,19 @@ Based on `SETUP_STATUS.md`, these models need to be created:
    }
    ```
 
+   **Excluded MLB Teams:**
+   The following teams are intentionally excluded from the league and will not have players imported:
+   BAL, CHW/CWS, CLE, DET, KC/KCR, MIN, TB/TBR
+
+   **Team Abbreviation Differences:**
+   Yahoo and FanGraphs use different abbreviations. The FanGraphs import service normalizes these:
+   - SDP → SD (San Diego Padres)
+   - SFG → SF (San Francisco Giants)
+   - WSN → WAS (Washington Nationals)
+   - CHW → CWS (Chicago White Sox)
+   - KCR → KC (Kansas City Royals)
+   - TBR → TB (Tampa Bay Rays)
+
 2. **Team**
    - league:references
    - name:string

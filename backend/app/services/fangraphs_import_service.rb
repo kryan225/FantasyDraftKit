@@ -10,9 +10,19 @@ require 'csv'
 #
 # Usage:
 #   result = FangraphsImportService.new(file_path).call
-#   # => { imported: 15, merged: 230, merged_names: ["Aaron Judge", ...] }
+#   # => { merged: 230, merged_names: ["Aaron Judge", ...], skipped: 15 }
 #
 class FangraphsImportService
+  # FanGraphs uses 3-letter abbreviations; Yahoo uses shorter ones.
+  TEAM_ABBREVIATION_MAP = {
+    "SDP" => "SD",
+    "SFG" => "SF",
+    "WSN" => "WAS",
+    "CHW" => "CWS",
+    "KCR" => "KC",
+    "TBR" => "TB"
+  }.freeze
+
   attr_reader :file_path
 
   def initialize(file_path)
@@ -35,6 +45,7 @@ class FangraphsImportService
 
       mlb_team = clean_row["Team"]&.strip&.delete('"')
       next if mlb_team.blank?
+      mlb_team = TEAM_ABBREVIATION_MAP.fetch(mlb_team, mlb_team)
 
       existing_player = Player.find_by(name: player_name, mlb_team: mlb_team)
       unless existing_player

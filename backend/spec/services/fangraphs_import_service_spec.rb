@@ -141,5 +141,20 @@ RSpec.describe FangraphsImportService do
       csv = write_csv('malformed.csv', "Name,Team,PA\n\"unclosed quote,NYY,500\n")
       expect { described_class.new(csv).call }.to raise_error(CSV::MalformedCSVError)
     end
+
+    it 'normalizes FanGraphs team abbreviations to Yahoo format' do
+      create(:player, name: "Fernando Tatis Jr.", mlb_team: "SD", positions: "OF", projections: {})
+      create(:player, name: "Logan Webb", mlb_team: "SF", positions: "SP", projections: {})
+
+      csv = write_csv('team_map.csv', <<~CSV)
+        Name,Team,PA,AB,HR
+        Fernando Tatis Jr.,SDP,600,530,28
+        Logan Webb,SFG,600,530,0
+      CSV
+
+      result = described_class.new(csv).call
+      expect(result[:merged]).to eq(2)
+      expect(result[:merged_names]).to contain_exactly("Fernando Tatis Jr.", "Logan Webb")
+    end
   end
 end
