@@ -14,6 +14,7 @@ import BaseModalController from "./base_modal_controller"
 export default class extends BaseModalController {
   static targets = [
     "modal",
+    "headerName",
     "playerName",
     "playerPositions",
     "playerTeam",
@@ -53,6 +54,9 @@ export default class extends BaseModalController {
 
     // Update form action URL to target this specific player
     this.formTarget.action = `/players/${playerId}`
+
+    // Set header name
+    this.headerNameTarget.textContent = playerName || ''
 
     // Populate form fields with current player data
     this.playerNameTarget.value = playerName || ''

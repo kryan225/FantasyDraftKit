@@ -59,9 +59,19 @@
 
     <!-- Edit Player Modal (Global) -->
     <div class="modal hidden" data-edit-player-modal-target="modal" data-action="click->edit-player-modal#closeOnOutsideClick">
-      <div class="modal-content">
+      <div class="modal-content modal-wide">
         <div class="modal-header">
-          <h3 class="modal-title">Edit Player</h3>
+          <h3 class="modal-title">
+            Edit Player:
+            <span data-edit-player-modal-target="headerName"></span>
+            <a href="#"
+               target="_blank"
+               rel="noopener noreferrer"
+               data-edit-player-modal-target="googleSearchLink"
+               style="font-size: 0.6em; margin-left: 0.5rem; font-weight: normal; text-decoration: none;">
+              🔍 <span style="text-decoration: underline;">search</span>
+            </a>
+          </h3>
           <button class="modal-close" data-action="click->edit-player-modal#close" type="button">
             ×
           </button>
@@ -71,7 +81,6 @@
           <!-- Error display area -->
           <div id="edit-player-error"></div>
 
-          <!-- Edit Player Form -->
           <%= form_with model: Player.new, url: "", method: :patch,
               data: {
                 action: "submit->edit-player-modal#submit",
@@ -81,125 +90,112 @@
 
             <input type="hidden" name="_method" value="patch">
 
-            <div class="form-group">
-              <label for="player-name">
-                Player Name
-                <a href="#"
-                   target="_blank"
-                   rel="noopener noreferrer"
-                   data-edit-player-modal-target="googleSearchLink"
-                   style="font-size: 0.8em; font-weight: normal; margin-left: 0.5rem; color: #0066cc; text-decoration: none;">
-                  🔍 Search
-                </a>
-              </label>
-              <input
-                type="text"
-                id="player-name"
-                name="player[name]"
-                data-edit-player-modal-target="playerName"
-              >
-            </div>
+            <div class="modal-body-columns">
+              <!-- Left: Player Info -->
+              <div class="modal-col-form">
+                <div class="form-group">
+                  <label for="player-name">Player Name</label>
+                  <input
+                    type="text"
+                    id="player-name"
+                    name="player[name]"
+                    data-edit-player-modal-target="playerName"
+                  >
+                </div>
 
-            <div class="form-group">
-              <label for="player-positions">Position(s)</label>
-              <input
-                type="text"
-                id="player-positions"
-                name="player[positions]"
-                data-edit-player-modal-target="playerPositions"
-                placeholder="e.g., 1B/OF or SP"
-              >
-              <small class="text-muted">
-                Separate multiple positions with / (e.g., 1B/OF)
-              </small>
-            </div>
+                <div class="form-group">
+                  <label for="player-positions">Position(s)</label>
+                  <input
+                    type="text"
+                    id="player-positions"
+                    name="player[positions]"
+                    data-edit-player-modal-target="playerPositions"
+                    placeholder="e.g., 1B/OF or SP"
+                  >
+                </div>
 
-            <div class="form-group">
-              <label for="player-team">
-                Owned By Team
-                <a href="#"
-                   target="_blank"
-                   data-edit-player-modal-target="teamLink"
-                   style="font-size: 0.8em; font-weight: normal; margin-left: 0.5rem; color: #0066cc; text-decoration: none; display: none;">
-                  → View Team
-                </a>
-              </label>
-              <select
-                id="player-team"
-                name="player[team_id]"
-                data-edit-player-modal-target="playerTeam"
-                data-action="change->edit-player-modal#onTeamChange"
-              >
-                <option value="">-- Unowned --</option>
-                <% if @teams_for_modal %>
-                  <% @teams_for_modal.each do |team| %>
-                    <option value="<%= team.id %>"><%= team.name %></option>
-                  <% end %>
-                <% end %>
-              </select>
-            </div>
+                <div class="form-group">
+                  <label for="player-notes">Notes</label>
+                  <textarea
+                    id="player-notes"
+                    name="player[notes]"
+                    data-edit-player-modal-target="playerNotes"
+                    rows="3"
+                    style="width: 100%; resize: vertical;"
+                    placeholder="Add notes..."
+                  ></textarea>
+                </div>
+              </div>
 
-            <div class="form-group" data-edit-player-modal-target="priceField">
-              <label for="player-price">Draft Price ($)</label>
-              <input
-                type="text"
-                id="player-price"
-                name="player[price]"
-                data-edit-player-modal-target="playerPrice"
-                value="N/A"
-                readonly
-              >
-              <small class="text-muted">
-                Price is set when player is assigned to a team
-              </small>
-            </div>
+              <!-- Right: Team / Draft Info -->
+              <div class="modal-col-details">
+                <div class="form-group">
+                  <label for="player-team">
+                    Owned By Team
+                    <a href="#"
+                       target="_blank"
+                       data-edit-player-modal-target="teamLink"
+                       style="font-size: 0.8em; font-weight: normal; margin-left: 0.5rem; color: #0066cc; text-decoration: none; display: none;">
+                      → View Team
+                    </a>
+                  </label>
+                  <select
+                    id="player-team"
+                    name="player[team_id]"
+                    data-edit-player-modal-target="playerTeam"
+                    data-action="change->edit-player-modal#onTeamChange"
+                  >
+                    <option value="">-- Unowned --</option>
+                    <% if @teams_for_modal %>
+                      <% @teams_for_modal.each do |team| %>
+                        <option value="<%= team.id %>"><%= team.name %></option>
+                      <% end %>
+                    <% end %>
+                  </select>
+                </div>
 
-            <div class="form-group" data-edit-player-modal-target="positionField" style="display: none;">
-              <label for="player-drafted-position">Roster Position</label>
-              <select
-                id="player-drafted-position"
-                name="player[drafted_position]"
-                data-edit-player-modal-target="playerDraftedPosition"
-              >
-                <option value="">Select position...</option>
-                <option value="C">C - Catcher</option>
-                <option value="1B">1B - First Base</option>
-                <option value="2B">2B - Second Base</option>
-                <option value="3B">3B - Third Base</option>
-                <option value="SS">SS - Shortstop</option>
-                <option value="MI">MI - Middle Infield</option>
-                <option value="CI">CI - Corner Infield</option>
-                <option value="OF">OF - Outfield</option>
-                <option value="UTIL">UTIL - Utility</option>
-                <option value="SP">SP - Starting Pitcher</option>
-                <option value="RP">RP - Relief Pitcher</option>
-              </select>
-              <small class="text-muted">
-                Position on the roster for this player
-              </small>
-            </div>
+                <div class="form-group" data-edit-player-modal-target="priceField">
+                  <label for="player-price">Draft Price ($)</label>
+                  <input
+                    type="text"
+                    id="player-price"
+                    name="player[price]"
+                    data-edit-player-modal-target="playerPrice"
+                    value="N/A"
+                    readonly
+                  >
+                </div>
 
-            <div class="form-group" data-edit-player-modal-target="toppedField" style="display: none;">
-              <label>
-                <input type="hidden" name="player[is_topped]" value="0">
-                <input type="checkbox" name="player[is_topped]" value="1" data-edit-player-modal-target="toppedCheckbox">
-                Topped
-              </label>
-              <small class="text-muted">
-                This team used their topper rights on this player
-              </small>
-            </div>
+                <div class="form-group" data-edit-player-modal-target="positionField" style="display: none;">
+                  <label for="player-drafted-position">Roster Position</label>
+                  <select
+                    id="player-drafted-position"
+                    name="player[drafted_position]"
+                    data-edit-player-modal-target="playerDraftedPosition"
+                  >
+                    <option value="">Select position...</option>
+                    <option value="C">C</option>
+                    <option value="1B">1B</option>
+                    <option value="2B">2B</option>
+                    <option value="3B">3B</option>
+                    <option value="SS">SS</option>
+                    <option value="MI">MI</option>
+                    <option value="CI">CI</option>
+                    <option value="OF">OF</option>
+                    <option value="UTIL">UTIL</option>
+                    <option value="SP">SP</option>
+                    <option value="RP">RP</option>
+                  </select>
+                </div>
 
-            <div class="form-group">
-              <label for="player-notes">Notes</label>
-              <textarea
-                id="player-notes"
-                name="player[notes]"
-                data-edit-player-modal-target="playerNotes"
-                rows="2"
-                style="width: 100%; resize: vertical;"
-                placeholder="Add notes..."
-              ></textarea>
+                <div class="form-group" data-edit-player-modal-target="toppedField" style="display: none;">
+                  <label>
+                    <input type="hidden" name="player[is_topped]" value="0">
+                    <input type="checkbox" name="player[is_topped]" value="1" data-edit-player-modal-target="toppedCheckbox">
+                    Topped
+                  </label>
+                </div>
+              </div>
             </div>
 
             <div class="modal-footer">
