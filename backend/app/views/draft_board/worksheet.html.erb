@@ -1,24 +1,26 @@
-<div class="card">
-  <div class="flex justify-between items-center mb-3">
-    <h2 class="card-title" style="margin-bottom: 0;"><%= @league.name %> - Auction Worksheet</h2>
-  </div>
+<%
+  total_roster_spots = @position_slots.size
+  budget = @league.auction_budget
 
-  <%
-    total_roster_spots = @position_slots.size
-    budget = @league.auction_budget
+  pitcher_positions = %w[SP RP]
+  hitter_slot_indices = @position_slots.each_index.select { |i| !pitcher_positions.include?(@position_slots[i]) }
+  pitcher_slot_indices = @position_slots.each_index.select { |i| pitcher_positions.include?(@position_slots[i]) }
 
-    # Separate hitter and pitcher position indices for summary calculations
-    pitcher_positions = %w[SP RP]
-    hitter_slot_indices = @position_slots.each_index.select { |i| !pitcher_positions.include?(@position_slots[i]) }
-    pitcher_slot_indices = @position_slots.each_index.select { |i| pitcher_positions.include?(@position_slots[i]) }
-  %>
+  teams_per_group = 6
+  team_groups = @teams.each_slice(teams_per_group).to_a
+%>
 
-  <div style="overflow-x: auto;">
-    <table class="worksheet-table" style="white-space: nowrap; font-size: 0.85em;">
+<% team_groups.each_with_index do |group_teams, group_index| %>
+  <div class="card <%= 'mb-3' unless group_index == team_groups.size - 1 %>">
+    <% if group_index == 0 %>
+      <h2 class="card-title"><%= @league.name %> - Auction Worksheet</h2>
+    <% end %>
+
+    <table class="worksheet-table" style="white-space: nowrap; font-size: 0.85em; width: 100%;">
       <thead>
         <tr>
           <th style="width: 40px;">Pos</th>
-          <% @teams.each do |team| %>
+          <% group_teams.each do |team| %>
             <th colspan="3" style="text-align: center; border-left: 2px solid var(--border-color);">
               <%= link_to team.name, team_path(team) %>
             </th>
@@ -27,13 +29,10 @@
       </thead>
       <tbody>
         <% @position_slots.each_with_index do |position, slot_index| %>
-          <%
-            # Track how many of this position we've seen so far to pick the right slot
-            same_pos_index = @position_slots[0...slot_index].count(position)
-          %>
+          <% same_pos_index = @position_slots[0...slot_index].count(position) %>
           <tr>
             <td><strong><%= position %></strong></td>
-            <% @teams.each do |team| %>
+            <% group_teams.each do |team| %>
               <%
                 picks = @team_rosters[team.id][position] || []
                 pick = picks[same_pos_index]
@@ -54,7 +53,7 @@
                   <% end %>
                 <% end %>
               </td>
-              <td style="width: 130px; overflow: hidden; text-overflow: ellipsis;">
+              <td style="overflow: hidden; text-overflow: ellipsis;">
                 <% if pick %>
                   <%= render partial: "players/player_name", locals: { player: pick.player, draft_pick: pick } %>
                 <% end %>
@@ -66,7 +65,7 @@
         <!-- Summary rows -->
         <tr style="border-top: 3px solid var(--border-color);">
           <td><strong>Remaining</strong></td>
-          <% @teams.each do |team| %>
+          <% group_teams.each do |team| %>
             <%
               remaining_spots = total_roster_spots - team.draft_picks.count
               max_bid = remaining_spots > 1 ? team.budget_remaining - (remaining_spots - 1) : team.budget_remaining
@@ -81,7 +80,7 @@
 
         <tr>
           <td><strong>Total</strong></td>
-          <% @teams.each do |team| %>
+          <% group_teams.each do |team| %>
             <% total_spent = budget - team.budget_remaining %>
             <td style="border-left: 2px solid var(--border-color); text-align: right;">
               <strong>$<%= total_spent %></strong>
@@ -93,7 +92,7 @@
 
         <tr>
           <td><strong>Hitting</strong></td>
-          <% @teams.each do |team| %>
+          <% group_teams.each do |team| %>
             <%
               hitting_spend = 0
               hitting_count = 0
@@ -116,7 +115,7 @@
 
         <tr>
           <td><strong>Pitching</strong></td>
-          <% @teams.each do |team| %>
+          <% group_teams.each do |team| %>
             <%
               pitching_spend = 0
               pitching_count = 0
@@ -139,7 +138,7 @@
 
         <tr>
           <td><strong>% Pitching</strong></td>
-          <% @teams.each do |team| %>
+          <% group_teams.each do |team| %>
             <%
               total_spent = budget - team.budget_remaining
               pitching_spend = 0
@@ -160,4 +159,4 @@
       </tbody>
     </table>
   </div>
-</div>
+<% end %>
