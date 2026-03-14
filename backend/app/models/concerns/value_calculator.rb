@@ -13,11 +13,9 @@
 #
 # Categories:
 # - Batters (7): HR, R, RBI, SB, AVG (weighted by AB), wOBA (weighted by AB), wRC+ (weighted by AB)
-# - Pitchers (8): W, SV, K, FIP (inverted), WHIP (inverted), K% (weighted by IP), BB% (inverted, weighted by IP), K-BB% (weighted by IP)
+# - Pitchers (5): W, SV, K, FIP (inverted), WHIP (inverted)
 # FIP used instead of ERA — better predictor of future performance (strips out defense/luck)
-# wOBA: weighted on-base average — single best measure of overall offensive production
-# wRC+: park/league-adjusted runs created — 100 is average, higher is better
-# K%/BB%/K-BB%: pitcher command metrics weighted by IP to reflect workload impact
+# wOBA/wRC+ help differentiate elite batters; pitcher K%/BB%/K-BB% excluded (correlate with K/WHIP)
 #
 # Position Scarcity:
 # - Replacement = Nth best player where N = total roster slots for position
@@ -39,37 +37,39 @@ module ValueCalculator
   extend ActiveSupport::Concern
 
   # Batter stat categories (7 total)
+  # Core 5 (HR, R, RBI, SB, AVG) plus FanGraphs advanced stats (wOBA, wRC+)
+  # which help differentiate elite batters from the pack.
   BATTER_CATEGORIES = {
     hr: { field: 'home_runs', invert: false, rate: false },
     r: { field: 'runs', invert: false, rate: false },
     rbi: { field: 'rbi', invert: false, rate: false },
     sb: { field: 'stolen_bases', invert: false, rate: false },
     avg: { field: 'batting_average', invert: false, rate: true, volume_field: 'at_bats' },
-    woba: { field: 'woba', invert: false, rate: true, volume_field: 'at_bats', weight: 0.5 },
-    wrc_plus: { field: 'wrc_plus', invert: false, rate: true, volume_field: 'at_bats', weight: 0.5 }
+    woba: { field: 'woba', invert: false, rate: true, volume_field: 'at_bats' },
+    wrc_plus: { field: 'wrc_plus', invert: false, rate: true, volume_field: 'at_bats' }
   }.freeze
 
-  # Pitcher stat categories (8 total)
+  # Pitcher stat categories (5 total)
+  # FanGraphs pitcher stats (K%, BB%, K-BB%) are imported for display/scouting but
+  # excluded from value calc — they correlate with K/WHIP and inflate top pitcher values.
   # Field names must match keys stored by DataControlController#parse_pitcher_stats
   PITCHER_CATEGORIES = {
     w: { field: 'wins', invert: false, rate: false },
     sv: { field: 'saves', invert: false, rate: false },
     k: { field: 'strikeouts', invert: false, rate: false },
     fip: { field: 'fip', invert: true, rate: true, volume_field: 'innings_pitched' },
-    whip: { field: 'whip', invert: true, rate: true, volume_field: 'innings_pitched' },
-    k_pct: { field: 'k_pct', invert: false, rate: true, volume_field: 'innings_pitched', weight: 0.5 },
-    bb_pct: { field: 'bb_pct', invert: true, rate: true, volume_field: 'innings_pitched', weight: 0.5 },
-    k_bb_pct: { field: 'k_bb_pct', invert: false, rate: true, volume_field: 'innings_pitched', weight: 0.5 }
+    whip: { field: 'whip', invert: true, rate: true, volume_field: 'innings_pitched' }
   }.freeze
 
   # Roster position groups
   BATTER_POSITIONS = %w[C 1B 2B 3B SS MI CI OF UTIL].freeze
   PITCHER_POSITIONS = %w[SP RP].freeze
 
-  # Budget allocation (70/30 split — adjusted from industry standard 67/33
-  # to account for expanded pitcher categories adding z-score inflation)
-  BATTER_BUDGET_PERCENT = 0.70
-  PITCHER_BUDGET_PERCENT = 0.30
+  # Budget allocation (75/25 split — tuned from industry 67/33 to produce
+  # ~73/27 actual above-replacement distribution, reflecting 7 batter
+  # categories vs 5 pitcher categories)
+  BATTER_BUDGET_PERCENT = 0.75
+  PITCHER_BUDGET_PERCENT = 0.25
 
   # Public API - orchestrates full value calculation
   #
