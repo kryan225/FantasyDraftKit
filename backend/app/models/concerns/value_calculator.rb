@@ -57,9 +57,9 @@ module ValueCalculator
   BATTER_POSITIONS = %w[C 1B 2B 3B SS MI CI OF UTIL].freeze
   PITCHER_POSITIONS = %w[SP RP].freeze
 
-  # Budget allocation (industry standard)
-  BATTER_BUDGET_PERCENT = 0.67
-  PITCHER_BUDGET_PERCENT = 0.33
+  # Budget allocation (79/21 — tuned so top pitcher ~low 40s, top batter ~mid-high 50s)
+  BATTER_BUDGET_PERCENT = 0.79
+  PITCHER_BUDGET_PERCENT = 0.21
 
   # Public API - orchestrates full value calculation
   #
