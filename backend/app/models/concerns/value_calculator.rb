@@ -77,9 +77,7 @@ module ValueCalculator
     batter_zscores = calculate_z_scores(batters, BATTER_CATEGORIES)
     pitcher_zscores = calculate_z_scores(pitchers, PITCHER_CATEGORIES)
 
-    # Step 3: Determine replacement level
-    # Batters: single replacement level based on total batter roster slots
-    # Pitchers: per-position replacement (SP vs RP have very different value profiles)
+    # Step 3: Determine replacement level (single pool for each group)
     batter_replacement = calculate_pool_replacement_level(league, batters, batter_zscores, BATTER_POSITIONS)
     pitcher_replacement = calculate_pool_replacement_level(league, pitchers, pitcher_zscores, PITCHER_POSITIONS)
 
@@ -369,6 +367,7 @@ module ValueCalculator
       var_values[player.id] = [player_z - replacement_z, 0.0].max
     end
   end
+
 
   # Phase 4: Calculate value above replacement (VAR)
   #
