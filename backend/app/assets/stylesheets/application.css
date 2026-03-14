@@ -522,6 +522,20 @@ textarea:focus {
   color: var(--text-primary);
 }
 
+/* Auction Worksheet */
+.worksheet-table td,
+.worksheet-table th {
+  padding: 0.25rem 0.4rem;
+}
+
+.worksheet-table tbody tr:hover {
+  background: var(--hover-bg, rgba(0, 0, 0, 0.03));
+}
+
+.worksheet-table .player-link strong {
+  font-weight: normal;
+}
+
 /* Button styles for draft action */
 .btn-draft {
   background: var(--secondary-color);

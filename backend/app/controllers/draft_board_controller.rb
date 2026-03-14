@@ -21,6 +21,28 @@ class DraftBoardController < ApplicationController
     @draft_picks = @league.draft_picks.includes(:team, :player).order(pick_number: :desc)
   end
 
+  def worksheet
+    @league = current_league
+    return unless @league
+
+    @teams = @league.teams.includes(draft_picks: :player).order(:name)
+    @roster_config = @league.roster_config || {}
+
+    # Define position display order matching the spreadsheet layout
+    @position_slots = []
+    %w[C 1B CI 3B 2B MI SS OF UTIL SP RP BENCH].each do |pos|
+      count = @roster_config[pos].to_i
+      count.times { @position_slots << pos }
+    end
+
+    # Build a lookup: for each team, group picks by drafted_position
+    @team_rosters = {}
+    @teams.each do |team|
+      picks_by_pos = team.draft_picks.group_by(&:drafted_position)
+      @team_rosters[team.id] = picks_by_pos
+    end
+  end
+
   def export_history
     @league = current_league
     return unless @league

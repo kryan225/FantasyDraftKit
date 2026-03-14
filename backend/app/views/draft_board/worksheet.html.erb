@@ -1,0 +1,163 @@
+<div class="card">
+  <div class="flex justify-between items-center mb-3">
+    <h2 class="card-title" style="margin-bottom: 0;"><%= @league.name %> - Auction Worksheet</h2>
+  </div>
+
+  <%
+    total_roster_spots = @position_slots.size
+    budget = @league.auction_budget
+
+    # Separate hitter and pitcher position indices for summary calculations
+    pitcher_positions = %w[SP RP]
+    hitter_slot_indices = @position_slots.each_index.select { |i| !pitcher_positions.include?(@position_slots[i]) }
+    pitcher_slot_indices = @position_slots.each_index.select { |i| pitcher_positions.include?(@position_slots[i]) }
+  %>
+
+  <div style="overflow-x: auto;">
+    <table class="worksheet-table" style="white-space: nowrap; font-size: 0.85em;">
+      <thead>
+        <tr>
+          <th style="width: 40px;">Pos</th>
+          <% @teams.each do |team| %>
+            <th colspan="3" style="text-align: center; border-left: 2px solid var(--border-color);">
+              <%= link_to team.name, team_path(team) %>
+            </th>
+          <% end %>
+        </tr>
+      </thead>
+      <tbody>
+        <% @position_slots.each_with_index do |position, slot_index| %>
+          <%
+            # Track how many of this position we've seen so far to pick the right slot
+            same_pos_index = @position_slots[0...slot_index].count(position)
+          %>
+          <tr>
+            <td><strong><%= position %></strong></td>
+            <% @teams.each do |team| %>
+              <%
+                picks = @team_rosters[team.id][position] || []
+                pick = picks[same_pos_index]
+              %>
+              <td style="border-left: 2px solid var(--border-color); text-align: right; width: 35px;">
+                <% if pick %>
+                  <strong>$<%= pick.price %></strong>
+                <% end %>
+              </td>
+              <td style="text-align: center; width: 20px;">
+                <% if pick %>
+                  <% if pick.is_keeper %>
+                    <span style="color: var(--info-color);">K</span>
+                  <% elsif pick.is_topped %>
+                    <span style="color: var(--warning-color);">T</span>
+                  <% else %>
+                    <span style="color: var(--text-secondary);">A</span>
+                  <% end %>
+                <% end %>
+              </td>
+              <td style="width: 130px; overflow: hidden; text-overflow: ellipsis;">
+                <% if pick %>
+                  <%= render partial: "players/player_name", locals: { player: pick.player, draft_pick: pick } %>
+                <% end %>
+              </td>
+            <% end %>
+          </tr>
+        <% end %>
+
+        <!-- Summary rows -->
+        <tr style="border-top: 3px solid var(--border-color);">
+          <td><strong>Remaining</strong></td>
+          <% @teams.each do |team| %>
+            <%
+              remaining_spots = total_roster_spots - team.draft_picks.count
+              max_bid = remaining_spots > 1 ? team.budget_remaining - (remaining_spots - 1) : team.budget_remaining
+            %>
+            <td style="border-left: 2px solid var(--border-color); text-align: right;">
+              <strong>$<%= team.budget_remaining %></strong>
+            </td>
+            <td style="text-align: center;"><%= remaining_spots %></td>
+            <td style="font-size: 0.9em; color: var(--text-secondary);">max $<%= max_bid %></td>
+          <% end %>
+        </tr>
+
+        <tr>
+          <td><strong>Total</strong></td>
+          <% @teams.each do |team| %>
+            <% total_spent = budget - team.budget_remaining %>
+            <td style="border-left: 2px solid var(--border-color); text-align: right;">
+              <strong>$<%= total_spent %></strong>
+            </td>
+            <td style="text-align: center;"><%= team.draft_picks.count %></td>
+            <td></td>
+          <% end %>
+        </tr>
+
+        <tr>
+          <td><strong>Hitting</strong></td>
+          <% @teams.each do |team| %>
+            <%
+              hitting_spend = 0
+              hitting_count = 0
+              hitter_slot_indices.each do |i|
+                pos = @position_slots[i]
+                same_pos_idx = @position_slots[0...i].count(pos)
+                picks = @team_rosters[team.id][pos] || []
+                pick = picks[same_pos_idx]
+                if pick
+                  hitting_spend += pick.price
+                  hitting_count += 1
+                end
+              end
+            %>
+            <td style="border-left: 2px solid var(--border-color); text-align: right;">$<%= hitting_spend %></td>
+            <td style="text-align: center;"><%= hitting_count %></td>
+            <td></td>
+          <% end %>
+        </tr>
+
+        <tr>
+          <td><strong>Pitching</strong></td>
+          <% @teams.each do |team| %>
+            <%
+              pitching_spend = 0
+              pitching_count = 0
+              pitcher_slot_indices.each do |i|
+                pos = @position_slots[i]
+                same_pos_idx = @position_slots[0...i].count(pos)
+                picks = @team_rosters[team.id][pos] || []
+                pick = picks[same_pos_idx]
+                if pick
+                  pitching_spend += pick.price
+                  pitching_count += 1
+                end
+              end
+            %>
+            <td style="border-left: 2px solid var(--border-color); text-align: right;">$<%= pitching_spend %></td>
+            <td style="text-align: center;"><%= pitching_count %></td>
+            <td></td>
+          <% end %>
+        </tr>
+
+        <tr>
+          <td><strong>% Pitching</strong></td>
+          <% @teams.each do |team| %>
+            <%
+              total_spent = budget - team.budget_remaining
+              pitching_spend = 0
+              pitcher_slot_indices.each do |i|
+                pos = @position_slots[i]
+                same_pos_idx = @position_slots[0...i].count(pos)
+                picks = @team_rosters[team.id][pos] || []
+                pick = picks[same_pos_idx]
+                pitching_spend += pick.price if pick
+              end
+              pct = total_spent > 0 ? (pitching_spend * 100.0 / total_spent).round(0) : 0
+            %>
+            <td style="border-left: 2px solid var(--border-color); text-align: right;" colspan="3">
+              <%= pct %>%
+            </td>
+          <% end %>
+        </tr>
+      </tbody>
+    </table>
+  </div>
+</div>
