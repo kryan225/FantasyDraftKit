@@ -33,11 +33,11 @@
     <% end %>
   </td>
   <td class="sticky-col sticky-col-2"><%= player.positions %></td>
-  <td class="sticky-col sticky-col-3"><strong>$<%= player.calculated_value&.round || "?" %></strong></td>
-  <td><%= player.mlb_team %></td>
   <% adp = player.projections&.dig("adp") %>
+  <td class="sticky-col sticky-col-3"><%= adp.present? ? adp.round : "-" %></td>
+  <td><strong>$<%= player.calculated_value&.round || "?" %></strong></td>
+  <td><%= player.mlb_team %></td>
   <% vol = player.projections&.dig("vol") %>
-  <td><%= adp.present? ? adp.round : "-" %></td>
   <td>
     <% if vol.present? %>
       <% if vol < 3.0 %>

@@ -125,8 +125,9 @@ class PlayerFilterService
   end
 
   def apply_sorting(players)
-    sort_column = params[:sort] || "calculated_value"
-    sort_direction = normalize_direction(params[:direction])
+    sort_column = params[:sort] || "adp"
+    sort_direction = params[:direction] || (sort_column == "adp" ? "asc" : "desc")
+    sort_direction = normalize_direction(sort_direction)
 
     if STANDARD_SORT_COLUMNS.include?(sort_column)
       sort_standard_column(players, sort_column, sort_direction)
