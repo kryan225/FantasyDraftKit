@@ -142,6 +142,21 @@ RSpec.describe FangraphsImportService do
       expect { described_class.new(csv).call }.to raise_error(CSV::MalformedCSVError)
     end
 
+    it 'matches players when CSV has suffix but DB does not' do
+      create(:player, name: "Luis Robert", mlb_team: "NYM", positions: "OF", projections: {})
+      csv = write_csv('suffix.csv', "Name,Team,PA,AB,HR\nLuis Robert Jr.,NYM,500,470,20\n")
+      result = described_class.new(csv).call
+      expect(result[:merged]).to eq(1)
+      expect(result[:merged_names]).to eq(["Luis Robert Jr."])
+    end
+
+    it 'matches players when DB has suffix but CSV does not' do
+      create(:player, name: "Ronald Acuna Jr.", mlb_team: "ATL", positions: "OF", projections: {})
+      csv = write_csv('no_suffix.csv', "Name,Team,PA,AB,HR\nRonald Acuna,ATL,600,540,25\n")
+      result = described_class.new(csv).call
+      expect(result[:merged]).to eq(1)
+    end
+
     it 'normalizes FanGraphs team abbreviations to Yahoo format' do
       create(:player, name: "Fernando Tatis Jr.", mlb_team: "SD", positions: "OF", projections: {})
       create(:player, name: "Logan Webb", mlb_team: "SF", positions: "SP", projections: {})

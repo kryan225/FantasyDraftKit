@@ -47,7 +47,7 @@ class FangraphsImportService
       next if mlb_team.blank?
       mlb_team = TEAM_ABBREVIATION_MAP.fetch(mlb_team, mlb_team)
 
-      existing_player = Player.find_by(name: player_name, mlb_team: mlb_team)
+      existing_player = find_player(player_name, mlb_team)
       unless existing_player
         skipped_count += 1
         next
@@ -64,6 +64,14 @@ class FangraphsImportService
   end
 
   private
+
+  NAME_SUFFIXES = /\s+(Jr\.?|Sr\.?|II|III|IV|V)$/i
+
+  def find_player(name, mlb_team)
+    Player.find_by(name: name, mlb_team: mlb_team) ||
+      Player.find_by(name: name.sub(NAME_SUFFIXES, ""), mlb_team: mlb_team) ||
+      Player.where(mlb_team: mlb_team).find { |p| p.name.sub(NAME_SUFFIXES, "") == name.sub(NAME_SUFFIXES, "") }
+  end
 
   def detect_csv_type
     raw_headers = File.open(file_path, &:readline).chomp.split(",").map { |h| h.delete("\xEF\xBB\xBF").strip }
