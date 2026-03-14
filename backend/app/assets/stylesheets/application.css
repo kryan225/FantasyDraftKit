@@ -523,9 +523,17 @@ textarea:focus {
 }
 
 /* Auction Worksheet */
+.worksheet-wrap {
+  margin-left: calc(-1 * (100vw - 100%) / 2);
+  margin-right: calc(-1 * (100vw - 100%) / 2);
+  padding: 0 1rem;
+}
+
 .worksheet-table td,
 .worksheet-table th {
   padding: 0.25rem 0.4rem;
+  word-wrap: break-word;
+  overflow-wrap: break-word;
 }
 
 .worksheet-table tbody tr:hover {
