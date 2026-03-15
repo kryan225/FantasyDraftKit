@@ -61,6 +61,13 @@
                 class: "form-control",
                 data: { controller: "debounced-search", action: "input->debounced-search#search" } %>
           </div>
+
+          <div class="form-group">
+            <%= f.label :team, "MLB Team" %>
+            <% teams = Player.distinct.order(:mlb_team).pluck(:mlb_team).compact %>
+            <%= f.select :team, options_for_select([["All Teams", ""]] + teams.map { |t| [t, t] }, params[:team]),
+                {}, { class: "form-control", onchange: "this.form.requestSubmit()" } %>
+          </div>
         </div>
 
         <div class="flex items-center gap-2">
@@ -103,6 +110,7 @@
               link_params = { sort: column, direction: direction }
               link_params[:search] = params[:search] if params[:search].present?
               link_params[:position] = params[:position] if params[:position].present?
+              link_params[:team] = params[:team] if params[:team].present?
               link_params[:drafted] = params[:drafted].nil? ? "false" : params[:drafted]
               link_params[:interested] = params[:interested] if params[:interested] == "true"
               link_params[:multi_position] = params[:multi_position] if params[:multi_position] == "true"
@@ -177,6 +185,7 @@
               <input type="hidden" name="draft_pick[is_topped]" value="0">
               <%= hidden_field_tag :search, params[:search] %>
               <%= hidden_field_tag :position, params[:position] %>
+              <%= hidden_field_tag :team, params[:team] %>
               <%= hidden_field_tag :drafted, params.key?(:drafted) ? params[:drafted] : "false" %>
               <%= hidden_field_tag :interested, params[:interested] %>
               <%= hidden_field_tag :min_value, params[:min_value] %>

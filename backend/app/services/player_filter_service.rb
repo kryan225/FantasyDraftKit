@@ -11,6 +11,7 @@
 #
 # Supported params:
 #   - position:       Filter by position (uses Player.by_position scope)
+#   - team:           Filter by MLB team abbreviation (exact match)
 #   - search:         Case-insensitive name search
 #   - drafted:        "true" = drafted only, "false" = available only,
 #                     "" = all players, absent = default to available
@@ -46,6 +47,7 @@ class PlayerFilterService
 
   def apply_filters(players)
     players = filter_by_position(players)
+    players = filter_by_team(players)
     players = filter_by_search(players)
     players = filter_by_drafted_status(players)
     players = filter_by_interested(players)
@@ -80,6 +82,12 @@ class PlayerFilterService
     else
       players.by_position(position)
     end
+  end
+
+  def filter_by_team(players)
+    return players unless params[:team].present?
+
+    players.where(mlb_team: params[:team])
   end
 
   def filter_by_search(players)
