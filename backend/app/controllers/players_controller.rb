@@ -156,11 +156,15 @@ class PlayersController < ApplicationController
 
   # Handle regular player attribute updates (not team-related)
   def handle_regular_update
-    # Update is_topped on the existing draft pick if player is drafted
-    if params[:player].key?(:is_topped) && @player.team_id.present?
+    # Update draft pick attributes (position, topped, price) if player is drafted
+    if @player.team_id.present?
       existing_pick = DraftPick.find_by(player_id: @player.id, league_id: current_league.id)
       if existing_pick
-        existing_pick.update!(is_topped: params[:player][:is_topped] == "1")
+        pick_updates = {}
+        pick_updates[:is_topped] = params[:player][:is_topped] == "1" if params[:player].key?(:is_topped)
+        pick_updates[:drafted_position] = params[:player][:drafted_position] if params[:player][:drafted_position].present?
+        pick_updates[:price] = params[:player][:price].to_i if params[:player][:price].present? && params[:player][:price].to_i > 0
+        existing_pick.update!(pick_updates) if pick_updates.any?
       end
     end
 
