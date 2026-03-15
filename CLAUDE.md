@@ -255,6 +255,12 @@ FantasyDraftKit/
 
 ---
 
+## UI Preferences
+
+- **Wide modals preferred**: Use `modal-extra-wide` (950px) for modals with form fields or search results to avoid vertical scrolling. Available classes: `modal-content` (500px default), `modal-wide` (750px), `modal-extra-wide` (950px).
+
+---
+
 ## Development Philosophy for This Project
 
 ### Current State: Functional Application

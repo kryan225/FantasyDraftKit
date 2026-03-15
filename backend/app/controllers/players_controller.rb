@@ -59,7 +59,7 @@ class PlayersController < ApplicationController
         name: p.name,
         positions: p.positions,
         value: p.calculated_value&.round(1),
-        adp: p.projections&.dig("adp")
+        adp: p.projections&.dig("adp")&.to_f&.round
       }
     }
   end

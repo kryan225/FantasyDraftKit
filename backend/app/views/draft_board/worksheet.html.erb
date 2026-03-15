@@ -215,47 +215,24 @@
           <input type="hidden" name="draft_pick[is_keeper]"  value="false">
           <input type="hidden" name="draft_pick[is_topped]"  value="0">
 
-          <!-- Player Search -->
-          <div class="form-group">
-            <label>Search Player</label>
-            <input type="text"
-                   class="form-control"
-                   placeholder="Type player name..."
-                   autocomplete="off"
-                   data-worksheet-draft-modal-target="searchInput"
-                   data-action="input->worksheet-draft-modal#search">
-          </div>
-
-          <div class="hidden" data-worksheet-draft-modal-target="noResultsMsg"
-               style="color: var(--text-secondary); padding: 0.25rem 0 0.5rem; font-size: 0.9em;">
-            No players found
-          </div>
-
-          <div data-worksheet-draft-modal-target="searchResults" class="player-search-results"></div>
-
-          <!-- Selected Player Banner -->
-          <div class="hidden selected-player-banner" data-worksheet-draft-modal-target="selectedPlayerInfo">
-            <div style="display: flex; justify-content: space-between; align-items: center; gap: 0.5rem;">
-              <div>
-                <strong data-worksheet-draft-modal-target="selectedPlayerName"></strong>
-                <span style="margin-left: 0.5rem; color: var(--text-secondary);"
-                      data-worksheet-draft-modal-target="selectedPlayerPositions"></span>
-                <span style="margin-left: 0.5rem; color: var(--secondary-color);"
-                      data-worksheet-draft-modal-target="selectedPlayerValue"></span>
-                <span style="margin-left: 0.5rem; color: var(--text-secondary); font-size: 0.85em;">
-                  ADP: <span data-worksheet-draft-modal-target="selectedPlayerAdp"></span>
-                </span>
-              </div>
-              <button type="button" class="btn btn-sm"
-                      style="font-size: 0.75em; white-space: nowrap;"
-                      data-action="click->worksheet-draft-modal#clearSelection">
-                Change
-              </button>
-            </div>
-          </div>
-
-          <div class="modal-body-columns" style="margin-top: 1rem;">
+          <div class="modal-body-columns">
+            <!-- Left: Search -->
             <div class="modal-col-form">
+              <div class="form-group">
+                <label>Search Player</label>
+                <input type="text"
+                       class="form-control"
+                       placeholder="Type player name..."
+                       autocomplete="off"
+                       data-worksheet-draft-modal-target="searchInput"
+                       data-action="input->worksheet-draft-modal#search">
+              </div>
+
+              <div data-worksheet-draft-modal-target="searchResults" class="player-search-results"></div>
+            </div>
+
+            <!-- Right: Draft details + selected player -->
+            <div class="modal-col-details">
               <div class="form-group">
                 <label>Draft Position</label>
                 <select name="draft_pick[drafted_position]"
@@ -281,10 +258,10 @@
                   Topped
                 </label>
               </div>
-            </div>
 
-            <div class="modal-col-details">
-              <!-- intentionally left empty — player info shown in banner above -->
+              <!-- Selected player chip -->
+              <div class="worksheet-selected-player worksheet-selected-player--empty"
+                   data-worksheet-draft-modal-target="selectedPlayerName">&nbsp;</div>
             </div>
           </div>
 

@@ -14,14 +14,9 @@ export default class extends BaseModalController {
   static targets = [
     "modal",
     "modalTitle",
+    "selectedPlayerName",
     "searchInput",
     "searchResults",
-    "noResultsMsg",
-    "selectedPlayerInfo",
-    "selectedPlayerName",
-    "selectedPlayerPositions",
-    "selectedPlayerValue",
-    "selectedPlayerAdp",
     "playerIdInput",
     "teamIdInput",
     "leagueIdInput",
@@ -62,8 +57,8 @@ export default class extends BaseModalController {
     this.playerIdInputTarget.value = ""
     this.searchInputTarget.value = ""
     this.searchResultsTarget.innerHTML = ""
-    this.selectedPlayerInfoTarget.classList.add("hidden")
-    this.noResultsMsgTarget.classList.add("hidden")
+    this.selectedPlayerNameTarget.textContent = "\u00A0"
+    this.selectedPlayerNameTarget.classList.add("worksheet-selected-player--empty")
     this.priceInputTarget.value = 1
     this.toppedCheckboxTarget.checked = false
 
@@ -72,7 +67,6 @@ export default class extends BaseModalController {
 
     super.open()
 
-    // Focus search and load initial results after modal animates in
     setTimeout(() => {
       this.searchInputTarget.focus()
       this.performSearch()
@@ -106,11 +100,10 @@ export default class extends BaseModalController {
     this.searchResultsTarget.innerHTML = ""
 
     if (players.length === 0) {
-      this.noResultsMsgTarget.classList.remove("hidden")
+      this.searchResultsTarget.innerHTML =
+        '<div style="color: var(--text-secondary); padding: 0.5rem 0.75rem; font-size: 0.9em;">No players found</div>'
       return
     }
-
-    this.noResultsMsgTarget.classList.add("hidden")
 
     players.forEach(player => {
       const row = document.createElement("div")
@@ -135,11 +128,9 @@ export default class extends BaseModalController {
     this._selectedPlayer = player
     this.playerIdInputTarget.value = player.id
 
-    // Populate details banner
-    this.selectedPlayerNameTarget.textContent = player.name
-    this.selectedPlayerPositionsTarget.textContent = player.positions || ""
-    this.selectedPlayerValueTarget.textContent = player.value != null ? `$${player.value}` : "—"
-    this.selectedPlayerAdpTarget.textContent = player.adp != null ? player.adp : "—"
+    // Show player name + positions in chip below search
+    this.selectedPlayerNameTarget.textContent = `${player.name}  ·  ${player.positions || ""}`
+    this.selectedPlayerNameTarget.classList.remove("worksheet-selected-player--empty")
 
     // Update position select to show eligible positions for this player
     this.updatePositionSelect(player.positions)
@@ -151,24 +142,10 @@ export default class extends BaseModalController {
       this.priceInputTarget.value = 1
     }
 
-    // Show selected player banner
-    this.selectedPlayerInfoTarget.classList.remove("hidden")
-
     // Re-render results list to highlight selected row
     this.renderResults(this._lastResults)
 
     this.priceInputTarget.focus()
-  }
-
-  clearSelection(event) {
-    event.preventDefault()
-    this._selectedPlayer = null
-    this.playerIdInputTarget.value = ""
-    this.selectedPlayerInfoTarget.classList.add("hidden")
-    this.searchInputTarget.value = ""
-    this.populatePositionSelect(this._currentPosition)
-    this.searchInputTarget.focus()
-    this.performSearch()
   }
 
   /**

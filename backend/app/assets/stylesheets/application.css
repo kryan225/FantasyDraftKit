@@ -483,6 +483,10 @@ textarea:focus {
   max-width: 750px;
 }
 
+.modal-content.modal-extra-wide {
+  max-width: 950px;
+}
+
 .modal-body-columns {
   display: flex;
   gap: 1.5rem;
@@ -561,11 +565,14 @@ textarea:focus {
 
 /* Worksheet Draft Modal — player search results list */
 .player-search-results {
-  max-height: 200px;
+  height: 200px;
   overflow-y: auto;
-  border: 1px solid var(--border-color);
   border-radius: 0.375rem;
   margin-bottom: 0.75rem;
+}
+
+.player-search-results:not(:empty) {
+  border: 1px solid var(--border-color);
 }
 
 .player-search-result {
@@ -596,13 +603,22 @@ textarea:focus {
 .psr-value { color: var(--secondary-color); font-size: 0.85em; min-width: 3rem; text-align: right; }
 .psr-adp   { color: var(--text-secondary); font-size: 0.8em; min-width: 5rem; text-align: right; }
 
-/* Selected player banner inside the worksheet draft modal */
-.selected-player-banner {
-  background: rgba(59, 130, 246, 0.08);
-  border: 1px solid rgba(59, 130, 246, 0.25);
-  border-radius: 0.375rem;
-  padding: 0.6rem 0.75rem;
-  margin-bottom: 0.5rem;
+/* Selected player chip in the worksheet draft modal */
+.worksheet-selected-player {
+  display: inline-block;
+  margin-top: 0.5rem;
+  padding: 0.4rem 0.9rem;
+  font-size: 1.05em;
+  font-weight: 700;
+  color: #fff;
+  background: linear-gradient(135deg, #3b82f6, #2563eb);
+  border-radius: 2rem;
+  box-shadow: 0 2px 6px rgba(37, 99, 235, 0.35);
+  letter-spacing: 0.01em;
+}
+
+.worksheet-selected-player--empty {
+  visibility: hidden;
 }
 
 /* Button styles for draft action */
