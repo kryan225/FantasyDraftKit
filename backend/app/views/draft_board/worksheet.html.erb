@@ -9,9 +9,14 @@
   teams_per_group = 6
   team_groups = @teams.each_slice(teams_per_group).to_a
   my_team_id = @my_team&.id
+
+  active_positions = (@league.roster_config || {}).select { |_, slots| slots.to_i > 0 }.keys
 %>
 
-<div class="worksheet-wrap">
+<div class="worksheet-wrap"
+     data-controller="worksheet-draft-modal"
+     data-worksheet-draft-modal-active-positions-value="<%= active_positions.to_json %>">
+
   <% team_groups.each_with_index do |group_teams, group_index| %>
     <div class="card <%= 'mb-3' unless group_index == team_groups.size - 1 %>">
       <% if group_index == 0 %>
@@ -47,16 +52,32 @@
                   pick = picks[same_pos_index]
                   topped_bg = pick&.is_topped ? 'background: rgba(255, 220, 50, 0.15);' : ''
                 %>
-                <td style="border-left: 2px solid var(--border-color); text-align: right; <%= topped_bg %>">
-                  <% if pick %>
+                <% if pick %>
+                  <td style="border-left: 2px solid var(--border-color); text-align: right; <%= topped_bg %>">
                     <% if pick.is_keeper %><strong><% end %>$<%= pick.price %><% if pick.is_keeper %></strong><% end %>
-                  <% end %>
-                </td>
-                <td style="<%= topped_bg %>">
-                  <% if pick %>
+                  </td>
+                  <td style="<%= topped_bg %>">
                     <% if pick.is_keeper %><strong><% end %><%= render partial: "players/player_name", locals: { player: pick.player, draft_pick: pick } %><% if pick.is_keeper %></strong><% end %>
-                  <% end %>
-                </td>
+                  </td>
+                <% else %>
+                  <td class="worksheet-empty-cell"
+                      style="border-left: 2px solid var(--border-color);"
+                      data-action="click->worksheet-draft-modal#open"
+                      data-team-id="<%= team.id %>"
+                      data-team-name="<%= team.name %>"
+                      data-position="<%= position %>"
+                      data-league-id="<%= @league.id %>">
+                  </td>
+                  <td class="worksheet-empty-cell"
+                      style="color: var(--text-secondary); font-size: 0.8em;"
+                      data-action="click->worksheet-draft-modal#open"
+                      data-team-id="<%= team.id %>"
+                      data-team-name="<%= team.name %>"
+                      data-position="<%= position %>"
+                      data-league-id="<%= @league.id %>">
+                    +
+                  </td>
+                <% end %>
               <% end %>
             </tr>
           <% end %>
@@ -175,4 +196,110 @@
       </table>
     </div>
   <% end %>
+
+  <!-- Worksheet Draft Modal -->
+  <div class="modal hidden"
+       data-worksheet-draft-modal-target="modal"
+       data-action="click->worksheet-draft-modal#closeOnOutsideClick">
+    <div class="modal-content modal-wide">
+      <div class="modal-header">
+        <h3 class="modal-title" data-worksheet-draft-modal-target="modalTitle">Draft Player</h3>
+        <button class="modal-close" data-action="click->worksheet-draft-modal#close" type="button">×</button>
+      </div>
+
+      <div class="modal-body">
+        <%= form_with url: draft_picks_path, method: :post, data: { action: "submit->worksheet-draft-modal#submit", turbo: true } do |f| %>
+          <input type="hidden" name="draft_pick[player_id]"  data-worksheet-draft-modal-target="playerIdInput">
+          <input type="hidden" name="draft_pick[team_id]"    data-worksheet-draft-modal-target="teamIdInput">
+          <input type="hidden" name="draft_pick[league_id]"  data-worksheet-draft-modal-target="leagueIdInput">
+          <input type="hidden" name="draft_pick[is_keeper]"  value="false">
+          <input type="hidden" name="draft_pick[is_topped]"  value="0">
+
+          <!-- Player Search -->
+          <div class="form-group">
+            <label>Search Player</label>
+            <input type="text"
+                   class="form-control"
+                   placeholder="Type player name..."
+                   autocomplete="off"
+                   data-worksheet-draft-modal-target="searchInput"
+                   data-action="input->worksheet-draft-modal#search">
+          </div>
+
+          <div class="hidden" data-worksheet-draft-modal-target="noResultsMsg"
+               style="color: var(--text-secondary); padding: 0.25rem 0 0.5rem; font-size: 0.9em;">
+            No players found
+          </div>
+
+          <div data-worksheet-draft-modal-target="searchResults" class="player-search-results"></div>
+
+          <!-- Selected Player Banner -->
+          <div class="hidden selected-player-banner" data-worksheet-draft-modal-target="selectedPlayerInfo">
+            <div style="display: flex; justify-content: space-between; align-items: center; gap: 0.5rem;">
+              <div>
+                <strong data-worksheet-draft-modal-target="selectedPlayerName"></strong>
+                <span style="margin-left: 0.5rem; color: var(--text-secondary);"
+                      data-worksheet-draft-modal-target="selectedPlayerPositions"></span>
+                <span style="margin-left: 0.5rem; color: var(--secondary-color);"
+                      data-worksheet-draft-modal-target="selectedPlayerValue"></span>
+                <span style="margin-left: 0.5rem; color: var(--text-secondary); font-size: 0.85em;">
+                  ADP: <span data-worksheet-draft-modal-target="selectedPlayerAdp"></span>
+                </span>
+              </div>
+              <button type="button" class="btn btn-sm"
+                      style="font-size: 0.75em; white-space: nowrap;"
+                      data-action="click->worksheet-draft-modal#clearSelection">
+                Change
+              </button>
+            </div>
+          </div>
+
+          <div class="modal-body-columns" style="margin-top: 1rem;">
+            <div class="modal-col-form">
+              <div class="form-group">
+                <label>Draft Position</label>
+                <select name="draft_pick[drafted_position]"
+                        class="form-control"
+                        data-worksheet-draft-modal-target="positionSelect">
+                </select>
+              </div>
+
+              <div class="form-group">
+                <label>Draft Price ($)</label>
+                <input type="number"
+                       name="draft_pick[price]"
+                       class="form-control"
+                       min="1"
+                       max="<%= @league.auction_budget %>"
+                       data-worksheet-draft-modal-target="priceInput">
+              </div>
+
+              <div class="form-group">
+                <label>
+                  <input type="checkbox" name="draft_pick[is_topped]" value="1"
+                         data-worksheet-draft-modal-target="toppedCheckbox">
+                  Topped
+                </label>
+              </div>
+            </div>
+
+            <div class="modal-col-details">
+              <!-- intentionally left empty — player info shown in banner above -->
+            </div>
+          </div>
+
+          <div class="modal-footer">
+            <button type="button" class="btn btn-cancel btn-sm"
+                    data-action="click->worksheet-draft-modal#close">
+              Cancel
+            </button>
+            <button type="submit" class="btn btn-primary btn-sm">
+              Confirm Draft
+            </button>
+          </div>
+        <% end %>
+      </div>
+    </div>
+  </div>
+
 </div>

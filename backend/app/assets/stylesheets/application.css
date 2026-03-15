@@ -548,6 +548,63 @@ textarea:focus {
   font-weight: normal;
 }
 
+/* Clickable empty cells in the auction worksheet */
+.worksheet-empty-cell {
+  cursor: pointer;
+  transition: background 0.1s;
+  user-select: none;
+}
+
+.worksheet-empty-cell:hover {
+  background: rgba(59, 130, 246, 0.10) !important;
+}
+
+/* Worksheet Draft Modal — player search results list */
+.player-search-results {
+  max-height: 200px;
+  overflow-y: auto;
+  border: 1px solid var(--border-color);
+  border-radius: 0.375rem;
+  margin-bottom: 0.75rem;
+}
+
+.player-search-result {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 0.4rem 0.75rem;
+  cursor: pointer;
+  border-bottom: 1px solid var(--border-color);
+  font-size: 0.875rem;
+  transition: background 0.1s;
+}
+
+.player-search-result:last-child {
+  border-bottom: none;
+}
+
+.player-search-result:hover {
+  background: var(--hover-bg, rgba(0, 0, 0, 0.05));
+}
+
+.player-search-result.selected {
+  background: rgba(59, 130, 246, 0.15);
+}
+
+.psr-name  { flex: 1; font-weight: 500; }
+.psr-pos   { color: var(--text-secondary); font-size: 0.8em; min-width: 3rem; }
+.psr-value { color: var(--secondary-color); font-size: 0.85em; min-width: 3rem; text-align: right; }
+.psr-adp   { color: var(--text-secondary); font-size: 0.8em; min-width: 5rem; text-align: right; }
+
+/* Selected player banner inside the worksheet draft modal */
+.selected-player-banner {
+  background: rgba(59, 130, 246, 0.08);
+  border: 1px solid rgba(59, 130, 246, 0.25);
+  border-radius: 0.375rem;
+  padding: 0.6rem 0.75rem;
+  margin-bottom: 0.5rem;
+}
+
 /* Button styles for draft action */
 .btn-draft {
   background: var(--secondary-color);

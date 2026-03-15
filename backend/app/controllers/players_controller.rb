@@ -2,6 +2,7 @@ class PlayersController < ApplicationController
   include LeagueResolvable
 
   before_action :ensure_league
+  skip_before_action :ensure_league, only: [:search]
   before_action :set_player, only: [:edit, :update, :toggle_interested]
 
   def index
@@ -25,6 +26,42 @@ class PlayersController < ApplicationController
     else
       handle_regular_update
     end
+  end
+
+  # GET /players/search?position=OF&search=Smith
+  # Returns JSON list of available players eligible for the given position.
+  # Used by the worksheet draft modal for fast client-side search.
+  def search
+    players = Player.available
+    position = params[:position]
+
+    if position.present?
+      case position
+      when "UTIL", "BENCH"
+        # All players are eligible — no additional filter
+      when "CI"
+        players = players.where("positions LIKE ? OR positions LIKE ?", "%1B%", "%3B%")
+      when "MI"
+        players = players.where("positions LIKE ? OR positions LIKE ?", "%2B%", "%SS%")
+      when "P"
+        players = players.where("positions LIKE ? OR positions LIKE ?", "%SP%", "%RP%")
+      else
+        players = players.by_position(position)
+      end
+    end
+
+    players = players.where("name ILIKE ?", "%#{params[:search]}%") if params[:search].present?
+    players = players.order(Arel.sql("calculated_value DESC NULLS LAST")).limit(20)
+
+    render json: players.map { |p|
+      {
+        id: p.id,
+        name: p.name,
+        positions: p.positions,
+        value: p.calculated_value&.round(1),
+        adp: p.projections&.dig("adp")
+      }
+    }
   end
 
   def toggle_interested

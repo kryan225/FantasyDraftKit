@@ -40,6 +40,9 @@ Rails.application.routes.draw do
     member do
       post :toggle_interested
     end
+    collection do
+      get :search
+    end
   end
 
   # Draft picks (with Turbo Streams support)
